@@ -541,6 +541,46 @@
           }
         }
       },
+      "Silk.NET.Input/2.22.0": {
+        "type": "package",
+        "dependencies": {
+          "Silk.NET.Input.Common": "2.22.0",
+          "Silk.NET.Input.Glfw": "2.22.0"
+        }
+      },
+      "Silk.NET.Input.Common/2.22.0": {
+        "type": "package",
+        "dependencies": {
+          "Silk.NET.Windowing.Common": "2.22.0"
+        },
+        "compile": {
+          "lib/net5.0/Silk.NET.Input.Common.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/Silk.NET.Input.Common.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Silk.NET.Input.Glfw/2.22.0": {
+        "type": "package",
+        "dependencies": {
+          "Silk.NET.Input.Common": "2.22.0",
+          "Silk.NET.Windowing.Glfw": "2.22.0"
+        },
+        "compile": {
+          "lib/net5.0/Silk.NET.Input.Glfw.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/Silk.NET.Input.Glfw.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Silk.NET.Maths/2.22.0": {
         "type": "package",
         "compile": {
@@ -585,6 +625,47 @@
         },
         "runtime": {
           "lib/net5.0/Silk.NET.OpenGL.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Silk.NET.Windowing/2.22.0": {
+        "type": "package",
+        "dependencies": {
+          "Silk.NET.Windowing.Common": "2.22.0",
+          "Silk.NET.Windowing.Glfw": "2.22.0"
+        }
+      },
+      "Silk.NET.Windowing.Common/2.22.0": {
+        "type": "package",
+        "dependencies": {
+          "Silk.NET.Core": "2.22.0",
+          "Silk.NET.Maths": "2.22.0"
+        },
+        "compile": {
+          "lib/netstandard2.1/Silk.NET.Windowing.Common.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.1/Silk.NET.Windowing.Common.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Silk.NET.Windowing.Glfw/2.22.0": {
+        "type": "package",
+        "dependencies": {
+          "Silk.NET.GLFW": "2.22.0",
+          "Silk.NET.Windowing.Common": "2.22.0"
+        },
+        "compile": {
+          "lib/net5.0/Silk.NET.Windowing.Glfw.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/Silk.NET.Windowing.Glfw.dll": {
             "related": ".xml"
           }
         }
@@ -1672,6 +1753,61 @@
         "silkdotnet_v3.png"
       ]
     },
+    "Silk.NET.Input/2.22.0": {
+      "sha512": "1gqbKHrKpBv2Vk983kVpMqXL4Uj36NaUIQ2YbQosFVa3pXJE8UMGiWqKtaeoMqnzItusZ1WYgDHKge37EvNm/w==",
+      "type": "package",
+      "path": "silk.net.input/2.22.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "silk.net.input.2.22.0.nupkg.sha512",
+        "silk.net.input.nuspec",
+        "silkdotnet_v3.png"
+      ]
+    },
+    "Silk.NET.Input.Common/2.22.0": {
+      "sha512": "DZy30akJABBmTnn8OICik0TFEuXrkd7YCQvoq+oh50eJzXt8JgEYYa+sJYBib/Phs5WULZg/QR7fM8Gi1G3tXg==",
+      "type": "package",
+      "path": "silk.net.input.common/2.22.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net5.0/Silk.NET.Input.Common.dll",
+        "lib/net5.0/Silk.NET.Input.Common.xml",
+        "lib/netcoreapp3.1/Silk.NET.Input.Common.dll",
+        "lib/netcoreapp3.1/Silk.NET.Input.Common.xml",
+        "lib/netstandard2.0/Silk.NET.Input.Common.dll",
+        "lib/netstandard2.0/Silk.NET.Input.Common.xml",
+        "lib/netstandard2.1/Silk.NET.Input.Common.dll",
+        "lib/netstandard2.1/Silk.NET.Input.Common.xml",
+        "silk.net.input.common.2.22.0.nupkg.sha512",
+        "silk.net.input.common.nuspec",
+        "silkdotnet_v3.png"
+      ]
+    },
+    "Silk.NET.Input.Glfw/2.22.0": {
+      "sha512": "LZPZT1e/RxnjKfkqlp2Wp8KJFP1Av/ErTCZ00EzZpFR1lhUSBgSmgJwXg6XlWoEJHyeJcsXV688zjoEe6YW0BA==",
+      "type": "package",
+      "path": "silk.net.input.glfw/2.22.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net5.0/Silk.NET.Input.Glfw.dll",
+        "lib/net5.0/Silk.NET.Input.Glfw.xml",
+        "lib/netcoreapp3.1/Silk.NET.Input.Glfw.dll",
+        "lib/netcoreapp3.1/Silk.NET.Input.Glfw.xml",
+        "lib/netstandard2.0/Silk.NET.Input.Glfw.dll",
+        "lib/netstandard2.0/Silk.NET.Input.Glfw.xml",
+        "lib/netstandard2.1/Silk.NET.Input.Glfw.dll",
+        "lib/netstandard2.1/Silk.NET.Input.Glfw.xml",
+        "silk.net.input.glfw.2.22.0.nupkg.sha512",
+        "silk.net.input.glfw.nuspec",
+        "silkdotnet_v3.png"
+      ]
+    },
     "Silk.NET.Maths/2.22.0": {
       "sha512": "W9b5UlUGCu5Ywb5f8ZyIWJ475ucY+mT/nEiSTo3JH098VxHaZS/02bYr9f29VWBaJhh3DwMkfxQvgTyXzTrHyw==",
       "type": "package",
@@ -1736,6 +1872,57 @@
         "lib/netstandard2.1/Silk.NET.OpenGL.xml",
         "silk.net.opengl.2.22.0.nupkg.sha512",
         "silk.net.opengl.nuspec",
+        "silkdotnet_v3.png"
+      ]
+    },
+    "Silk.NET.Windowing/2.22.0": {
+      "sha512": "yKGe/8REdm+T43LdtfUpFUx9eQARwx6wTmEoJ2bANVGQPCvWYC2Qi1+haT6n63dyNIX+iJWKg4++F4TFjg0/Fw==",
+      "type": "package",
+      "path": "silk.net.windowing/2.22.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "silk.net.windowing.2.22.0.nupkg.sha512",
+        "silk.net.windowing.nuspec",
+        "silkdotnet_v3.png"
+      ]
+    },
+    "Silk.NET.Windowing.Common/2.22.0": {
+      "sha512": "ynasHSQ4jGrmpn/07UagE3qVNRLzWvg+fbM8uHI0d5LF95y++Kuno42QLkP/UEruC1YovI+NRhMfGJy0gDQaZg==",
+      "type": "package",
+      "path": "silk.net.windowing.common/2.22.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/netstandard2.0/Silk.NET.Windowing.Common.dll",
+        "lib/netstandard2.0/Silk.NET.Windowing.Common.xml",
+        "lib/netstandard2.1/Silk.NET.Windowing.Common.dll",
+        "lib/netstandard2.1/Silk.NET.Windowing.Common.xml",
+        "silk.net.windowing.common.2.22.0.nupkg.sha512",
+        "silk.net.windowing.common.nuspec",
+        "silkdotnet_v3.png"
+      ]
+    },
+    "Silk.NET.Windowing.Glfw/2.22.0": {
+      "sha512": "hBNxNSLvx/jdfvbU6oCsXcgLfqf9hMlEc6Mq/rllJ0eUTLloacuOZHTM8V702QGf7hOR+Mo4bTFqTqBnC0CM7g==",
+      "type": "package",
+      "path": "silk.net.windowing.glfw/2.22.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net5.0/Silk.NET.Windowing.Glfw.dll",
+        "lib/net5.0/Silk.NET.Windowing.Glfw.xml",
+        "lib/netcoreapp3.1/Silk.NET.Windowing.Glfw.dll",
+        "lib/netcoreapp3.1/Silk.NET.Windowing.Glfw.xml",
+        "lib/netstandard2.0/Silk.NET.Windowing.Glfw.dll",
+        "lib/netstandard2.0/Silk.NET.Windowing.Glfw.xml",
+        "lib/netstandard2.1/Silk.NET.Windowing.Glfw.dll",
+        "lib/netstandard2.1/Silk.NET.Windowing.Glfw.xml",
+        "silk.net.windowing.glfw.2.22.0.nupkg.sha512",
+        "silk.net.windowing.glfw.nuspec",
         "silkdotnet_v3.png"
       ]
     },
@@ -2257,8 +2444,10 @@
       "Microsoft.Data.SqlClient >= 6.1.0-preview2.25178.5",
       "Silk.NET.Core >= 2.22.0",
       "Silk.NET.GLFW >= 2.22.0",
+      "Silk.NET.Input >= 2.22.0",
       "Silk.NET.OpenAL >= 2.22.0",
-      "Silk.NET.OpenGL >= 2.22.0"
+      "Silk.NET.OpenGL >= 2.22.0",
+      "Silk.NET.Windowing >= 2.22.0"
     ]
   },
   "packageFolders": {
@@ -2321,11 +2510,19 @@
             "target": "Package",
             "version": "[2.22.0, )"
           },
+          "Silk.NET.Input": {
+            "target": "Package",
+            "version": "[2.22.0, )"
+          },
           "Silk.NET.OpenAL": {
             "target": "Package",
             "version": "[2.22.0, )"
           },
           "Silk.NET.OpenGL": {
+            "target": "Package",
+            "version": "[2.22.0, )"
+          },
+          "Silk.NET.Windowing": {
             "target": "Package",
             "version": "[2.22.0, )"
           }

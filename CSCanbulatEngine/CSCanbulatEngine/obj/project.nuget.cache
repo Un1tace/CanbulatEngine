@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "J/LOSOda4Vo=",
+  "dgSpecHash": "xUA0BxCae8I=",
   "success": true,
   "projectFilePath": "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/CSCanbulatEngine.csproj",
   "expectedPackageFiles": [
@@ -31,9 +31,15 @@
     "/Users/kaiafful/.nuget/packages/microsoft.sqlserver.server/1.0.0/microsoft.sqlserver.server.1.0.0.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/silk.net.core/2.22.0/silk.net.core.2.22.0.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/silk.net.glfw/2.22.0/silk.net.glfw.2.22.0.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/silk.net.input/2.22.0/silk.net.input.2.22.0.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/silk.net.input.common/2.22.0/silk.net.input.common.2.22.0.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/silk.net.input.glfw/2.22.0/silk.net.input.glfw.2.22.0.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/silk.net.maths/2.22.0/silk.net.maths.2.22.0.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/silk.net.openal/2.22.0/silk.net.openal.2.22.0.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/silk.net.opengl/2.22.0/silk.net.opengl.2.22.0.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/silk.net.windowing/2.22.0/silk.net.windowing.2.22.0.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/silk.net.windowing.common/2.22.0/silk.net.windowing.common.2.22.0.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/silk.net.windowing.glfw/2.22.0/silk.net.windowing.glfw.2.22.0.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/system.buffers/4.5.1/system.buffers.4.5.1.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/system.clientmodel/1.1.0/system.clientmodel.1.1.0.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/system.configuration.configurationmanager/9.0.4/system.configuration.configurationmanager.9.0.4.nupkg.sha512",
