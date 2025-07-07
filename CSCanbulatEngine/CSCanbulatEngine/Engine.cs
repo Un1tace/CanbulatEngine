@@ -6,6 +6,8 @@ using Silk.NET.Windowing;
 using Silk.NET.OpenGL;
 using System.Drawing;
 using System.Numerics;
+using ImGuiNET;
+using Silk.NET.OpenGL.Extensions.ImGui;
 
 public class Engine
 {
@@ -18,6 +20,9 @@ public class Engine
 
     //Reference to Shader.cs class
     private static Shader shader;
+    
+    //This is the ImGUI controller, we get this from the Silk.Net Library
+    private static ImGuiController imGuiController;
 
     private static readonly float[] Vertices =
     {
@@ -47,6 +52,12 @@ public class Engine
 
         // For inputs
         IInputContext input = window.CreateInput();
+        Console.WriteLine("Created an input context");
+        
+        // ---- Initialising the IMGUI Controller----
+        imGuiController = new ImGuiController(gl, window, input);
+        Console.WriteLine("Initialised IMGUI Controller");
+        
         for (int i = 0; i < input.Keyboards.Count; i++)
         {
             input.Keyboards[i].KeyDown += KeyDown;
@@ -57,9 +68,11 @@ public class Engine
         //Create and bind VAO and VBO
         Vao = gl.GenVertexArray();
         gl.BindVertexArray(Vao);
+        Console.WriteLine("Created and binded VAO");
 
         Vbo = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, Vbo);
+        Console.WriteLine("Created and binded VBO");
         
         //Upload Vertices array to the VBO
 
@@ -70,6 +83,7 @@ public class Engine
         
         //Create instance of shader class and pass file paths
         shader = new Shader(gl, "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/Shaders/shader.vert", "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/Shaders/shader.frag");
+        Console.WriteLine("Created base shader");
         
         // Tell OpenGL (Graphics API) how to read the data in the VBO
         gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), null);
@@ -83,6 +97,9 @@ public class Engine
 
     private void OnRender(double deltaTime)
     {
+        // Update ImGUi controller
+        imGuiController.Update((float)deltaTime);
+        
         gl.ClearColor(Color.CornflowerBlue);
         gl.Clear(ClearBufferMask.ColorBufferBit);
         
@@ -93,16 +110,35 @@ public class Engine
         shader.Use();
         
         gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
+        
+        //--Defining the UI--
+
+        ImGui.Begin("Ui Window");
+
+        if (ImGui.Button("Click!"))
+        {
+            Console.WriteLine("Button Clicked");
+        }
+    
+        //End of defining the window
+        ImGui.End();
+
+        //Render the UI to the screen
+        imGuiController.Render();
     }
 
     private void OnClose()
     {
+        imGuiController.Dispose();
+        Console.WriteLine("Disposed IMGUI Controller");
+        
         gl.DeleteBuffer(Vbo);
         gl.DeleteVertexArray(Vao);
 
         shader.Dispose();
 
         gl.Dispose();
+        Console.WriteLine("Disposed OpenGL Items");
     }
 
     
