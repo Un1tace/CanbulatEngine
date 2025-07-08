@@ -14,10 +14,24 @@ public class Shader
     public Shader(GL gl, string vertexPath, string fragmentPath)
     {
         _gl = gl;
+        
+        
+        string vertexFullPath = Path.Combine(AppContext.BaseDirectory, vertexPath);
+        string fragmentFullPath = Path.Combine(AppContext.BaseDirectory, fragmentPath);
+
+        if (!File.Exists(vertexFullPath))
+        {
+            throw new FileNotFoundException($"Vertex shader not found at: {vertexFullPath}");
+        }
+        
+        if (!File.Exists(fragmentFullPath))
+        {
+            throw new FileNotFoundException($"Fragment shader not found at: {fragmentFullPath}");
+        }
 
         // Load code from files
-        string vertexShaderSource = File.ReadAllText(vertexPath);
-        string fragmentShaderSource = File.ReadAllText(fragmentPath);
+        string vertexShaderSource = File.ReadAllText(vertexFullPath);
+        string fragmentShaderSource = File.ReadAllText(fragmentFullPath);
 
         // Create and compile the shaders
         uint vertexShader = LoadShader(ShaderType.VertexShader, vertexShaderSource);
