@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace CSCanbulatEngine;
 
 using Silk.NET.Maths;
@@ -9,6 +11,8 @@ using System.Drawing;
 using System.Numerics;
 using ImGuiNET;
 using Silk.NET.OpenGL.Extensions.ImGui;
+
+//Using if editor to check if they are running the editor or the game for when they build it
 
 public class Engine
 {
@@ -32,7 +36,8 @@ public class Engine
     private static uint Fbo;
     private static uint FboTexture;
     private static uint Rbo;
-    private static Silk.NET.Maths.Vector2D<int> ViewportSize = new Vector2D<int>(1280, 720);
+    private static Silk.NET.Maths.Vector2D<int> ViewportSize;
+    private static IKeyboard? primaryKeyboard;
 #endif
 
     private static readonly float[] Vertices =
@@ -64,21 +69,28 @@ public class Engine
         // For inputs
         IInputContext input = window.CreateInput();
         Console.WriteLine("Created an input context");
+        
+        primaryKeyboard = input.Keyboards.FirstOrDefault();
+        if (primaryKeyboard != null)
+        {
+            InputManager.Initialize(primaryKeyboard);
+        }
 
 #if EDITOR
         // ---- Initialising the IMGUI Controller----
         ImGui.CreateContext();
         ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+        
         imGuiController = new ImGuiController(gl, window, input);
         
-        CreateFrameBuffer();
-        Console.WriteLine("Initialised IMGUI Controller");
-#endif
+        SetLook();
 
-        for (int i = 0; i < input.Keyboards.Count; i++)
-        {
-            input.Keyboards[i].KeyDown += KeyDown;
-        }
+        
+
+        ViewportSize = window.FramebufferSize;
+        CreateFrameBuffer();
+        Console.WriteLine("Initialised IMGUI Controller and framebuffer");
+#endif
 
         // --- Setting up resources to render ---
 
@@ -112,7 +124,32 @@ public class Engine
 
     private void OnUpdate(double deltaTime)
     {
-        // Later Logic :)
+#if EDITOR
+        //--------Keyboard shortcuts--------
+        if (primaryKeyboard != null)
+        {
+            bool modifierDown;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                modifierDown = InputManager.IsKeyDown(Key.SuperLeft) || InputManager.IsKeyDown(Key.SuperRight);
+            }
+            else
+            {
+                modifierDown = InputManager.IsKeyDown(Key.ControlLeft) || InputManager.IsKeyDown(Key.ControlRight);
+            }
+
+            if (modifierDown)
+            {
+                if (InputManager.IsKeyPressed(Key.S))
+                {
+                    SaveScene();
+                }
+            }
+        }
+       
+#endif
+        // ! ! ! Keep at last update ! ! !
+        InputManager.LateUpdate();
     }
 
     private void OnRender(double deltaTime)
@@ -127,20 +164,42 @@ public class Engine
         ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
                                        ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove;
-        windowFlags |= ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNavFocus;
+        windowFlags |= ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.MenuBar;
 
         ImGui.Begin("DockSpaceWindow", windowFlags);
         ImGui.PopStyleVar(2);
-
-        ImGui.DockSpace(ImGui.GetID("MyDockSpace"));
-
+        
+        // ImGui.DockSpace(ImGui.GetID("MyDockSpace"));
+        
+        
+        
         ImGui.End();
+
+        if (ImGui.BeginMainMenuBar())
+        {
+            if (ImGui.BeginMenu("File"))
+            {
+                string superKey = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "CMD" : "CTRL";
+                if (ImGui.MenuItem("Save", superKey + "+S"))
+                {
+                    SaveScene();
+                }
+                ImGui.EndMenu();
+            }
+
+            if (ImGui.BeginMenu("Debug"))
+            {
+                bool dockingEnabled = ImGui.GetIO().ConfigFlags.HasFlag(ImGuiConfigFlags.DockingEnable);
+                ImGui.MenuItem("Docking Enabled", "", dockingEnabled);
+                ImGui.EndMenu();
+            }
+            ImGui.EndMainMenuBar();
+        }
 
         // Render game scene to off screen FBO
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, Fbo);
-        gl.Viewport(0, 0, (uint)ViewportSize.X, (uint)ViewportSize.Y);
-        gl.ClearColor(Color.CornflowerBlue);
-        gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
+        
         DrawGameScene();
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
@@ -148,16 +207,21 @@ public class Engine
         ImGui.Begin("Game Viewport");
         Vector2 viewportPanelSize = ImGui.GetContentRegionAvail();
 
-        if (ViewportSize.X != (int)viewportPanelSize.X || ViewportSize.Y != (int)viewportPanelSize.Y)
+        var dpiScaleX = (float)window.FramebufferSize.X / window.Size.X;
+        var dpiScaleY = (float)window.FramebufferSize.Y / window.Size.Y;
+        
+        var newPixelSize = new Vector2D<int>((int)(viewportPanelSize.X * dpiScaleX), (int)(viewportPanelSize.Y * dpiScaleY));
+
+        if (ViewportSize != newPixelSize)
         {
-            if (viewportPanelSize.X > 0 && viewportPanelSize.Y > 0)
+            if (newPixelSize.X > 0 && newPixelSize.Y > 0)
             {
-                ViewportSize = new Vector2D<int>((int)viewportPanelSize.X, (int)viewportPanelSize.Y);
+                ViewportSize = newPixelSize;
                 ResizeFramebuffer();
             }
         }
 
-        ImGui.Image((IntPtr)FboTexture, new Vector2(ViewportSize.X, ViewportSize.Y), new Vector2(0, 1),
+        ImGui.Image((IntPtr)FboTexture, viewportPanelSize, new Vector2(0, 1),
             new Vector2(1, 0));
         ImGui.End();
 
@@ -170,14 +234,16 @@ public class Engine
 #else
         //-------------------Game-----------------
         gl.Viewport(0, 0, (uint)window.Size.X, (uint)window.Size.Y);
-        gl.ClearColor(Color.DarkSlateBlue);
-        gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        // gl.ClearColor(Color.DarkSlateBlue);
+        // gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         DrawGameScene();
 #endif
     }
 
     private void DrawGameScene()
     {
+        gl.ClearColor(Color.CornflowerBlue);
+        gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         gl.BindVertexArray(Vao);
         shader.Use();
         gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
@@ -243,13 +309,17 @@ public class Engine
     {
         gl.Viewport(0, 0, (uint) size.X, (uint)size.Y);
     }
-    
-    // Gets the key hit on the keyboard and exits if its escape
-    private void KeyDown(IKeyboard keyboard, Key key, int arg3)
+
+    private static void SetLook()
     {
-        if (key == Key.Escape)
-        {
-            window.Close();
-        }
+        var style = ImGui.GetStyle();
+        style.WindowRounding = 5.3f;
+        style.FrameRounding = 2.3f;
+        style.ScrollbarRounding = 5f;
+    }
+
+    private static void SaveScene()
+    {
+        Console.WriteLine("Save Scene Initiated");
     }
 }
