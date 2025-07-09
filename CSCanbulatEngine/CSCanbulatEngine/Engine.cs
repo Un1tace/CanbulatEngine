@@ -221,10 +221,13 @@ public class Engine
 
         // Render game scene to off screen FBO
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, Fbo);
-        gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
+        
+        gl.Viewport(0, 0, (uint)ViewportSize.X, (uint)ViewportSize.Y);
         
         DrawGameScene();
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        
+        gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
 
         ImGuiWindowFlags editorPanelFlags = ImGuiWindowFlags.None;
         // editorPanelFlags |= ImGuiWindowFlags.NoMove;      // Uncomment to prevent moving
