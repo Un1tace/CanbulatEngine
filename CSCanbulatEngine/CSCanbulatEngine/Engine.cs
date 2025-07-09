@@ -226,8 +226,13 @@ public class Engine
         DrawGameScene();
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
+        ImGuiWindowFlags editorPanelFlags = ImGuiWindowFlags.None;
+        // editorPanelFlags |= ImGuiWindowFlags.NoMove;      // Uncomment to prevent moving
+        // editorPanelFlags |= ImGuiWindowFlags.NoResize;    // Uncomment to prevent resizing
+        editorPanelFlags |= ImGuiWindowFlags.NoCollapse;  // Uncomment to prevent collapsing
+
         // Render the editor UI
-        ImGui.Begin("Game Viewport");
+        ImGui.Begin("Game Viewport", editorPanelFlags);
         Vector2 viewportPanelSize = ImGui.GetContentRegionAvail();
 
         var dpiScaleX = (float)window.FramebufferSize.X / window.Size.X;
@@ -248,7 +253,7 @@ public class Engine
             new Vector2(1, 0));
         ImGui.End();
 
-        ImGui.Begin("Inspector");
+        ImGui.Begin("Inspector", editorPanelFlags);
         ImGui.Text("Object properties :)");
         ImGui.End();
 
