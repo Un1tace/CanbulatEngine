@@ -38,6 +38,9 @@ public class Engine
     private static uint Rbo;
     private static Silk.NET.Maths.Vector2D<int> ViewportSize;
     private static IKeyboard? primaryKeyboard;
+    
+    // Font
+    private static ImFontPtr _customFont;
 #endif
 
     private static readonly float[] Vertices =
@@ -79,13 +82,26 @@ public class Engine
 #if EDITOR
         // ---- Initialising the IMGUI Controller----
         ImGui.CreateContext();
-        ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+        var io = ImGui.GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
         
-        imGuiController = new ImGuiController(gl, window, input);
+        
         
         SetLook();
 
+        string fontPath = Path.Combine(AppContext.BaseDirectory, "Assets/Fonts/Nunito-Regular.ttf");
+
+        if (File.Exists(fontPath))
+        {
+            _customFont = io.Fonts.AddFontFromFileTTF(fontPath, 18f);
+            Console.WriteLine("Custom Font queued for loading");
+        }
+        else
+        {
+            Console.WriteLine("Could not find font file: " + fontPath + ". Using default font");
+        }
         
+        imGuiController = new ImGuiController(gl, window, input);
 
         ViewportSize = window.FramebufferSize;
         CreateFrameBuffer();
@@ -152,11 +168,18 @@ public class Engine
         InputManager.LateUpdate();
     }
 
-    private void OnRender(double deltaTime)
+    private unsafe void OnRender(double deltaTime)
     {
 #if EDITOR
         //-------------------Editor-----------------
         imGuiController.Update((float)deltaTime);
+
+        // bool fontLoaded = _customFont.NativePtr != null;
+        //
+        // if (fontLoaded)
+        // {
+        //     ImGui.PushFont(_customFont);
+        // }
 
         ImGui.SetNextWindowPos(Vector2.Zero);
         ImGui.SetNextWindowSize(ImGui.GetIO().DisplaySize);
@@ -228,6 +251,11 @@ public class Engine
         ImGui.Begin("Inspector");
         ImGui.Text("Object properties :)");
         ImGui.End();
+
+        // if (fontLoaded)
+        // {
+        //     ImGui.PopFont();
+        // }
 
         imGuiController.Render();
 
