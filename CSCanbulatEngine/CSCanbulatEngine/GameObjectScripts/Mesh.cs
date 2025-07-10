@@ -3,7 +3,7 @@ using Silk.NET.OpenGL;
 namespace CSCanbulatEngine.GameObjectScripts;
 
 //Holds information about the mesh, vertex data and openGl buffer objects
-public class Mesh : Component
+public class Mesh
 {
     private readonly GL _gl;
     private readonly uint _vao;
@@ -11,10 +11,8 @@ public class Mesh : Component
     private readonly uint _ebo;
     private readonly uint _indexCount;
 
-    public unsafe Mesh(GL gl, float[] vertices, uint[] indices) : base("Mesh")
+    public unsafe Mesh(GL gl, float[] vertices, uint[] indices)
     {
-        base.canBeDisabled = false;
-        base.canBeRemoved = false;
         _gl = gl;
         _indexCount = (uint)indices.Length;
         

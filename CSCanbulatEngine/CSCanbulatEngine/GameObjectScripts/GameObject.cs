@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using ImGuiNET;
 
 namespace CSCanbulatEngine.GameObjectScripts;
 
@@ -18,15 +19,20 @@ public class GameObject
         Name = name;
         components = new List<Component>();
         components.Add(Transform);
-        components.Add(Mesh);
+        components.Add(new MeshRenderer(mesh));
         int nameCheck = 0;
         foreach (var gameObject in Engine._gameObjects)
         {
-            if (gameObject.Name == Name)
+            if (gameObject.Name == Name || gameObject.Name == (Name + nameCheck))
             {
                 nameCheck++;
-                Name = Name + nameCheck;
+                
             }
+        }
+        Name = Name + nameCheck;
+        if (!Engine._gameObjects.Contains(this))
+        {
+            Engine._gameObjects.Add(this);
         }
     }
 
@@ -39,8 +45,39 @@ public class GameObject
     {
         if (component.canBeRemoved)
         {
+            component.DestroyComponent();
             components.Remove(component);
         }
+
         Console.WriteLine($"Component ({component.name}) cannot be removed");
     }
+    
+    public void DeleteObject()
+    {
+        while (components.Count > 0)
+        {
+            components[0].DestroyComponent();
+            components.RemoveAt(0);
+        }
+
+        Engine._gameObjects.Remove(this);
+        if (Engine._selectedGameObject == this)
+        {
+            Engine._selectedGameObject = null;
+        }
+    }
+
+    public void RenderObjectOptionBar(string superKey)
+    {
+        if (ImGui.BeginMenu(Name))
+        {
+
+            if (ImGui.MenuItem("Remove", superKey + "+Back"))
+            {
+                DeleteObject();
+            }
+            ImGui.EndMenu();
+        }
+    }
+
 }

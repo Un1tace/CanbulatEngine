@@ -45,10 +45,10 @@ public class Transform : Component
             Engine._selectedGameObject.Transform.Position = position;
         }
                 
-        float rotation = Engine._selectedGameObject.Transform.Rotation;
+        float rotation = Engine._selectedGameObject.Transform.RotationInDegrees;
         if (ImGui.DragFloat("Rotation", ref rotation, 0.01f))
         {
-            Engine._selectedGameObject.Transform.Rotation = rotation;
+            Engine._selectedGameObject.Transform.RotationInDegrees = rotation;
         }
                 
         Vector2 scale = Engine._selectedGameObject.Transform.Scale;

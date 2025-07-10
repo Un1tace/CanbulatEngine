@@ -167,14 +167,12 @@ public class Engine
         
         var gameObject1 = new GameObject(_squareMesh);
         gameObject1.Transform.Position = new Vector2(-0.75f, 0f);
-        _gameObjects.Add(gameObject1);
         
         //Second game object
         var gameObject2 = new GameObject(_squareMesh);
         gameObject2.Transform.Position = new Vector2(0.75f, 0);
         gameObject2.Transform.Scale = new(0.5f, 0.5f);
         gameObject2.Transform.RotationInDegrees = 45;
-        _gameObjects.Add(gameObject2);
     }
 
     private void OnUpdate(double deltaTime)
@@ -198,6 +196,10 @@ public class Engine
                 if (InputManager.IsKeyPressed(Key.S))
                 {
                     SaveScene();
+                }
+                else if (InputManager.IsKeyPressed(Key.Backspace))
+                {
+                    _selectedGameObject?.DeleteObject();
                 }
             }
         }
@@ -266,15 +268,22 @@ public class Engine
 
         if (ImGui.BeginMainMenuBar())
         {
+            string superKey = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "CMD" : "CTRL";
             if (ImGui.BeginMenu("File"))
             {
-                string superKey = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "CMD" : "CTRL";
                 if (ImGui.MenuItem("Save", superKey + "+S"))
                 {
                     SaveScene();
                 }
                 ImGui.EndMenu();
             }
+
+            if (_selectedGameObject != null)
+            {
+                _selectedGameObject.RenderObjectOptionBar(superKey);
+            }
+
+            RenderObjectMenu();
 
             if (ImGui.BeginMenu("Debug"))
             {
@@ -287,6 +296,7 @@ public class Engine
             {
                 showInfoWindow = !showInfoWindow;
             }
+            
             ImGuiWindowManager.menuBarHeight = ImGui.GetFrameHeight();
             ImGuiWindowManager.InitialiseDefaults();
             ImGui.EndMainMenuBar();
@@ -418,6 +428,19 @@ public class Engine
         SetLook();
     }
     #endif
+
+    private void RenderObjectMenu()
+    {
+        if (ImGui.BeginMenu("Object"))
+        {
+            if (ImGui.MenuItem("Create GameObject"))
+            {
+                new GameObject(_squareMesh);
+                
+            }
+            ImGui.EndMenu();
+        }
+    }
 
     private unsafe void DrawGameScene(Vector2D<int> currentViewportSize, float cameraZoom)
     {

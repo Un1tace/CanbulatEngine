@@ -27,4 +27,9 @@ public class Component
     {
        ImGui.Text("Empty Component :)");
     }
+
+    public virtual void DestroyComponent()
+    {
+        
+    }
 }
