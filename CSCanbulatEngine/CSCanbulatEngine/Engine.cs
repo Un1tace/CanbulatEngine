@@ -306,7 +306,7 @@ public class Engine
                 //Centre the image horizontally
                 float contentWidth = 400f;
                 float logoAspectRatio = (float)_logoSize.X/_logoSize.Y;
-                float desiredWidth = contentWidth*0.75f;
+                float desiredWidth = contentWidth*0.6f;
                 float scaledHeight = desiredWidth/logoAspectRatio;
                 
                 Vector2 imageDisplaySize = new Vector2(desiredWidth, scaledHeight);
