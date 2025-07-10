@@ -3,8 +3,13 @@ using System.Numerics;
 namespace CSCanbulatEngine.GameObjectScripts;
 
 //Holds position, rotation and scale of an object
-public class Transform() : Component("Transform")
+public class Transform : Component
 {
+    public Transform() : base("Transform")
+    {
+        base.canBeDisabled = false;
+        base.canBeRemoved = false;
+    }
     //Pos of object in 2D space
     public Vector2 Position = Vector2.Zero;
     

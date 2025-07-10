@@ -13,6 +13,8 @@ public class Mesh : Component
 
     public unsafe Mesh(GL gl, float[] vertices, uint[] indices) : base("Mesh")
     {
+        base.canBeDisabled = false;
+        base.canBeRemoved = false;
         _gl = gl;
         _indexCount = (uint)indices.Length;
         
