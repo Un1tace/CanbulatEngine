@@ -3,7 +3,7 @@ using System.Numerics;
 namespace CSCanbulatEngine.GameObjectScripts;
 
 //Holds position, rotation and scale of an object
-public class Transform
+public class Transform() : Component("Transform")
 {
     //Pos of object in 2D space
     public Vector2 Position = Vector2.Zero;

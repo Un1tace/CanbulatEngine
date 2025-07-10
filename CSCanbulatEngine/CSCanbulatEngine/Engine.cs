@@ -21,7 +21,7 @@ public class Engine
 
     private static GL gl;
 
-    private static List<GameObject> _gameObjects;
+    public static List<GameObject> _gameObjects;
     private static Mesh _squareMesh;
 
     //--- Core Resources ---
@@ -42,6 +42,7 @@ public class Engine
 
 #if EDITOR
     //--- Editor Only Resources ---
+    private static GameObject _selectedGameObject;
     //This is the ImGUI controller, we get this from the Silk.Net Library
     private static ImGuiController imGuiController;
 
@@ -390,6 +391,15 @@ public class Engine
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[2]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[2]);
         ImGui.Begin("Hierarchy", editorPanelFlags);
+        foreach(var gameObject in _gameObjects)
+        {
+            
+            bool isSelected = (_selectedGameObject == gameObject);
+            if (ImGui.Selectable(gameObject.Name, isSelected))
+            {
+                _selectedGameObject = gameObject;
+            }
+        }
         ImGui.End();
         
         // -- Project File Manager --
