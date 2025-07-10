@@ -28,6 +28,8 @@ public class Engine
     //Reference to Shader.cs class
     private static Shader shader;
 
+    private const float GameAspectRatio = 16f / 9f;
+
 #if EDITOR
     //--- Editor Only Resources ---
     //This is the ImGUI controller, we get this from the Silk.Net Library
@@ -173,6 +175,46 @@ public class Engine
 #if EDITOR
         //-------------------Editor-----------------
         imGuiController.Update((float)deltaTime);
+        // Render game scene to off screen FBO
+        gl.BindFramebuffer(FramebufferTarget.Framebuffer, Fbo);
+        
+        gl.Viewport(0, 0, (uint)ViewportSize.X, (uint)ViewportSize.Y);
+        
+
+        float viewportAspectRatio = (float)ViewportSize.X / ViewportSize.Y;
+
+        float scaleX = 1f;
+        float scaleY = 1f;
+
+        if (viewportAspectRatio > GameAspectRatio)
+        {
+            scaleX = viewportAspectRatio / GameAspectRatio;
+        }
+        else
+        {
+            scaleY = GameAspectRatio / viewportAspectRatio;
+        }
+        
+        Matrix4x4 projection = Matrix4x4.CreateOrthographicOffCenter(-1 * scaleX, 1 * scaleX, -1 * scaleY, 1 * scaleY, -1f, 1f);
+        shader.Use();
+        shader.SetUniform("projection", projection);
+        
+        DrawGameScene();
+        
+                
+        gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        
+        gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
+
+        ImGuiWindowFlags editorPanelFlags = ImGuiWindowFlags.None;
+        // editorPanelFlags |= ImGuiWindowFlags.NoMove;      // Uncomment to prevent moving
+        // editorPanelFlags |= ImGuiWindowFlags.NoResize;    // Uncomment to prevent resizing
+        editorPanelFlags |= ImGuiWindowFlags.NoCollapse;  // Uncomment to prevent collapsing
+        
+        gl.ClearColor(Color.Black);
+        gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        
+        
 
         // bool fontLoaded = _customFont.NativePtr != null;
         //
@@ -183,14 +225,12 @@ public class Engine
 
         ImGui.SetNextWindowPos(Vector2.Zero);
         ImGui.SetNextWindowSize(ImGui.GetIO().DisplaySize);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
                                        ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove;
         windowFlags |= ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.MenuBar;
 
         ImGui.Begin("DockSpaceWindow", windowFlags);
-        ImGui.PopStyleVar(2);
+        //ImGui.PopStyleVar(2);
         
         // ImGui.DockSpace(ImGui.GetID("MyDockSpace"));
         
@@ -218,21 +258,6 @@ public class Engine
             }
             ImGui.EndMainMenuBar();
         }
-
-        // Render game scene to off screen FBO
-        gl.BindFramebuffer(FramebufferTarget.Framebuffer, Fbo);
-        
-        gl.Viewport(0, 0, (uint)ViewportSize.X, (uint)ViewportSize.Y);
-        
-        DrawGameScene();
-        gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-        
-        gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
-
-        ImGuiWindowFlags editorPanelFlags = ImGuiWindowFlags.None;
-        // editorPanelFlags |= ImGuiWindowFlags.NoMove;      // Uncomment to prevent moving
-        // editorPanelFlags |= ImGuiWindowFlags.NoResize;    // Uncomment to prevent resizing
-        editorPanelFlags |= ImGuiWindowFlags.NoCollapse;  // Uncomment to prevent collapsing
 
         // Render the editor UI
         ImGui.Begin("Game Viewport", editorPanelFlags);

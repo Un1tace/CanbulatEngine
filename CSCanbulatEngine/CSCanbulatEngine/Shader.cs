@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace CSCanbulatEngine;
 
 using Silk.NET.OpenGL;
@@ -11,6 +13,7 @@ public class Shader
     private uint _handle;
     private GL _gl;
 
+    private readonly Dictionary<string, int> _uniformLocations;
     public Shader(GL gl, string vertexPath, string fragmentPath)
     {
         _gl = gl;
@@ -55,6 +58,8 @@ public class Shader
         _gl.DetachShader(_handle, fragmentShader);
         _gl.DeleteShader(vertexShader);
         _gl.DeleteShader(fragmentShader);
+        
+        _uniformLocations = new Dictionary<string, int>();
     }
 
     private uint LoadShader(ShaderType type, string source)
@@ -83,5 +88,32 @@ public class Shader
     public void Dispose()
     {
         _gl.DeleteProgram(_handle);
+    }
+
+    //Gets locaiton of a uniform in shader
+    private int GetUniformLocation(string name)
+    {
+        if (_uniformLocations.TryGetValue(name, out var location))
+        {
+            return location;
+        }
+        
+        location = _gl.GetUniformLocation(_handle, name);
+        if (location == -1)
+        {
+            Console.WriteLine($"Warning: Uniform '{name}' not found in shader");
+        }
+
+        _uniformLocations[name] = location;
+        return location;
+    }
+
+    public unsafe void SetUniform(string name, Matrix4x4 value)
+    {
+        int location = GetUniformLocation(name);
+        if (location != -1)
+        {
+            _gl.UniformMatrix4(location, 1, false, (float*)&value);
+        }
     }
 }
