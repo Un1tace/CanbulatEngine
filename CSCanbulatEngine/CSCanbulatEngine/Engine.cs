@@ -201,6 +201,10 @@ public class Engine
                 {
                     _selectedGameObject?.DeleteObject();
                 }
+                else if (InputManager.IsKeyPressed(Key.A))
+                {
+                    new GameObject(_squareMesh);
+                }
             }
         }
        
@@ -283,7 +287,7 @@ public class Engine
                 _selectedGameObject.RenderObjectOptionBar(superKey);
             }
 
-            RenderObjectMenu();
+            RenderObjectMenu(superKey);
 
             if (ImGui.BeginMenu("Debug"))
             {
@@ -429,11 +433,12 @@ public class Engine
     }
     #endif
 
-    private void RenderObjectMenu()
+    #if EDITOR
+    private void RenderObjectMenu(string superKey)
     {
         if (ImGui.BeginMenu("Object"))
         {
-            if (ImGui.MenuItem("Create GameObject"))
+            if (ImGui.MenuItem("Create GameObject", superKey + "+A"))
             {
                 new GameObject(_squareMesh);
                 
@@ -441,7 +446,7 @@ public class Engine
             ImGui.EndMenu();
         }
     }
-
+#endif
     private unsafe void DrawGameScene(Vector2D<int> currentViewportSize, float cameraZoom)
     {
         gl.ClearColor(Color.CornflowerBlue);

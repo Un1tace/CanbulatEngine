@@ -52,6 +52,7 @@ public class GameObject
         Console.WriteLine($"Component ({component.name}) cannot be removed");
     }
     
+
     public void DeleteObject()
     {
         while (components.Count > 0)
@@ -61,12 +62,15 @@ public class GameObject
         }
 
         Engine._gameObjects.Remove(this);
+#if EDITOR
         if (Engine._selectedGameObject == this)
         {
             Engine._selectedGameObject = null;
         }
+#endif
     }
 
+#if EDITOR
     public void RenderObjectOptionBar(string superKey)
     {
         if (ImGui.BeginMenu(Name))
@@ -79,5 +83,6 @@ public class GameObject
             ImGui.EndMenu();
         }
     }
+#endif
 
 }

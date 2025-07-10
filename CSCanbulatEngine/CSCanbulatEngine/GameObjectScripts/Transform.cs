@@ -37,6 +37,7 @@ public class Transform : Component
         return scaleMatrix * rotationMatrix * translationMatrix;
     }
 
+    #if EDITOR
     public override void RenderInspector()
     {
         Vector2 position = Engine._selectedGameObject.Transform.Position;
@@ -57,4 +58,5 @@ public class Transform : Component
             Engine._selectedGameObject.Transform.Scale = scale;
         }
     }
+#endif
 }
