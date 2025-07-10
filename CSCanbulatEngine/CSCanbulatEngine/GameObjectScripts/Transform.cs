@@ -1,4 +1,5 @@
 using System.Numerics;
+using ImGuiNET;
 
 namespace CSCanbulatEngine.GameObjectScripts;
 
@@ -34,5 +35,26 @@ public class Transform : Component
         Matrix4x4 translationMatrix = Matrix4x4.CreateTranslation(Position.X, Position.Y, 0.0f);
         
         return scaleMatrix * rotationMatrix * translationMatrix;
+    }
+
+    public override void RenderInspector()
+    {
+        Vector2 position = Engine._selectedGameObject.Transform.Position;
+        if (ImGui.DragFloat2("Position", ref position, 0.05f))
+        {
+            Engine._selectedGameObject.Transform.Position = position;
+        }
+                
+        float rotation = Engine._selectedGameObject.Transform.Rotation;
+        if (ImGui.DragFloat("Rotation", ref rotation, 0.01f))
+        {
+            Engine._selectedGameObject.Transform.Rotation = rotation;
+        }
+                
+        Vector2 scale = Engine._selectedGameObject.Transform.Scale;
+        if (ImGui.DragFloat2("Scale", ref scale, 0.05f))
+        {
+            Engine._selectedGameObject.Transform.Scale = scale;
+        }
     }
 }

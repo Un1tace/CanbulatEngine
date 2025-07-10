@@ -1,3 +1,6 @@
+using System.Numerics;
+using ImGuiNET;
+
 namespace CSCanbulatEngine.GameObjectScripts;
 
 public class Component
@@ -18,5 +21,10 @@ public class Component
     public Component(string ComponentName)
     {
         name = ComponentName;
+    }
+
+    public virtual void RenderInspector()
+    {
+       ImGui.Text("Empty Component :)");
     }
 }

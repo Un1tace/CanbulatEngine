@@ -42,7 +42,7 @@ public class Engine
 
 #if EDITOR
     //--- Editor Only Resources ---
-    private static GameObject _selectedGameObject;
+    public static GameObject? _selectedGameObject;
     //This is the ImGUI controller, we get this from the Silk.Net Library
     private static ImGuiController imGuiController;
 
@@ -370,20 +370,22 @@ public class Engine
         }
 
         ImGui.PopStyleColor(1);
-
-        ImGui.SameLine();
-        if (ImGui.Button("Scene Properties"))
-        {
-            
-        }
         
         ImGui.Separator();
         
-        ImGui.Text("Object properties :)");
-
-        if (ImGui.Button("Test"))
+        //Puts all the properties in the inspector visible and rendered
+        if (_selectedGameObject != null)
         {
-            
+            ImGui.Text($"Editing {_selectedGameObject.Name}");
+            ImGui.Separator();
+
+            foreach (Component component in _selectedGameObject.components)
+            {
+                if (ImGui.CollapsingHeader(component.name, ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    component.RenderInspector();
+                }
+            }
         }
         ImGui.End();
         
