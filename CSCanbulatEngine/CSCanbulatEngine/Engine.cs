@@ -29,20 +29,24 @@ public class Engine
     private static Shader shader;
 
     private const float GameAspectRatio = 16f / 9f;
+    private static IKeyboard? primaryKeyboard;
 
 #if EDITOR
     //--- Editor Only Resources ---
     //This is the ImGUI controller, we get this from the Silk.Net Library
     private static ImGuiController imGuiController;
 
+    // Buffers needed to show in the viewport
     private static uint Fbo;
     private static uint FboTexture;
     private static uint Rbo;
+    //Size of the viewport
     private static Silk.NET.Maths.Vector2D<int> ViewportSize;
-    private static IKeyboard? primaryKeyboard;
     
     // Font
     private static ImFontPtr _customFont;
+
+    private static bool _layoutInitialised = false;
 #endif
 
     private static readonly float[] Vertices =
@@ -64,6 +68,8 @@ public class Engine
         window.Update += OnUpdate;
         window.Closing += OnClose;
 
+        window.FramebufferResize += OnFramebufferResize;
+
         window.Run();
     }
 
@@ -80,12 +86,14 @@ public class Engine
         {
             InputManager.Initialize(primaryKeyboard);
         }
-
-#if EDITOR
+        
         // ---- Initialising the IMGUI Controller----
         ImGui.CreateContext();
         var io = ImGui.GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+        // io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+
+#if EDITOR
+        
         
         
         
@@ -138,6 +146,8 @@ public class Engine
         // Tell OpenGL (Graphics API) how to read the data in the VBO
         gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), null);
         gl.EnableVertexAttribArray(0);
+        
+        ImGuiWindowManager.InitialiseDefaults();
     }
 
     private void OnUpdate(double deltaTime)
@@ -207,8 +217,8 @@ public class Engine
         gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
 
         ImGuiWindowFlags editorPanelFlags = ImGuiWindowFlags.None;
-        // editorPanelFlags |= ImGuiWindowFlags.NoMove;      // Uncomment to prevent moving
-        // editorPanelFlags |= ImGuiWindowFlags.NoResize;    // Uncomment to prevent resizing
+        editorPanelFlags |= ImGuiWindowFlags.NoMove;      // Uncomment to prevent moving
+        editorPanelFlags |= ImGuiWindowFlags.NoResize;    // Uncomment to prevent resizing
         editorPanelFlags |= ImGuiWindowFlags.NoCollapse;  // Uncomment to prevent collapsing
         
         gl.ClearColor(Color.Black);
@@ -230,10 +240,6 @@ public class Engine
         windowFlags |= ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.MenuBar;
 
         ImGui.Begin("DockSpaceWindow", windowFlags);
-        //ImGui.PopStyleVar(2);
-        
-        // ImGui.DockSpace(ImGui.GetID("MyDockSpace"));
-        
         
         
         ImGui.End();
@@ -256,10 +262,13 @@ public class Engine
                 ImGui.MenuItem("Docking Enabled", "", dockingEnabled);
                 ImGui.EndMenu();
             }
+            ImGuiWindowManager.menuBarHeight = ImGui.GetFrameHeight();
             ImGui.EndMainMenuBar();
         }
 
         // Render the editor UI
+        ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[0]);
+        ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[0]);
         ImGui.Begin("Game Viewport", editorPanelFlags);
         Vector2 viewportPanelSize = ImGui.GetContentRegionAvail();
 
@@ -281,6 +290,8 @@ public class Engine
             new Vector2(1, 0));
         ImGui.End();
 
+        ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[1]);
+        ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[1]);
         ImGui.Begin("Inspector", editorPanelFlags);
         ImGui.Text("Object properties :)");
         ImGui.End();
@@ -294,7 +305,24 @@ public class Engine
 
 #else
         //-------------------Game-----------------
-        gl.Viewport(0, 0, (uint)window.Size.X, (uint)window.Size.Y);
+        gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
+        float viewportAspectRatio = (float)window.FramebufferSize.X / window.FramebufferSize.Y;
+
+        float scaleX = 1f;
+        float scaleY = 1f;
+
+        if (viewportAspectRatio > GameAspectRatio)
+        {
+            scaleX = viewportAspectRatio / GameAspectRatio;
+        }
+        else
+        {
+            scaleY = GameAspectRatio / viewportAspectRatio;
+        }
+        
+        Matrix4x4 projection = Matrix4x4.CreateOrthographicOffCenter(-1 * scaleX, 1 * scaleX, -1 * scaleY, 1 * scaleY, -1f, 1f);
+        shader.Use();
+        shader.SetUniform("projection", projection);
         // gl.ClearColor(Color.DarkSlateBlue);
         // gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         DrawGameScene();
@@ -369,6 +397,7 @@ public class Engine
     private void OnFramebufferResize(Vector2D<int> size)
     {
         gl.Viewport(0, 0, (uint) size.X, (uint)size.Y);
+        ImGuiWindowManager.OnFrameBufferResize();
     }
 
     private static void SetLook()
