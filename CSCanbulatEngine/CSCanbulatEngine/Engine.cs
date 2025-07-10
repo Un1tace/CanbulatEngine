@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using CSCanbulatEngine.GameObjectScripts;
 
 namespace CSCanbulatEngine;
 
@@ -20,6 +21,9 @@ public class Engine
 
     private static GL gl;
 
+    private static List<GameObject> _gameObjects;
+    private static Mesh _squareMesh;
+
     //--- Core Resources ---
     // Variables for rendering
     private static uint Vbo;
@@ -33,6 +37,8 @@ public class Engine
 
     private const float GameAspectRatio = 16f / 9f;
     private static IKeyboard? primaryKeyboard;
+
+    private static float _cameraZoom = 2f;
 
 #if EDITOR
     //--- Editor Only Resources ---
@@ -58,21 +64,6 @@ public class Engine
     private static uint _logoTextureID;
     private static Vector2D<int> _logoSize;
 #endif
-
-    private static readonly float[] Vertices =
-    {
-        0.5f, 0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-        -0.5f,  0.5f, 0.0f,
-    };
-
-    // Indices are triangles to make up a item
-    private static readonly uint[] Indices =
-    {
-        0, 1, 2,
-        2, 3, 0
-    };
 
     public void Run()
     {
@@ -157,42 +148,31 @@ public class Engine
         }
 #endif
 
-        // --- Setting up resources to render ---
+        shader = new Shader(gl, "Shaders/shader.vert", "Shaders/shader.frag");
+        
+        _gameObjects = new List<GameObject>();
 
-        //Create and bind VAO and VBO
-        Vao = gl.GenVertexArray();
-        gl.BindVertexArray(Vao);
-        Console.WriteLine("Created and binded VAO");
-
-        Vbo = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, Vbo);
-        Console.WriteLine("Created and binded VBO");
-
-        //Upload Vertices array to the VBO
-
-        fixed (float* buf = Vertices)
+        float[] squareVertices =
         {
-            gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(Vertices.Length * sizeof(float)), buf,
-                BufferUsageARB.StaticDraw);
-        }
-
-        Ebo = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, Ebo);
-
-        fixed (uint* buf = Indices)
-        {
-            gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(Indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
-        }
-
-        //Create instance of shader class and pass file paths
-        shader = new Shader(gl,
-            "Shaders/shader.vert",
-            "Shaders/shader.frag");
-        Console.WriteLine("Created base shader");
-
-        // Tell OpenGL (Graphics API) how to read the data in the VBO
-        gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), null);
-        gl.EnableVertexAttribArray(0);
+            0.5f, 0.5f, 0f,
+            0.5f, -0.5f, 0f,
+            - 0.5f, -0.5f, 0f, 
+            - 0.5f, 0.5f, 0f
+        };
+        uint[] squareIndices = { 0, 1, 2, 2, 3, 0 };
+        
+        //Create our example mesh resource
+        _squareMesh = new Mesh(gl, squareVertices, squareIndices);
+        
+        var gameObject1 = new GameObject(_squareMesh);
+        gameObject1.Transform.Position = new Vector2(-0.75f, 0f);
+        _gameObjects.Add(gameObject1);
+        
+        //Second game object
+        var gameObject2 = new GameObject(_squareMesh);
+        gameObject2.Transform.Position = new Vector2(0.75f, 0);
+        gameObject2.Transform.Scale = new(0.5f, 0.5f);
+        _gameObjects.Add(gameObject2);
     }
 
     private void OnUpdate(double deltaTime)
@@ -235,41 +215,34 @@ public class Engine
         
         gl.Viewport(0, 0, (uint)ViewportSize.X, (uint)ViewportSize.Y);
         
-
-        float viewportAspectRatio = (float)ViewportSize.X / ViewportSize.Y;
-
-        Matrix4x4 projection;
-
-        if (viewportAspectRatio > 1.0f)
-        {
-            projection = Matrix4x4.CreateOrthographic(2 * viewportAspectRatio, 2f, -1f, 1f);
-        }
-        else
-        {
-            projection = Matrix4x4.CreateOrthographic(2f, 2/viewportAspectRatio, -1f, 1f);
-        }
-        
-        shader.Use();
-        shader.SetUniform("projection", projection);
-        
-        DrawGameScene();
+        DrawGameScene(ViewportSize, _cameraZoom);
         
                 
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         
         gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
-
-        ImGuiWindowFlags editorPanelFlags = ImGuiWindowFlags.None;
-        editorPanelFlags |= ImGuiWindowFlags.NoMove;      // Uncomment to prevent moving
-        editorPanelFlags |= ImGuiWindowFlags.NoResize;    // Uncomment to prevent resizing
-        editorPanelFlags |= ImGuiWindowFlags.NoCollapse;  // Uncomment to prevent collapsing
         
         gl.ClearColor(Color.Black);
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         
-        
+        RenderEditorUI();
 
-        // bool fontLoaded = _customFont.NativePtr != null;
+        imGuiController.Render();
+
+#else
+        //-------------------Game-----------------
+        gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
+        DrawGameScene(window.FramebufferSize, _cameraZoom);
+#endif
+    }
+#if EDITOR
+    private void RenderEditorUI()
+    {
+        ImGuiWindowFlags editorPanelFlags = ImGuiWindowFlags.None;
+        editorPanelFlags |= ImGuiWindowFlags.NoMove;      // Uncomment to prevent moving
+        editorPanelFlags |= ImGuiWindowFlags.NoResize;    // Uncomment to prevent resizing
+        editorPanelFlags |= ImGuiWindowFlags.NoCollapse;  // Uncomment to prevent collapsing
+                // bool fontLoaded = _customFont.NativePtr != null;
         //
         // if (fontLoaded)
         // {
@@ -430,39 +403,42 @@ public class Engine
         // }
         
         SetLook();
-
-        imGuiController.Render();
-
-#else
-        //-------------------Game-----------------
-        gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
-        float viewportAspectRatio = (float)window.FramebufferSize.X / window.FramebufferSize.Y;
-
-        Matrix4x4 projection;
-
-        if (viewportAspectRatio > 1.0f)
-        {
-            projection = Matrix4x4.CreateOrthographic(2 * viewportAspectRatio, 2f, -1f, 1f);
-        }
-        else
-        {
-            projection = Matrix4x4.CreateOrthographic(2f, 2/viewportAspectRatio, -1f, 1f);
-        }
-        shader.Use();
-        shader.SetUniform("projection", projection);
-        // gl.ClearColor(Color.DarkSlateBlue);
-        // gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        DrawGameScene();
-#endif
     }
+    #endif
 
-    private unsafe void DrawGameScene()
+    private unsafe void DrawGameScene(Vector2D<int> currentViewportSize, float cameraZoom)
     {
         gl.ClearColor(Color.CornflowerBlue);
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        gl.BindVertexArray(Vao);
+
         shader.Use();
-        gl.DrawElements(PrimitiveType.Triangles, (uint) Indices.Length, DrawElementsType.UnsignedInt, null);
+        
+        float viewportAspectRatio = (float)currentViewportSize.X / currentViewportSize.Y;
+
+        float orthoWidth, orthoHeight;
+        if (viewportAspectRatio > 1.0f)
+        {
+            orthoWidth = 2f * viewportAspectRatio * cameraZoom;
+            orthoHeight = 2f * cameraZoom;
+        }
+        else
+        {
+            orthoWidth = 2f * cameraZoom;
+            orthoHeight = 2f / viewportAspectRatio * cameraZoom;
+        }
+        Matrix4x4 projection = Matrix4x4.CreateOrthographic(orthoWidth, orthoHeight, -1f, 1f);
+        shader.Use();
+        shader.SetUniform("projection", projection);
+
+        foreach (var gameObject in _gameObjects)
+        {
+            //Get the matrix from the transform
+            Matrix4x4 modelMatrix = gameObject.Transform.GetModelMatrix();
+            //Set model uniform in the shader for the object
+            shader.SetUniform("model", modelMatrix);
+
+            gameObject.Mesh.Draw();
+        }
     }
 
     private void OnClose()
@@ -474,9 +450,7 @@ public class Engine
         gl.DeleteRenderbuffer(Rbo);
         gl.DeleteTexture(_logoTextureID);
 #endif
-        gl.DeleteBuffer(Ebo);
-        gl.DeleteBuffer(Vbo);
-        gl.DeleteVertexArray(Vao);
+        _squareMesh.Dispose();
         shader.Dispose();
         gl.Dispose();
 
