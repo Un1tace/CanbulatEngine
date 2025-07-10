@@ -4,6 +4,7 @@ using ImGuiNET;
 namespace CSCanbulatEngine;
 
 #if EDITOR
+// Entire script manages how the windows are placed in the application
 public class ImGuiWindowManager
 {
     //Values for engine.cs to take
@@ -40,6 +41,24 @@ public class ImGuiWindowManager
         
         CalculatePositionFromPercentage(1);
         CalculateSizeFromPercentage(1);
+        
+        //Hierarchy - Index 2
+        windowPosPercentage.Add(new Vector2(0f, 0));
+        windowSizPercentage.Add(new Vector2(0.25f, 0.5f));
+        windowPosition.Add(new Vector2(0, 0));
+        windowSize.Add(new Vector2(0, 0));
+        
+        CalculatePositionFromPercentage(2);
+        CalculateSizeFromPercentage(2);
+        
+        //Project File Manager - Index 3
+        windowPosPercentage.Add(new Vector2(0f, 0.5f));
+        windowSizPercentage.Add(new Vector2(0.75f, 0.5f));
+        windowPosition.Add(new Vector2(0, 0));
+        windowSize.Add(new Vector2(0, 0));
+        
+        CalculatePositionFromPercentage(3);
+        CalculateSizeFromPercentage(3);
     }
 
     public static void CalculatePositionFromPercentage(int index)

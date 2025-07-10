@@ -45,8 +45,6 @@ public class Engine
     
     // Font
     private static ImFontPtr _customFont;
-
-    private static bool _layoutInitialised = false;
 #endif
 
     private static readonly float[] Vertices =
@@ -146,8 +144,6 @@ public class Engine
         // Tell OpenGL (Graphics API) how to read the data in the VBO
         gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), null);
         gl.EnableVertexAttribArray(0);
-        
-        ImGuiWindowManager.InitialiseDefaults();
     }
 
     private void OnUpdate(double deltaTime)
@@ -232,7 +228,7 @@ public class Engine
         // {
         //     ImGui.PushFont(_customFont);
         // }
-
+        //--Dock Space Window--
         ImGui.SetNextWindowPos(Vector2.Zero);
         ImGui.SetNextWindowSize(ImGui.GetIO().DisplaySize);
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
@@ -243,6 +239,8 @@ public class Engine
         
         
         ImGui.End();
+        
+        // -- Menu Bar --
 
         if (ImGui.BeginMainMenuBar())
         {
@@ -263,10 +261,12 @@ public class Engine
                 ImGui.EndMenu();
             }
             ImGuiWindowManager.menuBarHeight = ImGui.GetFrameHeight();
+            ImGuiWindowManager.InitialiseDefaults();
             ImGui.EndMainMenuBar();
         }
 
         // Render the editor UI
+        // -- Viewport --
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[0]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[0]);
         ImGui.Begin("Game Viewport", editorPanelFlags);
@@ -289,17 +289,58 @@ public class Engine
         ImGui.Image((IntPtr)FboTexture, viewportPanelSize, new Vector2(0, 1),
             new Vector2(1, 0));
         ImGui.End();
-
+        
+        // -- Inspector --
+        ImGuiWindowFlags inspectorWindowPanelFlags = ImGuiWindowFlags.None;
+        inspectorWindowPanelFlags |= ImGuiWindowFlags.NoMove;      // Uncomment to prevent moving
+        inspectorWindowPanelFlags |= ImGuiWindowFlags.NoResize;    // Uncomment to prevent resizing
+        inspectorWindowPanelFlags |= ImGuiWindowFlags.NoCollapse;
+        inspectorWindowPanelFlags |= ImGuiWindowFlags.NoTitleBar;
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[1]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[1]);
-        ImGui.Begin("Inspector", editorPanelFlags);
+        ImGui.Begin("Inspector", inspectorWindowPanelFlags);
+        
+        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.36f, 0.55f, 0.85f, 0.8f));
+
+        if (ImGui.Button("Inspector"))
+        {
+
+        }
+
+        ImGui.PopStyleColor(1);
+
+        ImGui.SameLine();
+        if (ImGui.Button("Scene Properties"))
+        {
+            
+        }
+        
         ImGui.Text("Object properties :)");
+
+        if (ImGui.Button("Test"))
+        {
+            
+        }
+        ImGui.End();
+        
+        // -- Hierarchy --
+        ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[2]);
+        ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[2]);
+        ImGui.Begin("Hierarchy", editorPanelFlags);
+        ImGui.End();
+        
+        // -- Project File Manager --
+        ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[3]);
+        ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[3]);
+        ImGui.Begin("Project File Manager", editorPanelFlags);
         ImGui.End();
 
         // if (fontLoaded)
         // {
         //     ImGui.PopFont();
         // }
+        
+        SetLook();
 
         imGuiController.Render();
 
@@ -406,6 +447,8 @@ public class Engine
         style.WindowRounding = 5.3f;
         style.FrameRounding = 2.3f;
         style.ScrollbarRounding = 5f;
+
+        style.Colors[(int)ImGuiCol.Button] = new Vector4(0.15f, 0.4f, 0.75f, 0.8f);
     }
 
     private static void SaveScene()
