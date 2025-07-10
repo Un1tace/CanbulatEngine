@@ -172,6 +172,7 @@ public class Engine
         var gameObject2 = new GameObject(_squareMesh);
         gameObject2.Transform.Position = new Vector2(0.75f, 0);
         gameObject2.Transform.Scale = new(0.5f, 0.5f);
+        gameObject2.Transform.RotationInDegrees = 45;
         _gameObjects.Add(gameObject2);
     }
 

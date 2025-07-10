@@ -7,6 +7,12 @@ public class Transform
 {
     //Pos of object in 2D space
     public Vector2 Position = Vector2.Zero;
+    
+    public float RotationInDegrees
+    {
+        get { return Rotation * (180 / MathF.PI); }
+        set { Rotation = value * (MathF.PI / 180f); }
+    }
 
     //Rotation of object in radians
     public float Rotation = 0f;
