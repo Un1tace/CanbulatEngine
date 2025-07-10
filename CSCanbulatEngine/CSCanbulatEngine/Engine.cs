@@ -24,6 +24,9 @@ public class Engine
     // Variables for rendering
     private static uint Vbo;
     private static uint Vao;
+    
+    //Element buffer object, allows indexed drawings
+    private static uint Ebo;
 
     //Reference to Shader.cs class
     private static Shader shader;
@@ -58,24 +61,39 @@ public class Engine
 
     private static readonly float[] Vertices =
     {
-        -0.5f, -0.5f, 0.0f,
+        0.5f, 0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
-        0.0f, 0.5f, 0.0f
+        -0.5f, -0.5f, 0.0f,
+        -0.5f,  0.5f, 0.0f,
+    };
+
+    // Indices are triangles to make up a item
+    private static readonly uint[] Indices =
+    {
+        0, 1, 2,
+        2, 3, 0
     };
 
     public void Run()
     {
         var options = WindowOptions.Default;
         options.Size = new Silk.NET.Maths.Vector2D<int>(1280, 720);
-        options.Title = "Canbulat Engine";
+        #if EDITOR
+        string title = "Canbulat Engine";
+        #else
+        string title = "Game";
+        #endif
+        options.Title = title;
         window = Window.Create(options);
 
         window.Load += OnLoad;
         window.Render += OnRender;
         window.Update += OnUpdate;
         window.Closing += OnClose;
-
+        
+        #if EDITOR
         window.FramebufferResize += OnFramebufferResize;
+        #endif
 
         window.Run();
     }
@@ -158,6 +176,14 @@ public class Engine
                 BufferUsageARB.StaticDraw);
         }
 
+        Ebo = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, Ebo);
+
+        fixed (uint* buf = Indices)
+        {
+            gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(Indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
+        }
+
         //Create instance of shader class and pass file paths
         shader = new Shader(gl,
             "Shaders/shader.vert",
@@ -212,19 +238,17 @@ public class Engine
 
         float viewportAspectRatio = (float)ViewportSize.X / ViewportSize.Y;
 
-        float scaleX = 1f;
-        float scaleY = 1f;
+        Matrix4x4 projection;
 
-        if (viewportAspectRatio > GameAspectRatio)
+        if (viewportAspectRatio > 1.0f)
         {
-            scaleX = viewportAspectRatio / GameAspectRatio;
+            projection = Matrix4x4.CreateOrthographic(2 * viewportAspectRatio, 2f, -1f, 1f);
         }
         else
         {
-            scaleY = GameAspectRatio / viewportAspectRatio;
+            projection = Matrix4x4.CreateOrthographic(2f, 2/viewportAspectRatio, -1f, 1f);
         }
         
-        Matrix4x4 projection = Matrix4x4.CreateOrthographicOffCenter(-1 * scaleX, 1 * scaleX, -1 * scaleY, 1 * scaleY, -1f, 1f);
         shader.Use();
         shader.SetUniform("projection", projection);
         
@@ -414,19 +438,16 @@ public class Engine
         gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
         float viewportAspectRatio = (float)window.FramebufferSize.X / window.FramebufferSize.Y;
 
-        float scaleX = 1f;
-        float scaleY = 1f;
+        Matrix4x4 projection;
 
-        if (viewportAspectRatio > GameAspectRatio)
+        if (viewportAspectRatio > 1.0f)
         {
-            scaleX = viewportAspectRatio / GameAspectRatio;
+            projection = Matrix4x4.CreateOrthographic(2 * viewportAspectRatio, 2f, -1f, 1f);
         }
         else
         {
-            scaleY = GameAspectRatio / viewportAspectRatio;
+            projection = Matrix4x4.CreateOrthographic(2f, 2/viewportAspectRatio, -1f, 1f);
         }
-        
-        Matrix4x4 projection = Matrix4x4.CreateOrthographicOffCenter(-1 * scaleX, 1 * scaleX, -1 * scaleY, 1 * scaleY, -1f, 1f);
         shader.Use();
         shader.SetUniform("projection", projection);
         // gl.ClearColor(Color.DarkSlateBlue);
@@ -435,13 +456,13 @@ public class Engine
 #endif
     }
 
-    private void DrawGameScene()
+    private unsafe void DrawGameScene()
     {
         gl.ClearColor(Color.CornflowerBlue);
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         gl.BindVertexArray(Vao);
         shader.Use();
-        gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
+        gl.DrawElements(PrimitiveType.Triangles, (uint) Indices.Length, DrawElementsType.UnsignedInt, null);
     }
 
     private void OnClose()
@@ -451,7 +472,9 @@ public class Engine
         gl.DeleteFramebuffer(Fbo);
         gl.DeleteTexture(FboTexture);
         gl.DeleteRenderbuffer(Rbo);
+        gl.DeleteTexture(_logoTextureID);
 #endif
+        gl.DeleteBuffer(Ebo);
         gl.DeleteBuffer(Vbo);
         gl.DeleteVertexArray(Vao);
         shader.Dispose();
@@ -498,7 +521,7 @@ public class Engine
         gl.DeleteRenderbuffer(Rbo);
         CreateFrameBuffer();
     }
-#endif
+
 
     private void OnFramebufferResize(Vector2D<int> size)
     {
@@ -520,4 +543,5 @@ public class Engine
     {
         Console.WriteLine("Save Scene Initiated");
     }
+#endif
 }
