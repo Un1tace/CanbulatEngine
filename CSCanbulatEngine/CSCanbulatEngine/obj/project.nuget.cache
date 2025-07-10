@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "RnXr84OHjuA=",
+  "dgSpecHash": "8qOOrv6v3qw=",
   "success": true,
   "projectFilePath": "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/CSCanbulatEngine.csproj",
   "expectedPackageFiles": [
@@ -42,6 +42,7 @@
     "/Users/kaiafful/.nuget/packages/silk.net.windowing/2.22.0/silk.net.windowing.2.22.0.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/silk.net.windowing.common/2.22.0/silk.net.windowing.common.2.22.0.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/silk.net.windowing.glfw/2.22.0/silk.net.windowing.glfw.2.22.0.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/sixlabors.imagesharp/3.1.10/sixlabors.imagesharp.3.1.10.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/system.buffers/4.5.1/system.buffers.4.5.1.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/system.clientmodel/1.1.0/system.clientmodel.1.1.0.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/system.configuration.configurationmanager/9.0.4/system.configuration.configurationmanager.9.0.4.nupkg.sha512",

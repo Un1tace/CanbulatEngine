@@ -45,6 +45,15 @@ public class Engine
     
     // Font
     private static ImFontPtr _customFont;
+    
+    //Thread for the info window
+    private static Thread _infoWindowThread;
+
+    private bool showInfoWindow = false;
+    
+    //Texture IDs for the InfoWindow
+    private static uint _logoTextureID;
+    private static Vector2D<int> _logoSize;
 #endif
 
     private static readonly float[] Vertices =
@@ -74,6 +83,9 @@ public class Engine
     private unsafe void OnLoad()
     {
         gl = GL.GetApi(window);
+        
+        gl.Enable(EnableCap.Blend);
+        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         // For inputs
         IInputContext input = window.CreateInput();
@@ -114,6 +126,17 @@ public class Engine
         ViewportSize = window.FramebufferSize;
         CreateFrameBuffer();
         Console.WriteLine("Initialised IMGUI Controller and framebuffer");
+
+        try
+        {
+            string logoPath = Path.Combine(AppContext.BaseDirectory, "Assets/Images/Logo.png");
+            _logoTextureID = TextureLoader.Load(gl, logoPath, out _logoSize);
+            Console.WriteLine("Texture Loaded");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Failed to load logo texture: {e.Message}");
+        }
 #endif
 
         // --- Setting up resources to render ---
@@ -260,9 +283,49 @@ public class Engine
                 ImGui.MenuItem("Docking Enabled", "", dockingEnabled);
                 ImGui.EndMenu();
             }
+
+            if (ImGui.MenuItem("Info"))
+            {
+                showInfoWindow = !showInfoWindow;
+            }
             ImGuiWindowManager.menuBarHeight = ImGui.GetFrameHeight();
             ImGuiWindowManager.InitialiseDefaults();
             ImGui.EndMainMenuBar();
+        }
+        
+        // -- Info Window --
+        if (showInfoWindow)
+        {
+            ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
+            ImGui.SetNextWindowSize(new Vector2(400, 500), ImGuiCond.Appearing);
+            
+            ImGui.Begin("Info", ref showInfoWindow, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse);
+
+            if (_logoTextureID != 0)
+            {
+                //Centre the image horizontally
+                float contentWidth = 400f;
+                float logoAspectRatio = (float)_logoSize.X/_logoSize.Y;
+                float desiredWidth = contentWidth*0.75f;
+                float scaledHeight = desiredWidth/logoAspectRatio;
+                
+                Vector2 imageDisplaySize = new Vector2(desiredWidth, scaledHeight);
+                
+                float horizontalPadding = (contentWidth - desiredWidth)/2;
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + horizontalPadding);
+                
+                ImGui.Image((IntPtr)_logoTextureID, imageDisplaySize);
+                ImGui.Separator();
+            }
+        
+            ImGui.Text("Application Info");
+            ImGui.Separator();
+            ImGui.Text($"Vendor: {gl.GetStringS(StringName.Vendor)}");
+            ImGui.Text($"Renderer: {gl.GetStringS(StringName.Renderer)}");
+            ImGui.Text($"Version: {gl.GetStringS(StringName.Version)}");
+            ImGui.Text($"FPS: {ImGui.GetIO().Framerate:F1}");
+
+            ImGui.End();
         }
 
         // Render the editor UI
@@ -314,6 +377,8 @@ public class Engine
         {
             
         }
+        
+        ImGui.Separator();
         
         ImGui.Text("Object properties :)");
 

@@ -27,7 +27,7 @@ public class ImGuiWindowManager
         
         //Viewport - Index 0
         windowPosPercentage.Add(new Vector2(0.25f, 0));
-        windowSizPercentage.Add(new Vector2(0.5f, 0.5f));
+        windowSizPercentage.Add(new Vector2(0.5f, 0.6f));
         windowPosition.Add(new Vector2(0, 0));
         windowSize.Add(new Vector2(0, 0));
         
@@ -44,7 +44,7 @@ public class ImGuiWindowManager
         
         //Hierarchy - Index 2
         windowPosPercentage.Add(new Vector2(0f, 0));
-        windowSizPercentage.Add(new Vector2(0.25f, 0.5f));
+        windowSizPercentage.Add(new Vector2(0.25f, 0.6f));
         windowPosition.Add(new Vector2(0, 0));
         windowSize.Add(new Vector2(0, 0));
         
@@ -52,8 +52,8 @@ public class ImGuiWindowManager
         CalculateSizeFromPercentage(2);
         
         //Project File Manager - Index 3
-        windowPosPercentage.Add(new Vector2(0f, 0.5f));
-        windowSizPercentage.Add(new Vector2(0.75f, 0.5f));
+        windowPosPercentage.Add(new Vector2(0f, 0.6f));
+        windowSizPercentage.Add(new Vector2(0.75f, 0.4f));
         windowPosition.Add(new Vector2(0, 0));
         windowSize.Add(new Vector2(0, 0));
         
