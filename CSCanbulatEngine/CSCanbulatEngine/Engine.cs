@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text;
+using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.UIHelperScripts;
 
@@ -227,6 +228,10 @@ public class Engine
                 {
                     SaveScene();
                 }
+                else if (InputManager.IsKeyPressed(Key.O))
+                {
+                    LoadProject();
+                }
                 else if (InputManager.IsKeyPressed(Key.Backspace))
                 {
                     _selectedGameObject?.DeleteObject();
@@ -335,9 +340,14 @@ public class Engine
             string superKey = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "CMD" : "CTRL";
             if (ImGui.BeginMenu("File"))
             {
-                if (ImGui.MenuItem("Save", superKey + "+S"))
+                if (ImGui.MenuItem("Save Scene", superKey + "+S"))
                 {
                     SaveScene();
+                }
+
+                if (ImGui.MenuItem("Load Project", superKey + "+O"))
+                {
+                    LoadProject();
                 }
                 ImGui.EndMenu();
             }
@@ -633,7 +643,14 @@ public class Engine
 
     private static void SaveScene()
     {
-        Console.WriteLine("Save Scene Initiated");
+        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        Console.WriteLine($"Folder Selected: {FileDialogHelper.ShowSelectFolderDialog(documentsPath)}");
+    }
+
+    private static void LoadProject()
+    {
+        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        Console.WriteLine($"Folder Selected: {FileDialogHelper.ShowSelectFolderDialog(documentsPath)}");
     }
 #endif
 }

@@ -968,6 +968,45 @@
           "lib/netcoreapp2.1/_._": {}
         }
       },
+      "TinyDialogsNet/2.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/TinyDialogsNet.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/TinyDialogsNet.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/linux-x64/native/tinyfiledialogs.so": {
+            "assetType": "native",
+            "rid": "linux-x64"
+          },
+          "runtimes/linux-x86/native/tinyfiledialogs.so": {
+            "assetType": "native",
+            "rid": "linux-x86"
+          },
+          "runtimes/osx-arm64/native/tinyfiledialogs.dylib": {
+            "assetType": "native",
+            "rid": "osx-arm64"
+          },
+          "runtimes/osx-x64/native/tinyfiledialogs.dylib": {
+            "assetType": "native",
+            "rid": "osx-x64"
+          },
+          "runtimes/win-x64/native/tinyfiledialogs.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x86/native/tinyfiledialogs.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          }
+        }
+      },
       "Ultz.Native.GLFW/3.4.0": {
         "type": "package",
         "compile": {
@@ -2523,6 +2562,31 @@
         "version.txt"
       ]
     },
+    "TinyDialogsNet/2.0.0": {
+      "sha512": "pxaZG8V62UCtfO4KcTmyYvsiD5rC8lwp7xhmbIoyzFwXJ0hqosaDxPAG5PyvmJv5eNmm2ZviLcaGITgBEQ8cZQ==",
+      "type": "package",
+      "path": "tinydialogsnet/2.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.nuget.md",
+        "lib/net6.0/TinyDialogsNet.dll",
+        "lib/net6.0/TinyDialogsNet.xml",
+        "lib/net7.0/TinyDialogsNet.dll",
+        "lib/net7.0/TinyDialogsNet.xml",
+        "lib/net8.0/TinyDialogsNet.dll",
+        "lib/net8.0/TinyDialogsNet.xml",
+        "runtimes/linux-x64/native/tinyfiledialogs.so",
+        "runtimes/linux-x86/native/tinyfiledialogs.so",
+        "runtimes/osx-arm64/native/tinyfiledialogs.dylib",
+        "runtimes/osx-x64/native/tinyfiledialogs.dylib",
+        "runtimes/win-x64/native/tinyfiledialogs.dll",
+        "runtimes/win-x86/native/tinyfiledialogs.dll",
+        "tinydialogsnet.2.0.0.nupkg.sha512",
+        "tinydialogsnet.nuspec"
+      ]
+    },
     "Ultz.Native.GLFW/3.4.0": {
       "sha512": "Iy22JopynbOJ32vA0lBhFEzGi65GQJBuJHYBYRBpydrDpNoTiHnjIXfA65Gu+8qsOr/ZEoIF8r9aHCgAXuO6DA==",
       "type": "package",
@@ -2559,7 +2623,8 @@
       "Silk.NET.OpenGL >= 2.22.0",
       "Silk.NET.OpenGL.Extensions.ImGui >= 2.22.0",
       "Silk.NET.Windowing >= 2.22.0",
-      "SixLabors.ImageSharp >= 3.1.10"
+      "SixLabors.ImageSharp >= 3.1.10",
+      "TinyDialogsNet >= 2.0.0"
     ]
   },
   "packageFolders": {
@@ -2645,6 +2710,10 @@
           "SixLabors.ImageSharp": {
             "target": "Package",
             "version": "[3.1.10, )"
+          },
+          "TinyDialogsNet": {
+            "target": "Package",
+            "version": "[2.0.0, )"
           }
         },
         "imports": [
