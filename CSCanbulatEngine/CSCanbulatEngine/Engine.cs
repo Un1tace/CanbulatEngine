@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text;
 using CSCanbulatEngine.GameObjectScripts;
 
 namespace CSCanbulatEngine;
@@ -64,6 +65,10 @@ public class Engine
     //Texture IDs for the InfoWindow
     private static uint _logoTextureID;
     private static Vector2D<int> _logoSize;
+
+    public static Byte[] _nameBuffer = new Byte[128];
+
+    public static bool renamePopupOpen = false;
 #endif
 
     public void Run()
@@ -119,7 +124,7 @@ public class Engine
         
         SetLook();
 
-        string fontPath = Path.Combine(AppContext.BaseDirectory, "Assets/Fonts/Nunito-Regular.ttf");
+        string fontPath = Path.Combine(AppContext.BaseDirectory, "EditorAssets/Fonts/Nunito-Regular.ttf");
 
         if (File.Exists(fontPath))
         {
@@ -139,7 +144,7 @@ public class Engine
 
         try
         {
-            string logoPath = Path.Combine(AppContext.BaseDirectory, "Assets/Images/Logo.png");
+            string logoPath = Path.Combine(AppContext.BaseDirectory, "EditorAssets/Images/Logo.png");
             _logoTextureID = TextureLoader.Load(gl, logoPath, out _logoSize);
             Console.WriteLine("Texture Loaded");
         }
@@ -201,9 +206,13 @@ public class Engine
                 {
                     _selectedGameObject?.DeleteObject();
                 }
-                else if (InputManager.IsKeyPressed(Key.A))
+                else if (InputManager.IsKeyPressed(Key.A) && !renamePopupOpen)
                 {
                     new GameObject(_squareMesh);
+                }
+                else if (InputManager.IsKeyPressed(Key.Number2) && _selectedGameObject != null)
+                {
+                    renamePopupOpen = true;
                 }
             }
         }
@@ -234,6 +243,32 @@ public class Engine
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         
         RenderEditorUI();
+        
+        if (ImGui.BeginPopupModal("Rename Object", ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("Enter a new name for the object.");
+            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
+
+            if (ImGui.Button("OK"))
+            {
+                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
+                if (!string.IsNullOrWhiteSpace(newName) && Engine._selectedGameObject != null)
+                {
+                    _selectedGameObject.Name = newName;
+                }
+
+                renamePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                renamePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+                
+            }
+            ImGui.EndPopup();
+        }
 
         imGuiController.Render();
 
@@ -417,6 +452,11 @@ public class Engine
             }
         }
         ImGui.End();
+
+        if (renamePopupOpen)
+        {
+            ImGui.OpenPopup("Rename Object");
+        }
         
         // -- Project File Manager --
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[3]);

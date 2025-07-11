@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Text;
 using ImGuiNET;
 
 namespace CSCanbulatEngine.GameObjectScripts;
@@ -75,10 +76,19 @@ public class GameObject
     {
         if (ImGui.BeginMenu(Name))
         {
+            
 
             if (ImGui.MenuItem("Remove", superKey + "+Back"))
             {
                 DeleteObject();
+            }
+            if (ImGui.MenuItem("Rename"))
+            {
+                Array.Clear(Engine._nameBuffer, 0, Engine._nameBuffer.Length);
+                byte[] currentNameBytes = Encoding.UTF8.GetBytes(Engine._selectedGameObject.Name);
+                Array.Copy(currentNameBytes, Engine._nameBuffer, currentNameBytes.Length);
+                // ImGui.OpenPopup("Rename Object");
+                Engine.renamePopupOpen = true;
             }
             ImGui.EndMenu();
         }

@@ -38,10 +38,16 @@
       <None Update="Assets\Images\Logo.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="EditorAssets\Images\Logo.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="EditorAssets\Fonts\Nunito-Regular.ttf">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Assets\Images\" />
+      <Folder Include="EditorAssets\Images\" />
     </ItemGroup>
 
 </Project>
