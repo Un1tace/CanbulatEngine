@@ -19,8 +19,8 @@ public class GameObject
         components = new List<Component>();
         
         //Add Core Components
-        components.Add(Transform);
-        components.Add(new MeshRenderer(mesh));
+        AddComponent(Transform);
+        AddComponent(new MeshRenderer(mesh));
         
         //
         int nameCheck = 0;
@@ -54,7 +54,11 @@ public class GameObject
         return null;
     }
 
-    public void AddComponent(Component component) => components.Add(component);
+    public void AddComponent(Component component) {
+        
+        components.Add(component);
+        component.AttachedGameObject = this;
+    }
     
     public void RemoveComponent(Component component)
     {

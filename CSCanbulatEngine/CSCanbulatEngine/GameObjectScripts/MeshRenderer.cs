@@ -1,5 +1,6 @@
 using System.Numerics;
 using ImGuiNET;
+using Silk.NET.Maths;
 
 namespace CSCanbulatEngine.GameObjectScripts;
 
@@ -11,6 +12,24 @@ public class MeshRenderer : Component
 
     public uint TextureID = 0;
 
+    private static Vector2D<int> _imageResolution = Vector2D<int>.Zero;
+
+    public Vector2D<int> ImageResolution
+    {
+        get
+        {
+            if (TextureID != 0)
+            {
+                return _imageResolution;
+            }
+            else
+            {
+                return Vector2D<int>.One;
+            }
+        }
+        set => _imageResolution = value;
+    }
+
     public MeshRenderer(Mesh mesh) : base("MeshRenderer")
     {
         this.Mesh = mesh;
@@ -21,7 +40,9 @@ public class MeshRenderer : Component
         try
         {
             string fullPath = Path.Combine(AppContext.BaseDirectory, "EditorAssets/Images/Logo.png");
-            TextureID = TextureLoader.Load(Engine.gl, fullPath, out _);
+            Vector2D<int> sizeOutput = new Vector2D<int>();
+            TextureID = TextureLoader.Load(Engine.gl, fullPath, out sizeOutput);
+            ImageResolution = sizeOutput;
         }
         catch (Exception e)
         {

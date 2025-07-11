@@ -44,10 +44,14 @@
       <None Update="EditorAssets\Fonts\Nunito-Regular.ttf">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Resources\Icons\Lock.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="EditorAssets\Images\" />
+      <Folder Include="Resources\Icons\" />
     </ItemGroup>
 
 </Project>

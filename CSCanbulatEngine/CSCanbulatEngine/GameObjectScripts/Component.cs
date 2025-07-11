@@ -9,6 +9,8 @@ public class Component
     private bool _isEnabled = true;
     public bool canBeDisabled = true;
     public bool canBeRemoved = true;
+
+    public GameObject AttachedGameObject;
     
     public bool isEnabled
     {

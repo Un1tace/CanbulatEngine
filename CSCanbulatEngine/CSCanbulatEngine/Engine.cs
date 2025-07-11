@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using CSCanbulatEngine.GameObjectScripts;
+using CSCanbulatEngine.UIHelperScripts;
 
 namespace CSCanbulatEngine;
 
@@ -154,6 +155,8 @@ public class Engine
         {
             Console.WriteLine($"Failed to load logo texture: {e.Message}");
         }
+
+        LoadIcons.PreloadIcons();
 #endif
 
         shader = new Shader(gl, "Shaders/shader.vert", "Shaders/shader.frag");
