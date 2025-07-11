@@ -15,6 +15,19 @@ public class MeshRenderer : Component
     {
         this.Mesh = mesh;
     }
+
+    public void AssignTexture(string path)
+    {
+        try
+        {
+            string fullPath = Path.Combine(AppContext.BaseDirectory, "EditorAssets/Images/Logo.png");
+            TextureID = TextureLoader.Load(Engine.gl, fullPath, out _);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Unable to load texture: {e.Message}");
+        }
+    }
     
 #if EDITOR
     //Color picker

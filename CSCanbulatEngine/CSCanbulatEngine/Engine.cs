@@ -20,7 +20,7 @@ public class Engine
 {
     private static IWindow window;
 
-    private static GL gl;
+    public static GL gl;
 
     public static List<GameObject> _gameObjects;
     private static Mesh _squareMesh;
@@ -198,15 +198,7 @@ public class Engine
         var renderer2 = gameObject2.GetComponent<MeshRenderer>();
         if (renderer2 != null)
         {
-            try
-            {
-                string logoPath = Path.Combine(AppContext.BaseDirectory, "EditorAssets/Images/Logo.png");
-                renderer2.TextureID = TextureLoader.Load(gl, logoPath, out _);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Failed to load logo texture: {e.Message}");
-            }
+            renderer2.AssignTexture("EditorAssets/Images/Logo.png");
         }
     }
 
