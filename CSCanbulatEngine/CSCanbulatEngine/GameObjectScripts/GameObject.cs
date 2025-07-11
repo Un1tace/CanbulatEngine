@@ -35,8 +35,9 @@ public class GameObject
         {
             Engine._gameObjects.Add(this);
         }
-
+#if EDITOR
         Engine._selectedGameObject = this;
+#endif
     }
 
     public void AddComponent(Component component)
