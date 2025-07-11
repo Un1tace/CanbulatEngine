@@ -116,4 +116,18 @@ public class Shader
             _gl.UniformMatrix4(location, 1, false, (float*)&value);
         }
     }
+
+    //Overload, setting a Vector4 uniform for colour
+    public void SetUniform(string name, Vector4 value)
+    {
+        int location = GetUniformLocation(name);
+        if (location != -1) _gl.Uniform4(location, value);
+    }
+
+    //Overload for setting int uniform for texture samplers
+    public void SetUniform(string name, int value)
+    {
+        int location = GetUniformLocation(name);
+        if (location != -1) _gl.Uniform1(location, value);
+    }
 }

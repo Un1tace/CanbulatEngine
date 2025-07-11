@@ -41,6 +41,8 @@ public class Engine
 
     private static float _cameraZoom = 2f;
 
+    private static uint _whiteTexture;
+
 #if EDITOR
     //--- Editor Only Resources ---
     public static GameObject? _selectedGameObject;
@@ -157,27 +159,55 @@ public class Engine
         shader = new Shader(gl, "Shaders/shader.vert", "Shaders/shader.frag");
         
         _gameObjects = new List<GameObject>();
-
+        
+        //Format: X, Y, Z, U, V
         float[] squareVertices =
         {
-            0.5f, 0.5f, 0f,
-            0.5f, -0.5f, 0f,
-            - 0.5f, -0.5f, 0f, 
-            - 0.5f, 0.5f, 0f
+            // Position         //UV Coords
+            0.5f, 0.5f, 0f,     1.0f, 0.0f, //Top Right
+            0.5f, -0.5f, 0f,    1.0f, 1.0f, //Bottom Right
+            - 0.5f, -0.5f, 0f,  0.0f, 1.0f, //Bottom Left
+            - 0.5f, 0.5f, 0f,    0.0f, 0.0f //Top Left
         };
         uint[] squareIndices = { 0, 1, 2, 2, 3, 0 };
         
         //Create our example mesh resource
         _squareMesh = new Mesh(gl, squareVertices, squareIndices);
         
+        // If no texture assigned use 1x1 white texture
+        _whiteTexture = gl.GenTexture();
+        gl.BindTexture(TextureTarget.Texture2D, _whiteTexture);
+        byte[] whitePixel = { 255, 255, 255, 255 };
+        fixed (byte* p = whitePixel)
+        {
+            gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, 1, 1, 0, PixelFormat.Rgba, PixelType.UnsignedByte, p);
+        }
+        gl.BindTexture(TextureTarget.Texture2D, 0);
+        
         var gameObject1 = new GameObject(_squareMesh);
         gameObject1.Transform.Position = new Vector2(-0.75f, 0f);
+        var renderer1 = gameObject1.GetComponent<MeshRenderer>();
+        if (renderer1 != null) renderer1.Color = new Vector4(1, 0, 0, 1); // <- Red
         
         //Second game object
         var gameObject2 = new GameObject(_squareMesh);
         gameObject2.Transform.Position = new Vector2(0.75f, 0);
         gameObject2.Transform.Scale = new(0.5f, 0.5f);
         gameObject2.Transform.RotationInDegrees = 45;
+        //Get mesh renderer and assign texture
+        var renderer2 = gameObject2.GetComponent<MeshRenderer>();
+        if (renderer2 != null)
+        {
+            try
+            {
+                string logoPath = Path.Combine(AppContext.BaseDirectory, "EditorAssets/Images/Logo.png");
+                renderer2.TextureID = TextureLoader.Load(gl, logoPath, out _);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to load logo texture: {e.Message}");
+            }
+        }
     }
 
     private void OnUpdate(double deltaTime)
@@ -508,17 +538,28 @@ public class Engine
             orthoHeight = 2f / viewportAspectRatio * cameraZoom;
         }
         Matrix4x4 projection = Matrix4x4.CreateOrthographic(orthoWidth, orthoHeight, -1f, 1f);
-        shader.Use();
         shader.SetUniform("projection", projection);
+        
+        shader.SetUniform("uTexture", 0);
+        gl.ActiveTexture(TextureUnit.Texture0);
 
         foreach (var gameObject in _gameObjects)
         {
+            var renderer = gameObject.GetComponent<MeshRenderer>();
+            if (renderer == null) continue;
+            
+            //Set color in shader :)
+            shader.SetUniform("uColor", renderer.Color);
+
+            uint textureToBind = renderer.TextureID != 0 ? renderer.TextureID : _whiteTexture;
+            gl.BindTexture(TextureTarget.Texture2D, textureToBind);
+            
             //Get the matrix from the transform
             Matrix4x4 modelMatrix = gameObject.Transform.GetModelMatrix();
             //Set model uniform in the shader for the object
             shader.SetUniform("model", modelMatrix);
 
-            gameObject.Mesh.Draw();
+            renderer.Mesh.Draw();
         }
     }
 
@@ -533,6 +574,7 @@ public class Engine
 #endif
         _squareMesh.Dispose();
         shader.Dispose();
+        gl.DeleteTexture(_whiteTexture);
         gl.Dispose();
 
         //Clean up for all the stuff we use

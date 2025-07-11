@@ -9,28 +9,29 @@ public class GameObject
 {
     public string Name { get; set; }
     public Transform Transform { get; set; }
-    public Mesh Mesh { get; set; }
 
     public List<Component> components { get; }
 
     public GameObject(Mesh mesh, string name = "GameObject")
     {
-        Mesh = mesh;
         Transform = new Transform();
         Name = name;
         components = new List<Component>();
+        
+        //Add Core Components
         components.Add(Transform);
         components.Add(new MeshRenderer(mesh));
+        
+        //
         int nameCheck = 0;
-        foreach (var gameObject in Engine._gameObjects)
+        string baseName = name;
+        while (Engine._gameObjects.Any(go => go.Name == Name))
         {
-            if (gameObject.Name == Name || gameObject.Name == (Name + nameCheck))
-            {
-                nameCheck++;
-                
-            }
+            nameCheck++;
+            Name = $"{baseName}{nameCheck}";
         }
-        Name = Name + nameCheck;
+        
+        
         if (!Engine._gameObjects.Contains(this))
         {
             Engine._gameObjects.Add(this);
@@ -40,11 +41,21 @@ public class GameObject
 #endif
     }
 
-    public void AddComponent(Component component)
+    public T? GetComponent<T>() where T : Component
     {
-        components.Add(component);
+        foreach (var component in components)
+        {
+            if (component is T typedComponent)
+            {
+                return typedComponent;
+            }
+        }
+
+        return null;
     }
 
+    public void AddComponent(Component component) => components.Add(component);
+    
     public void RemoveComponent(Component component)
     {
         if (component.canBeRemoved)
@@ -88,8 +99,11 @@ public class GameObject
             if (ImGui.MenuItem("Rename", superKey + "+2"))
             {
                 Array.Clear(Engine._nameBuffer, 0, Engine._nameBuffer.Length);
-                byte[] currentNameBytes = Encoding.UTF8.GetBytes(Engine._selectedGameObject.Name);
-                Array.Copy(currentNameBytes, Engine._nameBuffer, currentNameBytes.Length);
+                if (Engine._selectedGameObject != null)
+                {
+                    byte[] currentNameBytes = Encoding.UTF8.GetBytes(Engine._selectedGameObject.Name);
+                    Array.Copy(currentNameBytes, Engine._nameBuffer, currentNameBytes.Length);
+                }
                 // ImGui.OpenPopup("Rename Object");
                 Engine.renamePopupOpen = true;
             }

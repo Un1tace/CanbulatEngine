@@ -35,10 +35,16 @@ public class Mesh
         {
             _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
         }
+
+        const uint vertexSize = 5 * sizeof(float);
         
-        //Set the vertex attrib pointer to tell OpenGL how to interpret the vertex data
-        _gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), null);
+        //Set the vertex attrib pointer to tell OpenGL how to interpret the vertex data (location 0)
+        _gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, vertexSize, null);
         _gl.EnableVertexAttribArray(0);
+        
+        //Vertex attribute for texture coords (location 1)
+        _gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, vertexSize, (void*)(3 * sizeof(float)));
+        _gl.EnableVertexAttribArray(1);
         
         //Unbind the VAO to prevent accidental changes
         _gl.BindVertexArray(0);
