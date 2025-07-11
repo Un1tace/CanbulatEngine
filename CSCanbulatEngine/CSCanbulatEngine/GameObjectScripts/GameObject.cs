@@ -35,6 +35,8 @@ public class GameObject
         {
             Engine._gameObjects.Add(this);
         }
+
+        Engine._selectedGameObject = this;
     }
 
     public void AddComponent(Component component)
@@ -82,7 +84,7 @@ public class GameObject
             {
                 DeleteObject();
             }
-            if (ImGui.MenuItem("Rename"))
+            if (ImGui.MenuItem("Rename", superKey + "+2"))
             {
                 Array.Clear(Engine._nameBuffer, 0, Engine._nameBuffer.Length);
                 byte[] currentNameBytes = Encoding.UTF8.GetBytes(Engine._selectedGameObject.Name);
