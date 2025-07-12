@@ -648,8 +648,9 @@ public class Engine
 
     private static void SaveScene()
     {
-        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        Console.WriteLine($"Folder Selected: {FileDialogHelper.ShowSelectFolderDialog(documentsPath)}");
+        string? documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        documentsPath = FileDialogHelper.ShowSelectFolderDialog(documentsPath);
+        Console.WriteLine($"Folder Selected: {documentsPath}");
         if (!String.IsNullOrWhiteSpace(documentsPath))
         {
             SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);

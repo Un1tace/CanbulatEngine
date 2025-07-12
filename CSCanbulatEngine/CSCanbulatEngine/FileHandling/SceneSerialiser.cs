@@ -56,7 +56,7 @@ public class SceneSerialiser
         }
 
         string json = JsonConvert.SerializeObject(sceneData, Formatting.Indented);
-        File.WriteAllText(filePath, json);
+        File.WriteAllText(Path.Combine(filePath, "Scene.txt"), json);
         Console.WriteLine($"Saved scene: {filePath}");
     }
 }
