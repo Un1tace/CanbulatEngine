@@ -20,6 +20,10 @@ using Silk.NET.OpenGL.Extensions.ImGui;
 
 public class Engine
 {
+    public string ProjectPath = "";
+    public string ScenePath = "";
+    
+    
     private static IWindow window;
 
     public static GL gl;
@@ -205,6 +209,7 @@ public class Engine
             renderer2.AssignTexture("EditorAssets/Images/Logo.png");
         }
     }
+    
 
     private void OnUpdate(double deltaTime)
     {
@@ -645,6 +650,11 @@ public class Engine
     {
         string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         Console.WriteLine($"Folder Selected: {FileDialogHelper.ShowSelectFolderDialog(documentsPath)}");
+        if (!String.IsNullOrWhiteSpace(documentsPath))
+        {
+            SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);
+            ss.SaveScene(documentsPath);
+        }
     }
 
     private static void LoadProject()

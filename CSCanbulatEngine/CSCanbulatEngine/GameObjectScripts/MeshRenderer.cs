@@ -14,6 +14,8 @@ public class MeshRenderer : Component
 
     private static Vector2D<int> _imageResolution = Vector2D<int>.Zero;
 
+    public string? TexturePath;
+
     public Vector2D<int> ImageResolution
     {
         get
@@ -43,6 +45,7 @@ public class MeshRenderer : Component
             Vector2D<int> sizeOutput = new Vector2D<int>();
             TextureID = TextureLoader.Load(Engine.gl, fullPath, out sizeOutput);
             ImageResolution = sizeOutput;
+            TexturePath = path;
         }
         catch (Exception e)
         {

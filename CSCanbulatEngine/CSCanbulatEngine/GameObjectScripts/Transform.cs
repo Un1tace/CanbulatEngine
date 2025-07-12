@@ -102,7 +102,7 @@ public class Transform : Component
             Engine._selectedGameObject.Transform.Scale = scale;
         }
 
-        if (AttachedGameObject.GetComponent<MeshRenderer>().TextureID != 0)
+        if (AttachedGameObject.GetComponent<MeshRenderer>().TextureID != 0 && LoadIcons.icons.ContainsKey("Lock.png"))
         {
             if (ImGui.ImageButton("Lock Scale Ratio", (IntPtr)LoadIcons.icons["Lock.png"],
                     new Vector2(25, 25), Vector2.Zero, Vector2.One, Vector4.Zero,

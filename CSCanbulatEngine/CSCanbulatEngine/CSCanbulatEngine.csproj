@@ -15,6 +15,7 @@
     <ItemGroup>
       <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
       <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.0-preview2.25178.5" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="Silk.NET.Core" Version="2.22.0" />
       <PackageReference Include="Silk.NET.GLFW" Version="2.22.0" />
       <PackageReference Include="Silk.NET.Input" Version="2.22.0" />
@@ -45,14 +46,18 @@
       <None Update="EditorAssets\Fonts\Nunito-Regular.ttf">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Resources\Icons\Lock.png">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="EditorAssets\Images\" />
       <Folder Include="Resources\Icons\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Resources\Icons\Lock.png" />
+      <Resource Include="Resources\Icons\Lock.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Resource>
     </ItemGroup>
 
 </Project>

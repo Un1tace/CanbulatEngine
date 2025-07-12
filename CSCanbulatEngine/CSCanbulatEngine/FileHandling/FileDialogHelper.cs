@@ -1,5 +1,4 @@
 using TinyDialogsNet;
-
 namespace CSCanbulatEngine.FileHandling;
 
 public static class FileDialogHelper

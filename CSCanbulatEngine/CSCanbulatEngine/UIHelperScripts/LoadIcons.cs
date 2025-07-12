@@ -12,24 +12,31 @@ public class LoadIcons
 
     public static void PreloadIcons()
     {
-        string fullDirectory = Path.Combine(AppContext.BaseDirectory, IconDirectory);
-        List<string> filesFound = Directory.GetFiles(fullDirectory).ToList();
-
-        foreach (string file in filesFound)
+        try
         {
-            string baseFile = file.TrimStart(fullDirectory.ToCharArray());
-            if (!file.EndsWith("png"))
+            string fullDirectory = Path.Combine(AppContext.BaseDirectory, IconDirectory);
+            List<string> filesFound = Directory.GetFiles(fullDirectory).ToList();
+
+            foreach (string file in filesFound)
             {
-                filesFound.Remove(file);
+                string baseFile = file.TrimStart(fullDirectory.ToCharArray());
+                if (!file.EndsWith("png"))
+                {
+                    filesFound.Remove(file);
+                }
+                else
+                {
+                    Vector2D<int> size = new Vector2D<int>(0, 0);
+                    uint textureID = TextureLoader.Load(Engine.gl, file, out size);
+                    icons.Add(baseFile, textureID);
+                    iconSizes.Add(baseFile, size);
+                    Console.WriteLine($"{baseFile} has been loaded");
+                }
             }
-            else
-            {
-                Vector2D<int> size = new Vector2D<int>(0, 0);
-                uint textureID = TextureLoader.Load(Engine.gl, file, out size);
-                icons.Add(baseFile, textureID);
-                iconSizes.Add(baseFile, size);
-                Console.WriteLine($"{baseFile} has been loaded");
-            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load icons: {ex.Message}");
         }
         
         
