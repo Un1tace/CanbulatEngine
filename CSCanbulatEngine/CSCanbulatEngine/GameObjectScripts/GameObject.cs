@@ -118,9 +118,10 @@ public class GameObject
                 {
                     byte[] currentNameBytes = Encoding.UTF8.GetBytes(Engine._selectedGameObject.Name);
                     Array.Copy(currentNameBytes, Engine._nameBuffer, currentNameBytes.Length);
+                    Engine.renamePopupOpen = true;
                 }
                 // ImGui.OpenPopup("Rename Object");
-                Engine.renamePopupOpen = true;
+                
             }
             ImGui.EndMenu();
         }

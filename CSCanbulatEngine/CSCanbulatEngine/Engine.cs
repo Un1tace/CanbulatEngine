@@ -79,6 +79,8 @@ public class Engine
     public static Byte[] _nameBuffer = new Byte[128];
 
     public static bool renamePopupOpen = false;
+    public static bool nameScenePopupOpen = false;
+    public static bool nameSceneAsPopup = false;
 #endif
 
     public void Run()
@@ -285,6 +287,7 @@ public class Engine
         
         RenderEditorUI();
         
+        // For Menu Bar > {Object.name} > Rename Object 
         if (ImGui.BeginPopupModal("Rename Object", ImGuiWindowFlags.AlwaysAutoResize))
         {
             ImGui.Text("Enter a new name for the object.");
@@ -305,6 +308,61 @@ public class Engine
             if (ImGui.Button("Cancel"))
             {
                 renamePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+                
+            }
+            ImGui.EndPopup();
+        }
+        
+        // For Menu Bar > File > Name Scene
+        if (ImGui.BeginPopupModal("Name Scene", ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("Enter a name for the scene");
+            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
+
+            if (ImGui.Button("OK"))
+            {
+                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
+                if (!string.IsNullOrWhiteSpace(newName) && currentScene != null)
+                {
+                    currentScene.SceneName = newName;
+                }
+
+                nameScenePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                nameScenePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+                
+            }
+            ImGui.EndPopup();
+        }
+        
+        //Before using Save as
+        if (ImGui.BeginPopupModal("Name Scene as", ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("Enter a name for the scene");
+            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
+
+            if (ImGui.Button("OK"))
+            {
+                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
+                if (!string.IsNullOrWhiteSpace(newName) && currentScene != null)
+                {
+                    currentScene.SceneName = newName;
+                    SaveSceneAsContinued();
+                }
+
+                nameSceneAsPopup = false;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                nameSceneAsPopup = false;
                 ImGui.CloseCurrentPopup();
                 
             }
@@ -363,6 +421,18 @@ public class Engine
                 if (ImGui.MenuItem("Create Scene"))
                 {
                     CreateScene();
+                }
+                if (ImGui.MenuItem("Name Scene"))
+                {
+                    Array.Clear(Engine._nameBuffer, 0, Engine._nameBuffer.Length);
+                    if (currentScene != null)
+                    {
+                        byte[] currentNameBytes = Encoding.UTF8.GetBytes(currentScene.SceneName);
+                        Array.Copy(currentNameBytes, Engine._nameBuffer, currentNameBytes.Length);
+                        nameScenePopupOpen = true;
+                    }
+                    // ImGui.OpenPopup("Rename Object");
+                    
                 }
                 if (ImGui.MenuItem("Save Scene", superKey + "+S"))
                 {
@@ -499,7 +569,7 @@ public class Engine
         // -- Hierarchy --
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[2]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[2]);
-        ImGui.Begin("Hierarchy", editorPanelFlags);
+        ImGui.Begin($"Hierarchy - {currentScene.SceneName}", editorPanelFlags);
         foreach(var gameObject in currentScene.GameObjects)
         {
             
@@ -514,6 +584,16 @@ public class Engine
         if (renamePopupOpen)
         {
             ImGui.OpenPopup("Rename Object");
+        }
+        
+        if (nameScenePopupOpen)
+        {
+            ImGui.OpenPopup("Name Scene");
+        }
+        
+        if (nameSceneAsPopup)
+        {
+            ImGui.OpenPopup("Name Scene as");
         }
         
         // -- Project File Manager --
@@ -666,24 +746,29 @@ public class Engine
 
     private static void SaveSceneAs()
     {
+        nameSceneAsPopup = true;
+    }
+    
+    private static void SaveSceneAsContinued()
+    {
         string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         string? projectPath = FileDialogHelper.ShowSelectFolderDialog(documentsPath);
         Console.WriteLine($"Folder Selected: {projectPath}");
         if (!String.IsNullOrWhiteSpace(projectPath))
         {
             currentScene.SceneFilePath = projectPath;
-            if (!String.IsNullOrWhiteSpace(currentScene.SceneName)) currentScene.SceneName = "ExampleScene";
+            if (String.IsNullOrWhiteSpace(currentScene.SceneName)) currentScene.SceneName = "ExampleScene";
             SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);
-            ss.SaveScene(projectPath, currentScene.SceneName + ".cbs");
+            ss.SaveScene(projectPath, currentScene.SceneName);
         }
     }
 
     private static void SaveScene()
     {
-        if (!String.IsNullOrWhiteSpace(currentScene.SceneFilePath) && !String.IsNullOrWhiteSpace(currentScene.SceneName))
+        if (!String.IsNullOrWhiteSpace(currentScene.SceneFilePath) && !String.IsNullOrWhiteSpace(currentScene.SceneName) && currentScene.SceneSavedOnce)
         {
             SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);
-            ss.SaveScene(currentScene.SceneFilePath, currentScene.SceneName + ".cbs");
+            ss.SaveScene(currentScene.SceneFilePath, currentScene.SceneName);
         }
         else
         {

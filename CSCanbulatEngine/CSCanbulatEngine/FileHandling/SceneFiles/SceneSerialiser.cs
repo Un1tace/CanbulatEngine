@@ -55,8 +55,9 @@ public class SceneSerialiser
         }
 
         string json = JsonConvert.SerializeObject(sceneData, Formatting.Indented);
-        File.WriteAllText(Path.Combine(filePath, sceneName), json);
+        File.WriteAllText(Path.Combine(filePath, sceneName + ".cbs"), json);
         Console.WriteLine($"Saved scene: {filePath}");
+        Engine.currentScene.SceneSavedOnce = true;
     }
 
     public void LoadScene(string filePath)
@@ -67,6 +68,7 @@ public class SceneSerialiser
         Engine.currentScene = new Scene(sceneData.SceneName);
         Engine.currentScene.SceneName = sceneData.SceneName;
         Engine.currentScene.SceneFilePath = sceneData.SceneFilePath;
+        Engine.currentScene.SceneSavedOnce = true;
         foreach (var objData in sceneData.GameObjects)
         {
             GameObject obj = new GameObject(Engine._squareMesh, objData.Name);

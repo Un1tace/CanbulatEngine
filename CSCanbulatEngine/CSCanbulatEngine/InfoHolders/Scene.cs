@@ -5,6 +5,8 @@ namespace CSCanbulatEngine.InfoHolders;
 public class Scene
 {
     public string SceneFilePath { get; set; }
+
+    public bool SceneSavedOnce = false;
     
     public string SceneName { get; set; }
 
@@ -14,5 +16,6 @@ public class Scene
     {
         this.SceneName = sceneName;
         GameObjects = new List<GameObject>();
+        SceneSavedOnce = false;
     }
 }
