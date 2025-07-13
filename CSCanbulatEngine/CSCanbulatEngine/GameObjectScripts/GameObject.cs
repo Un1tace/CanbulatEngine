@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Text;
+using CSCanbulatEngine.InfoHolders;
 using ImGuiNET;
 
 namespace CSCanbulatEngine.GameObjectScripts;
@@ -8,33 +9,30 @@ namespace CSCanbulatEngine.GameObjectScripts;
 public class GameObject
 {
     public string Name { get; set; }
-    public Transform Transform { get; set; }
-
     public List<Component> components { get; }
 
     public GameObject(Mesh mesh, string name = "GameObject")
     {
-        Transform = new Transform();
         Name = name;
         components = new List<Component>();
         
         //Add Core Components
-        AddComponent(Transform);
+        AddComponent(new Transform());
         AddComponent(new MeshRenderer(mesh));
         
         //
         int nameCheck = 0;
         string baseName = name;
-        while (Engine._gameObjects.Any(go => go.Name == Name))
+        while (Engine.currentScene.GameObjects.Any(go => go.Name == Name))
         {
             nameCheck++;
             Name = $"{baseName}{nameCheck}";
         }
         
         
-        if (!Engine._gameObjects.Contains(this))
+        if (!Engine.currentScene.GameObjects.Contains(this))
         {
-            Engine._gameObjects.Add(this);
+            Engine.currentScene.GameObjects.Add(this);
         }
 #if EDITOR
         Engine._selectedGameObject = this;
@@ -52,6 +50,19 @@ public class GameObject
         }
 
         return null;
+    }
+    
+    public int GetComponentIndex<T>() where T : Component
+    {
+        for (int i = 0; i < components.Count; i++)
+        {
+            if (components[i] is T typedComponent)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     public void AddComponent(Component component) {
@@ -80,7 +91,7 @@ public class GameObject
             components.RemoveAt(0);
         }
 
-        Engine._gameObjects.Remove(this);
+        Engine.currentScene.GameObjects.Remove(this);
 #if EDITOR
         if (Engine._selectedGameObject == this)
         {

@@ -10,7 +10,7 @@ public class MeshRenderer : Component
 
     public Vector4 Color = Vector4.One;
 
-    public uint TextureID = 0;
+    public uint TextureID { get; private set; }
 
     private static Vector2D<int> _imageResolution = Vector2D<int>.Zero;
 
@@ -35,6 +35,7 @@ public class MeshRenderer : Component
     public MeshRenderer(Mesh mesh) : base("MeshRenderer")
     {
         this.Mesh = mesh;
+        TextureID = 0;
     }
 
     public void AssignTexture(string path)

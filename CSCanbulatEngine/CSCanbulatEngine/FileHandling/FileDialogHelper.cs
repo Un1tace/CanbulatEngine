@@ -3,9 +3,9 @@ namespace CSCanbulatEngine.FileHandling;
 
 public static class FileDialogHelper
 {
-    public static string? ShowOpenFileDialog(string defaultPath)
+    public static string? ShowOpenFileDialog(string defaultPath, string[] filterPattern)
     {
-        string[] filterPatterns = { ".cbe" };
+        string[] filterPatterns = filterPattern;
         FileFilter ff = new FileFilter("Canbulat Engine Scene (*.cbe)", filterPatterns);
 
         var result = TinyDialogs.OpenFileDialog(

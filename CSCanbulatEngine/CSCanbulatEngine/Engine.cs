@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.GameObjectScripts;
+using CSCanbulatEngine.InfoHolders;
 using CSCanbulatEngine.UIHelperScripts;
 
 namespace CSCanbulatEngine;
@@ -22,14 +23,15 @@ public class Engine
 {
     public string ProjectPath = "";
     public string ScenePath = "";
+
+    public static Scene currentScene;
     
     
     private static IWindow window;
 
     public static GL gl;
 
-    public static List<GameObject> _gameObjects;
-    private static Mesh _squareMesh;
+    public static Mesh _squareMesh;
 
     //--- Core Resources ---
     // Variables for rendering
@@ -81,6 +83,7 @@ public class Engine
 
     public void Run()
     {
+        currentScene = new Scene("ExampleScene");
         var options = WindowOptions.Default;
         options.Size = new Silk.NET.Maths.Vector2D<int>(1280, 720);
         #if EDITOR
@@ -166,8 +169,6 @@ public class Engine
 
         shader = new Shader(gl, "Shaders/shader.vert", "Shaders/shader.frag");
         
-        _gameObjects = new List<GameObject>();
-        
         //Format: X, Y, Z, U, V
         float[] squareVertices =
         {
@@ -193,15 +194,15 @@ public class Engine
         gl.BindTexture(TextureTarget.Texture2D, 0);
         
         var gameObject1 = new GameObject(_squareMesh);
-        gameObject1.Transform.Position = new Vector2(-0.75f, 0f);
+        gameObject1.GetComponent<Transform>().Position = new Vector2(-0.75f, 0f);
         var renderer1 = gameObject1.GetComponent<MeshRenderer>();
         if (renderer1 != null) renderer1.Color = new Vector4(1, 0, 0, 1); // <- Red
         
         //Second game object
         var gameObject2 = new GameObject(_squareMesh);
-        gameObject2.Transform.Position = new Vector2(0.75f, 0);
-        gameObject2.Transform.Scale = new(0.5f, 0.5f);
-        gameObject2.Transform.RotationInDegrees = 45;
+        gameObject2.GetComponent<Transform>().Position = new Vector2(0.75f, 0);
+        gameObject2.GetComponent<Transform>().Scale = new(0.5f, 0.5f);
+        gameObject2.GetComponent<Transform>().RotationInDegrees = 45;
         //Get mesh renderer and assign texture
         var renderer2 = gameObject2.GetComponent<MeshRenderer>();
         if (renderer2 != null)
@@ -232,6 +233,11 @@ public class Engine
                 if (InputManager.IsKeyPressed(Key.S))
                 {
                     SaveScene();
+                }
+                else if (InputManager.IsKeyPressed(Key.S) &&
+                         (InputManager.IsKeyDown(Key.ShiftLeft) || InputManager.IsKeyDown(Key.ShiftRight)))
+                {
+                    SaveSceneAs();
                 }
                 else if (InputManager.IsKeyPressed(Key.O))
                 {
@@ -345,14 +351,26 @@ public class Engine
             string superKey = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "CMD" : "CTRL";
             if (ImGui.BeginMenu("File"))
             {
+                if (ImGui.MenuItem("Create Project"))
+                {
+                    CreateProject();
+                }
+                if (ImGui.MenuItem("Load Scene"))
+                {
+                    LoadScene();
+                }
+
+                if (ImGui.MenuItem("Create Scene"))
+                {
+                    CreateScene();
+                }
                 if (ImGui.MenuItem("Save Scene", superKey + "+S"))
                 {
                     SaveScene();
                 }
-
-                if (ImGui.MenuItem("Load Project", superKey + "+O"))
+                if (ImGui.MenuItem("Save Scene As", superKey + "+Shift+S"))
                 {
-                    LoadProject();
+                    SaveSceneAs();
                 }
                 ImGui.EndMenu();
             }
@@ -482,7 +500,7 @@ public class Engine
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[2]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[2]);
         ImGui.Begin("Hierarchy", editorPanelFlags);
-        foreach(var gameObject in _gameObjects)
+        foreach(var gameObject in currentScene.GameObjects)
         {
             
             bool isSelected = (_selectedGameObject == gameObject);
@@ -553,7 +571,7 @@ public class Engine
         shader.SetUniform("uTexture", 0);
         gl.ActiveTexture(TextureUnit.Texture0);
 
-        foreach (var gameObject in _gameObjects)
+        foreach (var gameObject in currentScene.GameObjects)
         {
             var renderer = gameObject.GetComponent<MeshRenderer>();
             if (renderer == null) continue;
@@ -565,7 +583,7 @@ public class Engine
             gl.BindTexture(TextureTarget.Texture2D, textureToBind);
             
             //Get the matrix from the transform
-            Matrix4x4 modelMatrix = gameObject.Transform.GetModelMatrix();
+            Matrix4x4 modelMatrix = gameObject.GetComponent<Transform>().GetModelMatrix();
             //Set model uniform in the shader for the object
             shader.SetUniform("model", modelMatrix);
 
@@ -646,15 +664,30 @@ public class Engine
         style.Colors[(int)ImGuiCol.Button] = new Vector4(0.15f, 0.4f, 0.75f, 0.8f);
     }
 
+    private static void SaveSceneAs()
+    {
+        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        string? projectPath = FileDialogHelper.ShowSelectFolderDialog(documentsPath);
+        Console.WriteLine($"Folder Selected: {projectPath}");
+        if (!String.IsNullOrWhiteSpace(projectPath))
+        {
+            currentScene.SceneFilePath = projectPath;
+            if (!String.IsNullOrWhiteSpace(currentScene.SceneName)) currentScene.SceneName = "ExampleScene";
+            SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);
+            ss.SaveScene(projectPath, currentScene.SceneName + ".cbs");
+        }
+    }
+
     private static void SaveScene()
     {
-        string? documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        documentsPath = FileDialogHelper.ShowSelectFolderDialog(documentsPath);
-        Console.WriteLine($"Folder Selected: {documentsPath}");
-        if (!String.IsNullOrWhiteSpace(documentsPath))
+        if (!String.IsNullOrWhiteSpace(currentScene.SceneFilePath) && !String.IsNullOrWhiteSpace(currentScene.SceneName))
         {
             SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);
-            ss.SaveScene(documentsPath);
+            ss.SaveScene(currentScene.SceneFilePath, currentScene.SceneName + ".cbs");
+        }
+        else
+        {
+            SaveSceneAs();
         }
     }
 
@@ -662,6 +695,29 @@ public class Engine
     {
         string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         Console.WriteLine($"Folder Selected: {FileDialogHelper.ShowSelectFolderDialog(documentsPath)}");
+    }
+
+    private static void LoadScene()
+    {
+        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        string? projectPath = FileDialogHelper.ShowOpenFileDialog(documentsPath, new [] {"*.cbs"});
+        Console.WriteLine($"Folder Selected: {projectPath}");
+        if (!String.IsNullOrWhiteSpace(projectPath))
+        {
+            SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);
+            ss.LoadScene(projectPath);
+        }
+    }
+
+    private static void CreateProject()
+    {
+        
+    }
+
+    private static void CreateScene()
+    {
+        currentScene = new Scene("New Scene");
+        _selectedGameObject = null;
     }
 #endif
 }

@@ -69,37 +69,37 @@ public class Transform : Component
     #if EDITOR
     public override void RenderInspector()
     {
-        Vector2 position = Engine._selectedGameObject.Transform.Position;
+        Vector2 position = Engine._selectedGameObject.GetComponent<Transform>().Position;
         if (ImGui.DragFloat2("Position", ref position, 0.05f))
         {
-            Engine._selectedGameObject.Transform.Position = position;
+            Engine._selectedGameObject.GetComponent<Transform>().Position = position;
         }
                 
-        float rotation = Engine._selectedGameObject.Transform.RotationInDegrees;
+        float rotation = Engine._selectedGameObject.GetComponent<Transform>().RotationInDegrees;
         if (ImGui.DragFloat("Rotation", ref rotation, 0.01f))
         {
-            Engine._selectedGameObject.Transform.RotationInDegrees = rotation;
+            Engine._selectedGameObject.GetComponent<Transform>().RotationInDegrees = rotation;
         }
                 
-        Vector2 scale = Engine._selectedGameObject.Transform.Scale;
+        Vector2 scale = Engine._selectedGameObject.GetComponent<Transform>().Scale;
         if (ImGui.DragFloat2("Scale", ref scale, 0.05f))
         {
             // Engine._selectedGameObject.Transform.Scale = scale;
-            if (Engine._selectedGameObject.Transform.ratioLocked)
+            if (Engine._selectedGameObject.GetComponent<Transform>().ratioLocked)
             {
-                if (scale.X != Engine._selectedGameObject.Transform.Scale.X)
+                if (scale.X != Engine._selectedGameObject.GetComponent<Transform>().Scale.X)
                 {
                     Vector2D<int> resolution = Engine._selectedGameObject.GetComponent<MeshRenderer>().ImageResolution;
                     scale.Y = scale.X * ((float)resolution.Y / (float)resolution.X); //y/x
                 }
-                else if (scale.Y != Engine._selectedGameObject.Transform.Scale.Y)
+                else if (scale.Y != Engine._selectedGameObject.GetComponent<Transform>().Scale.Y)
                 {
                     Vector2D<int> resolution = Engine._selectedGameObject.GetComponent<MeshRenderer>().ImageResolution;
                     scale.X = scale.Y * ((float)resolution.X / (float)resolution.Y); //y/x
                 }
             }
             
-            Engine._selectedGameObject.Transform.Scale = scale;
+            Engine._selectedGameObject.GetComponent<Transform>().Scale = scale;
         }
 
         if (AttachedGameObject.GetComponent<MeshRenderer>().TextureID != 0 && LoadIcons.icons.ContainsKey("Lock.png"))
