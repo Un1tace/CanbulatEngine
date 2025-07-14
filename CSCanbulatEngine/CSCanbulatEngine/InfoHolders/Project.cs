@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using CSCanbulatEngine.FileHandling;
 using ImGuiNET;
 
@@ -42,7 +43,7 @@ public class Project
             flags = ImGuiTreeNodeFlags.Leaf;
         }
 
-        bool nodeOpen = ImGui.TreeNodeEx(dir.Split("/").Last(), flags);
+        bool nodeOpen = ImGui.TreeNodeEx(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)? dir.Split('\\').Last():dir.Split("/").Last(), flags);
         
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
         {

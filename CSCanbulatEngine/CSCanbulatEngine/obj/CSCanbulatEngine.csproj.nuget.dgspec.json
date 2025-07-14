@@ -1,26 +1,33 @@
 {
   "format": 1,
   "restore": {
-    "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/CSCanbulatEngine.csproj": {}
+    "C:\\Users\\lesli\\RiderProjects\\CanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine.csproj": {}
   },
   "projects": {
-    "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/CSCanbulatEngine.csproj": {
+    "C:\\Users\\lesli\\RiderProjects\\CanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/CSCanbulatEngine.csproj",
+        "projectUniqueName": "C:\\Users\\lesli\\RiderProjects\\CanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine.csproj",
         "projectName": "CSCanbulatEngine",
-        "projectPath": "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/CSCanbulatEngine.csproj",
-        "packagesPath": "/Users/kaiafful/.nuget/packages/",
-        "outputPath": "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/obj/",
+        "projectPath": "C:\\Users\\lesli\\RiderProjects\\CanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine.csproj",
+        "packagesPath": "C:\\Users\\lesli\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\lesli\\RiderProjects\\CanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\"
+        ],
         "configFilePaths": [
-          "/Users/kaiafful/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\lesli\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "/usr/local/share/dotnet/library-packs": {},
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -56,7 +63,7 @@
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[9.0.5, )",
+              "version": "[9.0.7, )",
               "autoReferenced": true
             },
             "Newtonsoft.Json": {
@@ -113,16 +120,16 @@
           "warn": true,
           "downloadDependencies": [
             {
-              "name": "Microsoft.AspNetCore.App.Runtime.osx-arm64",
-              "version": "[9.0.5, 9.0.5]"
+              "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
+              "version": "[9.0.7, 9.0.7]"
             },
             {
-              "name": "Microsoft.NETCore.App.Crossgen2.osx-arm64",
-              "version": "[9.0.5, 9.0.5]"
+              "name": "Microsoft.NETCore.App.Runtime.win-x64",
+              "version": "[9.0.7, 9.0.7]"
             },
             {
-              "name": "Microsoft.NETCore.App.Runtime.osx-arm64",
-              "version": "[9.0.5, 9.0.5]"
+              "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
+              "version": "[9.0.7, 9.0.7]"
             }
           ],
           "frameworkReferences": {
@@ -130,11 +137,11 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.300/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Users\\lesli\\.dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
         }
       },
       "runtimes": {
-        "osx-arm64": {
+        "win-x64": {
           "#import": []
         }
       }
