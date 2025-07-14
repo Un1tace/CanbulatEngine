@@ -630,6 +630,11 @@ public class Engine
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[3]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[3]);
         ImGui.Begin("Project File Manager", editorPanelFlags);
+        float leftPanelWidth = ImGui.GetContentRegionAvail().X * 0.2f;
+        ImGui.BeginChild("Directories", new Vector2(leftPanelWidth, ImGui.GetContentRegionAvail().Y), ImGuiChildFlags.AutoResizeY);
+        ImGui.Text("Assets");
+        Project.RenderDirectories();
+        ImGui.EndChild();
         ImGui.End();
 
         // if (fontLoaded)

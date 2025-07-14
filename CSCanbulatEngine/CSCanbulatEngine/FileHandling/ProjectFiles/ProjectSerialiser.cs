@@ -141,7 +141,6 @@ public class ProjectSerialiser
         }
         
         string assetPath = Path.Combine(projectPath, "Assets");
-        Console.WriteLine(assetPath);
         
         if (!Directory.Exists(Path.Combine(assetPath, "Images")))
         {
