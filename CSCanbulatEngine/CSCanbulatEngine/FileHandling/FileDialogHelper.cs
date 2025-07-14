@@ -18,10 +18,10 @@ public static class FileDialogHelper
         return result.Canceled ? null : result.Paths.ElementAt(0);
     }
 
-    public static string? ShowSelectFolderDialog(string defaultPath)
+    public static string? ShowSelectFolderDialog(string defaultPath, string title)
     {
         var result = TinyDialogs.SelectFolderDialog(
-            title: "Select Scene Folder",
+            title: title,
             defaultPath: defaultPath);
 
         return result.Path;

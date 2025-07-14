@@ -21,9 +21,7 @@ using Silk.NET.OpenGL.Extensions.ImGui;
 
 public class Engine
 {
-    public string ProjectPath = "";
-    public string ScenePath = "";
-
+    public static Project? currentProject;
     public static Scene currentScene;
     
     
@@ -76,16 +74,23 @@ public class Engine
     private static uint _logoTextureID;
     private static Vector2D<int> _logoSize;
 
+    // For Popups
     public static Byte[] _nameBuffer = new Byte[128];
-
+    
     public static bool renamePopupOpen = false;
     public static bool nameScenePopupOpen = false;
     public static bool nameSceneAsPopup = false;
+    public static bool createProjectPopup = false;
+    public static bool projectFoundPopup = false;
+    
+    //Project Manager
+    public static string projectFilePath = "";
 #endif
 
     public void Run()
     {
         currentScene = new Scene("ExampleScene");
+        currentProject = new Project("", "");
         var options = WindowOptions.Default;
         options.Size = new Silk.NET.Maths.Vector2D<int>(1280, 720);
         #if EDITOR
@@ -323,7 +328,7 @@ public class Engine
             if (ImGui.Button("OK"))
             {
                 string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
-                if (!string.IsNullOrWhiteSpace(newName) && currentScene != null)
+                if (!string.IsNullOrWhiteSpace(newName))
                 {
                     currentScene.SceneName = newName;
                 }
@@ -350,7 +355,7 @@ public class Engine
             if (ImGui.Button("OK"))
             {
                 string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
-                if (!string.IsNullOrWhiteSpace(newName) && currentScene != null)
+                if (!string.IsNullOrWhiteSpace(newName))
                 {
                     currentScene.SceneName = newName;
                     SaveSceneAsContinued();
@@ -368,9 +373,19 @@ public class Engine
             }
             ImGui.EndPopup();
         }
+        
+        ProjectSerialiser.CreateProjectPopUp();
+        
+        ProjectSerialiser.ProjectAlreadyHerePopup();
 
         imGuiController.Render();
-
+        
+        if (currentProject.ProjectName == "")
+        {
+            currentProject.ProjectName = " ";
+            ProjectSerialiser.CreateOrLoadProjectFile();
+        }
+        
 #else
         //-------------------Game-----------------
         gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
@@ -407,11 +422,16 @@ public class Engine
         if (ImGui.BeginMainMenuBar())
         {
             string superKey = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "CMD" : "CTRL";
-            if (ImGui.BeginMenu("File"))
+            if (ImGui.BeginMenu($"Project - {currentProject.ProjectName}"))
             {
                 if (ImGui.MenuItem("Create Project"))
                 {
                     CreateProject();
+                }
+
+                if (ImGui.MenuItem("Open Project"))
+                {
+                    ProjectSerialiser.LoadProject();
                 }
                 if (ImGui.MenuItem("Load Scene"))
                 {
@@ -595,6 +615,16 @@ public class Engine
         {
             ImGui.OpenPopup("Name Scene as");
         }
+
+        if (createProjectPopup)
+        {
+            ImGui.OpenPopup("Name Project");
+        }
+
+        if (projectFoundPopup)
+        {
+            ImGui.OpenPopup("Project Found");
+        }
         
         // -- Project File Manager --
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[3]);
@@ -751,16 +781,9 @@ public class Engine
     
     private static void SaveSceneAsContinued()
     {
-        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        string? projectPath = FileDialogHelper.ShowSelectFolderDialog(documentsPath);
-        Console.WriteLine($"Folder Selected: {projectPath}");
-        if (!String.IsNullOrWhiteSpace(projectPath))
-        {
-            currentScene.SceneFilePath = projectPath;
             if (String.IsNullOrWhiteSpace(currentScene.SceneName)) currentScene.SceneName = "ExampleScene";
             SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);
-            ss.SaveScene(projectPath, currentScene.SceneName);
-        }
+            ss.SaveScene(currentScene.SceneName);
     }
 
     private static void SaveScene()
@@ -768,7 +791,7 @@ public class Engine
         if (!String.IsNullOrWhiteSpace(currentScene.SceneFilePath) && !String.IsNullOrWhiteSpace(currentScene.SceneName) && currentScene.SceneSavedOnce)
         {
             SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);
-            ss.SaveScene(currentScene.SceneFilePath, currentScene.SceneName);
+            ss.SaveScene(currentScene.SceneName);
         }
         else
         {
@@ -779,7 +802,7 @@ public class Engine
     private static void LoadProject()
     {
         string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        Console.WriteLine($"Folder Selected: {FileDialogHelper.ShowSelectFolderDialog(documentsPath)}");
+        Console.WriteLine($"Folder Selected: {FileDialogHelper.ShowSelectFolderDialog(documentsPath, "Select The Folder To Load Project")}");
     }
 
     private static void LoadScene()
@@ -796,7 +819,7 @@ public class Engine
 
     private static void CreateProject()
     {
-        
+        ProjectSerialiser.CreateProjectFiles();
     }
 
     private static void CreateScene()

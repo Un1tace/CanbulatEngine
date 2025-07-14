@@ -17,8 +17,9 @@ public class SceneSerialiser
         _defaultMesh = defaultMesh;
     }
 
-    public void SaveScene(string filePath, string sceneName = "Example Scene")
+    public void SaveScene(string sceneName = "Example Scene")
     {
+        string filePath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Scenes");
         var sceneData = new SceneData.SceneInfo();
         sceneData.SceneFilePath = filePath;
         sceneData.SceneName = sceneName;
@@ -56,6 +57,7 @@ public class SceneSerialiser
 
         string json = JsonConvert.SerializeObject(sceneData, Formatting.Indented);
         File.WriteAllText(Path.Combine(filePath, sceneName + ".cbs"), json);
+        Engine.currentScene.SceneFilePath = Path.Combine(filePath, sceneName + ".cbs");
         Console.WriteLine($"Saved scene: {filePath}");
         Engine.currentScene.SceneSavedOnce = true;
     }

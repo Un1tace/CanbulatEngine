@@ -60,7 +60,7 @@ public class MeshRenderer : Component
     {
         if (ImGui.ColorEdit4("Color", ref Color))
         {
-            
+            //?Possible different options like hex or colour picker
         }
         
         ImGui.Text($"Texture ID: {TextureID}");
