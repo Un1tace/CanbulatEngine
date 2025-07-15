@@ -490,7 +490,7 @@
           }
         }
       },
-      "Microsoft.NET.ILLink.Tasks/9.0.7": {
+      "Microsoft.NET.ILLink.Tasks/9.0.5": {
         "type": "package",
         "build": {
           "build/Microsoft.NET.ILLink.Tasks.props": {}
@@ -1070,7 +1070,7 @@
         }
       }
     },
-    "net9.0/win-x64": {
+    "net9.0/osx-arm64": {
       "Azure.Core/1.44.1": {
         "type": "package",
         "dependencies": {
@@ -1132,7 +1132,7 @@
           }
         },
         "native": {
-          "runtimes/win-x64/native/cimgui.dll": {}
+          "runtimes/osx/native/libcimgui.dylib": {}
         }
       },
       "Microsoft.Bcl.AsyncInterfaces/6.0.0": {
@@ -1193,7 +1193,7 @@
           }
         },
         "runtime": {
-          "runtimes/win/lib/net9.0/Microsoft.Data.SqlClient.dll": {}
+          "runtimes/unix/lib/net9.0/Microsoft.Data.SqlClient.dll": {}
         },
         "resource": {
           "lib/net9.0/cs/Microsoft.Data.SqlClient.resources.dll": {
@@ -1238,10 +1238,7 @@
         }
       },
       "Microsoft.Data.SqlClient.SNI.runtime/6.0.2": {
-        "type": "package",
-        "native": {
-          "runtimes/win-x64/native/Microsoft.Data.SqlClient.SNI.dll": {}
-        }
+        "type": "package"
       },
       "Microsoft.DotNet.PlatformAbstractions/3.1.6": {
         "type": "package",
@@ -1517,7 +1514,7 @@
           }
         }
       },
-      "Microsoft.NET.ILLink.Tasks/9.0.7": {
+      "Microsoft.NET.ILLink.Tasks/9.0.5": {
         "type": "package",
         "build": {
           "build/Microsoft.NET.ILLink.Tasks.props": {}
@@ -1841,8 +1838,7 @@
           }
         },
         "runtime": {
-          "runtimes/win/lib/net9.0/System.Diagnostics.EventLog.Messages.dll": {},
-          "runtimes/win/lib/net9.0/System.Diagnostics.EventLog.dll": {
+          "lib/net9.0/System.Diagnostics.EventLog.dll": {
             "related": ".xml"
           }
         },
@@ -1928,7 +1924,7 @@
           }
         },
         "runtime": {
-          "runtimes/win/lib/net9.0/System.Security.Cryptography.Pkcs.dll": {
+          "lib/net9.0/System.Security.Cryptography.Pkcs.dll": {
             "related": ".xml"
           }
         },
@@ -2006,7 +2002,7 @@
           }
         },
         "native": {
-          "runtimes/win-x64/native/tinyfiledialogs.dll": {}
+          "runtimes/osx-arm64/native/tinyfiledialogs.dylib": {}
         }
       },
       "Ultz.Native.GLFW/3.4.0": {
@@ -2018,7 +2014,7 @@
           "lib/netstandard2.0/_._": {}
         },
         "native": {
-          "runtimes/win-x64/native/glfw3.dll": {}
+          "runtimes/osx-arm64/native/libglfw.3.dylib": {}
         }
       }
     }
@@ -2753,10 +2749,10 @@
         "microsoft.identitymodel.tokens.nuspec"
       ]
     },
-    "Microsoft.NET.ILLink.Tasks/9.0.7": {
-      "sha512": "SZ1brSGoLnhLbE8QUZrtN6YwzN2gDT1wbx9qDBEfFFJcstiDTjJ6ygNuTPBV/K7SjGfx2YNbcJi5+ygbPOZpDg==",
+    "Microsoft.NET.ILLink.Tasks/9.0.5": {
+      "sha512": "4L7wbb3Y4BJgIeSnmAf/C6S/qCs9rT1b0dX72uj3qo0qvUH7D0U1tU5ZlC7A3Wb8E/dXK4caOi4JkdLTVJaXhw==",
       "type": "package",
-      "path": "microsoft.net.illink.tasks/9.0.7",
+      "path": "microsoft.net.illink.tasks/9.0.5",
       "hasTools": true,
       "files": [
         ".nupkg.metadata",
@@ -2770,7 +2766,7 @@
         "build/Microsoft.NET.ILLink.Analyzers.props",
         "build/Microsoft.NET.ILLink.Tasks.props",
         "build/Microsoft.NET.ILLink.targets",
-        "microsoft.net.illink.tasks.9.0.7.nupkg.sha512",
+        "microsoft.net.illink.tasks.9.0.5.nupkg.sha512",
         "microsoft.net.illink.tasks.nuspec",
         "tools/net472/ILLink.Tasks.dll",
         "tools/net472/ILLink.Tasks.dll.config",
@@ -3668,7 +3664,7 @@
     "net9.0": [
       "ImGui.NET >= 1.91.6.1",
       "Microsoft.Data.SqlClient >= 6.1.0-preview2.25178.5",
-      "Microsoft.NET.ILLink.Tasks >= 9.0.7",
+      "Microsoft.NET.ILLink.Tasks >= 9.0.5",
       "Newtonsoft.Json >= 13.0.3",
       "Silk.NET.Core >= 2.22.0",
       "Silk.NET.GLFW >= 2.22.0",
@@ -3682,34 +3678,25 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\lesli\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {},
-    "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\": {}
+    "/Users/kaiafful/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\lesli\\RiderProjects\\CanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine.csproj",
+      "projectUniqueName": "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/CSCanbulatEngine.csproj",
       "projectName": "CSCanbulatEngine",
-      "projectPath": "C:\\Users\\lesli\\RiderProjects\\CanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine.csproj",
-      "packagesPath": "C:\\Users\\lesli\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\lesli\\RiderProjects\\CanbulatEngine\\CSCanbulatEngine\\CSCanbulatEngine\\obj\\",
+      "projectPath": "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/CSCanbulatEngine.csproj",
+      "packagesPath": "/Users/kaiafful/.nuget/packages/",
+      "outputPath": "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/obj/",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
-        "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\"
-      ],
       "configFilePaths": [
-        "C:\\Users\\lesli\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+        "/Users/kaiafful/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "/usr/local/share/dotnet/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -3745,7 +3732,7 @@
           "Microsoft.NET.ILLink.Tasks": {
             "suppressParent": "All",
             "target": "Package",
-            "version": "[9.0.7, )",
+            "version": "[9.0.5, )",
             "autoReferenced": true
           },
           "Newtonsoft.Json": {
@@ -3802,16 +3789,16 @@
         "warn": true,
         "downloadDependencies": [
           {
-            "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
-            "version": "[9.0.7, 9.0.7]"
+            "name": "Microsoft.AspNetCore.App.Runtime.osx-arm64",
+            "version": "[9.0.5, 9.0.5]"
           },
           {
-            "name": "Microsoft.NETCore.App.Runtime.win-x64",
-            "version": "[9.0.7, 9.0.7]"
+            "name": "Microsoft.NETCore.App.Crossgen2.osx-arm64",
+            "version": "[9.0.5, 9.0.5]"
           },
           {
-            "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
-            "version": "[9.0.7, 9.0.7]"
+            "name": "Microsoft.NETCore.App.Runtime.osx-arm64",
+            "version": "[9.0.5, 9.0.5]"
           }
         ],
         "frameworkReferences": {
@@ -3819,11 +3806,11 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Users\\lesli\\.dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.300/PortableRuntimeIdentifierGraph.json"
       }
     },
     "runtimes": {
-      "win-x64": {
+      "osx-arm64": {
         "#import": []
       }
     }

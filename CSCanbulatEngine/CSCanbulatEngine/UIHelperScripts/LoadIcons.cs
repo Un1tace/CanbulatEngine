@@ -19,7 +19,7 @@ public class LoadIcons
 
             foreach (string file in filesFound)
             {
-                string baseFile = file.TrimStart(fullDirectory.ToCharArray());
+                string baseFile = FileHandling.FileHandling.GetNameOfFile(file);
                 if (!file.EndsWith("png"))
                 {
                     filesFound.Remove(file);
