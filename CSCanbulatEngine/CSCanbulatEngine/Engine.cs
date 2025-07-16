@@ -632,7 +632,12 @@ public class Engine
         ImGui.Begin("Project File Manager", editorPanelFlags);
         float leftPanelWidth = ImGui.GetContentRegionAvail().X * 0.2f;
         ImGui.BeginChild("Directories", new Vector2(leftPanelWidth, ImGui.GetContentRegionAvail().Y), ImGuiChildFlags.AutoResizeY);
-        ImGui.Text("Assets");
+        if (ImGui.Selectable("Assets"))
+        {
+            Project.selectedDir = ProjectSerialiser.GetAssetsFolder();
+            Console.WriteLine(Project.selectedDir);
+        }
+        
         Project.RenderDirectories();
         ImGui.EndChild();
         ImGui.End();

@@ -20,7 +20,7 @@ public class Project
         this.ProjectFolderPath = ProjectPath;
     }
 
-    private static string selectedDir = "";
+    public static string selectedDir = "";
     public static void RenderDirectories()
     {
         foreach (string dir in Directory.GetDirectories(ProjectSerialiser.GetAssetsFolder()))
@@ -34,7 +34,7 @@ public class Project
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
 
         if (selectedDir == dir)
-        {
+        {  
             flags |= ImGuiTreeNodeFlags.Selected;
         }
 
@@ -47,7 +47,7 @@ public class Project
         
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
         {
-            selectedDir = dir;
+            selectedDir = Path.Combine(ProjectSerialiser.GetAssetsFolder(), FileHandling.FileHandling.GetNameOfFile(dir));
             Console.WriteLine(selectedDir);
         }
 
