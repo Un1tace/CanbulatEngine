@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using CSCanbulatEngine.FileHandling;
+using CSCanbulatEngine.FileHandling.ProjectManager;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.InfoHolders;
 using CSCanbulatEngine.UIHelperScripts;
@@ -634,11 +635,44 @@ public class Engine
         ImGui.BeginChild("Directories", new Vector2(leftPanelWidth, ImGui.GetContentRegionAvail().Y), ImGuiChildFlags.AutoResizeY);
         if (ImGui.Selectable("Assets"))
         {
-            Project.selectedDir = ProjectSerialiser.GetAssetsFolder();
-            Console.WriteLine(Project.selectedDir);
+            ProjectManager.selectedDir = ProjectSerialiser.GetAssetsFolder();
+            Console.WriteLine(ProjectManager.selectedDir);
         }
         
-        Project.RenderDirectories();
+        ProjectManager.RenderDirectories();
+        ImGui.EndChild();
+        
+        ImGui.SameLine();
+        
+        //File Icons
+        ImGui.BeginChild("File Icons", new Vector2(ImGui.GetContentRegionAvail().X - leftPanelWidth, ImGui.GetContentRegionAvail().Y), ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.AutoResizeX);
+
+        string name = ProjectManager.selectedDir;
+        
+        string[] sepDirectories = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? name.Split('\\')
+            : name.Split("/");
+
+        int assetsFolderIndex = -1;
+
+        for (int i = 0; i < sepDirectories.Length; i++)
+        {
+            if (sepDirectories[i] == "Assets") assetsFolderIndex = i;
+        }
+
+        string newName = "Assets";
+
+        if (assetsFolderIndex != -1)
+        {
+            for (int i = assetsFolderIndex + 1; i < sepDirectories.Length; i++)
+            {
+                newName += (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)? "\\" : "/") + sepDirectories[i];
+            }
+        }
+        else newName = name;
+        
+        ImGui.Text(newName);
+        ProjectManager.RenderProjectManagerIcons();
         ImGui.EndChild();
         ImGui.End();
 
