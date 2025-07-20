@@ -16,7 +16,7 @@ public class SceneSerialiser
         _gl = gl;
         _defaultMesh = defaultMesh;
     }
-
+#if EDITOR
     public void SaveScene(string sceneName = "Example Scene")
     {
         string filePath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Scenes");
@@ -61,7 +61,7 @@ public class SceneSerialiser
         Console.WriteLine($"Saved scene: {filePath}");
         Engine.currentScene.SceneSavedOnce = true;
     }
-
+#endif
     public void LoadScene(string filePath)
     {
         string json = File.ReadAllText(filePath);
