@@ -205,18 +205,6 @@ public class Engine
         gameObject1.GetComponent<Transform>().Position = new Vector2(-0.75f, 0f);
         var renderer1 = gameObject1.GetComponent<MeshRenderer>();
         if (renderer1 != null) renderer1.Color = new Vector4(1, 0, 0, 1); // <- Red
-        
-        //Second game object
-        var gameObject2 = new GameObject(_squareMesh);
-        gameObject2.GetComponent<Transform>().Position = new Vector2(0.75f, 0);
-        gameObject2.GetComponent<Transform>().Scale = new(0.5f, 0.5f);
-        gameObject2.GetComponent<Transform>().RotationInDegrees = 45;
-        //Get mesh renderer and assign texture
-        var renderer2 = gameObject2.GetComponent<MeshRenderer>();
-        if (renderer2 != null)
-        {
-            renderer2.AssignTexture("EditorAssets/Images/Logo.png");
-        }
     }
     
 
@@ -645,7 +633,7 @@ public class Engine
         ImGui.SameLine();
         
         //File Icons
-        ImGui.BeginChild("File Icons", new Vector2(ImGui.GetContentRegionAvail().X - leftPanelWidth, ImGui.GetContentRegionAvail().Y), ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.AutoResizeX);
+        ImGui.BeginChild("File Icons", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.AutoResizeX);
 
         string name = ProjectManager.selectedDir;
         
@@ -672,6 +660,19 @@ public class Engine
         else newName = name;
         
         ImGui.Text(newName);
+        ImGui.SameLine();
+
+        float sliderWidth = 150f;
+        
+        float newCursorPosX = ImGui.GetCursorPos().X + ImGui.GetContentRegionAvail().X - sliderWidth;
+        
+        ImGui.SetCursorPosX(newCursorPosX);
+        
+        ImGui.PushItemWidth(sliderWidth);
+        
+        if (ImGui.SliderFloat("Zoom", ref ProjectManager.SliderZoom, 0.5f, ProjectManager.maxZoom))  {}
+        ImGui.PopItemWidth();
+        ImGui.Separator();
         ProjectManager.RenderProjectManagerIcons();
         ImGui.EndChild();
         ImGui.End();

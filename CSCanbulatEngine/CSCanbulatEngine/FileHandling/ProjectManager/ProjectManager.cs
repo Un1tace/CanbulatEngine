@@ -13,6 +13,38 @@ public static class ProjectManager
         #if EDITOR
 
     public static string selectedDir = "";
+
+    public static float maxZoom = -1f;
+
+    
+    public static float zoom
+    {
+        get => _zoom;
+        set { _zoom = value;
+            iconSize = refIconSize * value;
+        }
+    }
+    private static float _zoom = 1f;
+    
+    public static float SliderZoom = zoom;
+
+    private static float iconSize
+    {
+        get => _iconSize;
+        set { _iconSize = value;
+            totalCellWidth = iconSize + cellPadding;
+        }
+    }
+    
+    private static float _iconSize = 60f;
+    private static float refIconSize = 60f;
+    static float cellPadding = 20;
+    static float totalCellWidth = iconSize + cellPadding;
+
+    public static void LoadManagerDefaults()
+    {
+        maxZoom = (float)ImGui.GetContentRegionAvail().X / (float)iconSize;
+    }
     public static void RenderDirectories()
     {
         foreach (string dir in Directory.GetDirectories(ProjectSerialiser.GetAssetsFolder()))
@@ -86,10 +118,10 @@ public static class ProjectManager
 
     public static void RenderProjectManagerIcons()
     {
+        zoom = SliderZoom;
         if (String.IsNullOrWhiteSpace(selectedDir)) selectedDir = ProjectSerialiser.GetAssetsFolder();
-        float iconSize = 64;
-        float cellPadding = 16;
-        float totalCellWidth = iconSize + cellPadding;
+        
+        if (maxZoom == -1) LoadManagerDefaults();
         
         float avaliableWidth = ImGui.GetContentRegionAvail().X;
         
@@ -119,16 +151,31 @@ public static class ProjectManager
             FileAttributes attr = File.GetAttributes(name);
 
             bool isDir = attr.HasFlag(FileAttributes.Directory);
+
+            string iconName = isDir ? "Folder.png" : "Page.png";
             
-            uint iconID = isDir ? LoadIcons.icons["Folder.png"] : LoadIcons.icons["Page.png"];
+            switch (Path.GetExtension(name))
+            {
+                case ".mp3":
+                    iconName = "Waveform.png";
+                    break;
+                case ".cbs":
+                    iconName = "Photoframe.png";
+                    break;
+                case null:
+                    break;
+                
+            }
             
-            Vector2D<int> actualSize = isDir ? LoadIcons.iconSizes["Folder.png"] : LoadIcons.iconSizes["Page.png"];
+            uint iconId = LoadIcons.icons[iconName];
+
+            Vector2D<int> actualSize = LoadIcons.iconSizes[iconName];
 
             bool isHeightBigger = actualSize.Y > actualSize.X;
 
-            Vector2 size = isHeightBigger ? new Vector2(iconSize * (int)(actualSize.X/actualSize.Y),iconSize) : new Vector2(iconSize, iconSize * (int)(actualSize.Y / actualSize.X));
+            Vector2 size = isHeightBigger ? new Vector2((int)((float)iconSize * ((float)actualSize.X/(float)actualSize.Y)),iconSize) : new Vector2(iconSize, (int)((float)iconSize * ((float)actualSize.Y / (float)actualSize.X)));
             
-            if (DrawFileIcon((IntPtr)iconID, FileHandling.GetNameOfFile(name), size))
+            if (DrawFileIcon((IntPtr)iconId, FileHandling.GetNameOfFile(name), size))
             {
                 Console.WriteLine($"Clicked on {name}");
                 if (isDir)
