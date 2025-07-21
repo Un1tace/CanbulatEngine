@@ -65,9 +65,6 @@ public class Engine
     
     // Font
     private static ImFontPtr _customFont;
-    
-    //Thread for the info window
-    private static Thread _infoWindowThread;
 
     private bool showInfoWindow = false;
     
@@ -149,11 +146,46 @@ public class Engine
         {
             _customFont = io.Fonts.AddFontFromFileTTF(fontPath, 18f);
             Console.WriteLine("Custom Font queued for loading");
+
+            io.Fonts.Build();
+            Console.WriteLine("ImGui font atlas built");
         }
         else
         {
             Console.WriteLine("Could not find font file: " + fontPath + ". Using default font");
         }
+        
+        // 1. Get the font texture data from ImGui
+        io.Fonts.GetTexDataAsRGBA32(out byte* pixelData, out int width, out int height, out int bytesPerPixel);
+
+        // 2. Create our own OpenGL texture
+        uint fontTextureId = gl.GenTexture();
+        gl.BindTexture(TextureTarget.Texture2D, fontTextureId);
+    
+        // 3. Upload the pixel data to the GPU
+        gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
+
+        // 4. Set texture parameters
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.Repeat);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.Repeat);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.Linear);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
+
+        // --- THIS IS THE FIX ---
+        // Explicitly tell OpenGL that our texture has no mipmaps.
+        // This is a common requirement on macOS to prevent the "unloadable" texture error.
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 0);
+
+
+        // 5. Tell ImGui to use our manually created texture.
+        // We cast the uint texture ID to an IntPtr, which is what ImGui expects.
+        io.Fonts.SetTexID((IntPtr)fontTextureId);
+
+        // 6. Clear the CPU-side texture data now that it's on the GPU.
+        io.Fonts.ClearTexData();
+    
+        Console.WriteLine("Font texture manually created and uploaded to GPU.");
         
         imGuiController = new ImGuiController(gl, window, input);
 
@@ -264,6 +296,8 @@ public class Engine
 #if EDITOR
         //-------------------Editor-----------------
         imGuiController.Update((float)deltaTime);
+        
+        ImGui.PushFont(_customFont);
         // Render game scene to off screen FBO
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, Fbo);
         
@@ -366,6 +400,8 @@ public class Engine
         ProjectSerialiser.CreateProjectPopUp();
         
         ProjectSerialiser.ProjectAlreadyHerePopup();
+        
+        ImGui.PopFont();
 
         imGuiController.Render();
         
@@ -374,6 +410,7 @@ public class Engine
             currentProject.ProjectName = " ";
             ProjectSerialiser.CreateOrLoadProjectFile();
         }
+
         
 #else
         //-------------------Game-----------------
@@ -407,7 +444,6 @@ public class Engine
         ImGui.End();
         
         // -- Menu Bar --
-
         if (ImGui.BeginMainMenuBar())
         {
             string superKey = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "CMD" : "CTRL";
@@ -453,7 +489,7 @@ public class Engine
                 }
                 ImGui.EndMenu();
             }
-
+            
             if (_selectedGameObject != null)
             {
                 _selectedGameObject.RenderObjectOptionBar(superKey);

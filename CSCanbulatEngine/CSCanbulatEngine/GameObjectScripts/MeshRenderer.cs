@@ -1,4 +1,5 @@
 using System.Numerics;
+using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
 using Silk.NET.Maths;
 
@@ -62,12 +63,20 @@ public class MeshRenderer : Component
         {
             //?Possible different options like hex or colour picker
         }
-        
         ImGui.Text($"Texture ID: {TextureID}");
-        if (TextureID != 0)
+        ImGui.Text("Image: ");
+        ImGui.SameLine();
+        if (ImGui.ImageButton("SearchImage", (IntPtr)LoadIcons.icons["MagnifyingGlass.png"], new Vector2(20, 20)))
+        {}
+
+        ImGui.SameLine();
+        if (ImGui.ImageButton("ClearImage", (IntPtr)LoadIcons.icons["Cross.png"], new Vector2(20, 20)))
         {
-            ImGui.Image((IntPtr)TextureID, new Vector2(100, 100)); //Show preview
+            TextureID = 0;
         }
+        ImGui.SameLine();
+        if (ImGui.ImageButton("Image", (IntPtr)TextureID, new Vector2(100, 100)))
+        {}
     }
 #endif
 }
