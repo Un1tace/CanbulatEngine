@@ -10,7 +10,7 @@ public static class ProjectManager
 {
     private static readonly string[] _ignoredFileTypes = new[] { ".DS_Store" };
     
-        #if EDITOR
+#if EDITOR
 
     public static string selectedDir = "";
 
@@ -183,6 +183,11 @@ public static class ProjectManager
                 {
                     selectedDir = name;
                 }
+                else if (Path.GetExtension(name) == ".cbs")
+                {
+                    SceneSerialiser ss = new SceneSerialiser(Engine.gl, Engine._squareMesh);
+                    ss.LoadScene(name);
+                }
             }
             ImGui.EndGroup();
             
@@ -196,7 +201,6 @@ public static class ProjectManager
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
                 {
                     ImGui.OpenPopup($"ContextMenu_{name}");
-                    Console.WriteLine("Opened context popup");
                 }
             }
 

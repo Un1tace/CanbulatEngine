@@ -244,7 +244,7 @@ public class Engine
     {
 #if EDITOR
         //--------Keyboard shortcuts--------
-        if (primaryKeyboard != null)
+        if (primaryKeyboard != null && !ImGui.GetIO().WantCaptureKeyboard)
         {
             bool modifierDown;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -443,6 +443,7 @@ public class Engine
         
         ImGui.End();
         
+        
         // -- Menu Bar --
         if (ImGui.BeginMainMenuBar())
         {
@@ -572,6 +573,7 @@ public class Engine
 
         ImGui.Image((IntPtr)FboTexture, viewportPanelSize, new Vector2(0, 1),
             new Vector2(1, 0));
+        
         ImGui.End();
         
         // -- Inspector --

@@ -5,12 +5,15 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|osx-arm64 = Debug|osx-arm64
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{65796666-FFF7-47F1-A261-2190F01CF425}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{65796666-FFF7-47F1-A261-2190F01CF425}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{65796666-FFF7-47F1-A261-2190F01CF425}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{65796666-FFF7-47F1-A261-2190F01CF425}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65796666-FFF7-47F1-A261-2190F01CF425}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65796666-FFF7-47F1-A261-2190F01CF425}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65796666-FFF7-47F1-A261-2190F01CF425}.Debug|osx-arm64.ActiveCfg = Debug|osx-arm64
+		{65796666-FFF7-47F1-A261-2190F01CF425}.Debug|osx-arm64.Build.0 = Debug|osx-arm64
 	EndGlobalSection
 EndGlobal

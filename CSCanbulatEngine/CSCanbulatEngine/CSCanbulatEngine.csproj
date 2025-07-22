@@ -6,6 +6,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <RuntimeIdentifiers>win-x64;osx-x64;osx-arm64;</RuntimeIdentifiers>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>AnyCPU;osx-arm64</Platforms>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
