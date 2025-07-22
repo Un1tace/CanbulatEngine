@@ -83,14 +83,7 @@ public class ProjectSerialiser
     public static bool LoadProjectFile(string projectFolder)
     {
         string[] files = Directory.GetFiles(projectFolder);
-        string? projectFileName = null;
-        foreach (string file in files)
-        {
-            if (Path.GetExtension(file).ToLower() == ".cbp")
-            {
-                projectFileName = Path.GetFileName(file);
-            }
-        }
+        string? projectFileName = FindProjectFile(projectFolder);
 
         if (String.IsNullOrWhiteSpace(projectFileName))
         {
@@ -103,6 +96,7 @@ public class ProjectSerialiser
         Engine.currentProject = new Project(projectData.ProjectName, projectFolder);
         Engine.currentProject.LastOpenedSceneName = projectData.LastOpenedScene;
         Engine.currentProject.LastOpenedScenePath = projectData.LastOpenedScenePath;
+        ProjectManager.ProjectManager.selectedDir = GetAssetsFolder();
 
         Console.WriteLine($"Opened project file: {projectFileName}");
         return true;

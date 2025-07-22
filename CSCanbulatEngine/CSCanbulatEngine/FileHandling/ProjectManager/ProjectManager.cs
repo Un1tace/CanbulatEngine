@@ -174,7 +174,8 @@ public static class ProjectManager
             bool isHeightBigger = actualSize.Y > actualSize.X;
 
             Vector2 size = isHeightBigger ? new Vector2((int)((float)iconSize * ((float)actualSize.X/(float)actualSize.Y)),iconSize) : new Vector2(iconSize, (int)((float)iconSize * ((float)actualSize.Y / (float)actualSize.X)));
-            
+
+            ImGui.BeginGroup();
             if (DrawFileIcon((IntPtr)iconId, FileHandling.GetNameOfFile(name), size))
             {
                 Console.WriteLine($"Clicked on {name}");
@@ -182,6 +183,44 @@ public static class ProjectManager
                 {
                     selectedDir = name;
                 }
+            }
+            ImGui.EndGroup();
+            
+            
+            
+            Vector2 itemMin = ImGui.GetItemRectMin();
+            Vector2 itemMax = ImGui.GetItemRectMax();
+            
+            if (ImGui.IsMouseHoveringRect(itemMin, itemMax))
+            {
+                if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+                {
+                    ImGui.OpenPopup($"ContextMenu_{name}");
+                    Console.WriteLine("Opened context popup");
+                }
+            }
+
+            if (ImGui.BeginPopupContextItem($"ContextMenu_{name}"))
+            {
+                ImGui.Text(Path.GetFileName(name));
+                ImGui.Separator();
+
+                if (ImGui.MenuItem("Rename"))
+                {
+                    
+                }
+
+                if (ImGui.MenuItem("Delete"))
+                {
+                    
+                }
+                
+                if (ImGui.MenuItem($"Open in {(RuntimeInformation.IsOSPlatform(OSPlatform.OSX)? "Finder" : "Explorer")}"))
+                {
+                    FileHandling.ShowInFileManager(name);
+                }
+                
+                ImGui.EndPopup();
             }
 
             ImGui.NextColumn();
