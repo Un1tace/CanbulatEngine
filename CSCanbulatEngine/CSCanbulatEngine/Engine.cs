@@ -5,6 +5,7 @@ using CSCanbulatEngine.FileHandling.ProjectManager;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.InfoHolders;
 using CSCanbulatEngine.UIHelperScripts;
+using CSCanbulatEngine.Utilities;
 
 namespace CSCanbulatEngine;
 
@@ -83,6 +84,9 @@ public class Engine
     
     //Project Manager
     public static string projectFilePath = "";
+    
+    //Gizmo
+    private Gizmo _gizmo;
 #endif
 
     public void Run()
@@ -205,6 +209,7 @@ public class Engine
         }
 
         LoadIcons.PreloadIcons();
+        _gizmo = new Gizmo();
 #endif
 
         shader = new Shader(gl, "Shaders/shader.vert", "Shaders/shader.frag");
@@ -556,6 +561,7 @@ public class Engine
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[0]);
         ImGui.Begin("Game Viewport", editorPanelFlags);
         Vector2 viewportPanelSize = ImGui.GetContentRegionAvail();
+        Vector2 viewportPos = ImGui.GetWindowPos();
 
         var dpiScaleX = (float)window.FramebufferSize.X / window.Size.X;
         var dpiScaleY = (float)window.FramebufferSize.Y / window.Size.Y;
@@ -573,6 +579,18 @@ public class Engine
 
         ImGui.Image((IntPtr)FboTexture, viewportPanelSize, new Vector2(0, 1),
             new Vector2(1, 0));
+
+        if (_selectedGameObject != null)
+        {
+            var viewMatrix = Matrix4x4.Identity;
+
+            float viewportAspectRatio = viewportPanelSize.X > 0 ? viewportPanelSize.X / viewportPanelSize.Y : 1.0f;
+            float orthoWidth = 2f * (viewportAspectRatio > 1.0f ? viewportAspectRatio : 1.0f) * _cameraZoom;
+            float orthoHeight = 2f * (viewportAspectRatio < 1.0f ? 1.0f / viewportAspectRatio : 1.0f) * _cameraZoom;
+            var projMatrix = Matrix4x4.CreateOrthographic(orthoWidth, orthoHeight, -1f, 100f);
+
+            _gizmo.UpdateAndRender(_selectedGameObject, viewMatrix, projMatrix,viewportPos , viewportPanelSize);
+        }
         
         ImGui.End();
         
@@ -626,6 +644,14 @@ public class Engine
                 _selectedGameObject = gameObject;
             }
         }
+        ImGui.End();
+        
+        var toolbarFlags = editorPanelFlags;
+        toolbarFlags |= ImGuiWindowFlags.NoTitleBar;
+        ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[4]);
+        ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[4]);
+        ImGui.Begin("Toolbar", toolbarFlags);
+        Gizmo.RenderToolbar();
         ImGui.End();
 
         if (renamePopupOpen)

@@ -43,8 +43,8 @@ public class ImGuiWindowManager
         CalculateSizeFromPercentage(1);
         
         //Hierarchy - Index 2
-        windowPosPercentage.Add(new Vector2(0f, 0));
-        windowSizPercentage.Add(new Vector2(0.25f, 0.6f));
+        windowPosPercentage.Add(new Vector2(0.05f, 0));
+        windowSizPercentage.Add(new Vector2(0.20f, 0.6f));
         windowPosition.Add(new Vector2(0, 0));
         windowSize.Add(new Vector2(0, 0));
         
@@ -59,6 +59,15 @@ public class ImGuiWindowManager
         
         CalculatePositionFromPercentage(3);
         CalculateSizeFromPercentage(3);
+        
+        // ToolBar - Index 4
+        windowPosPercentage.Add(new Vector2(0f, 0f));
+        windowSizPercentage.Add(new Vector2(0.05f, 0.6f));
+        windowPosition.Add(new Vector2(0, 0));
+        windowSize.Add(new Vector2(0, 0));
+        
+        CalculatePositionFromPercentage(4);
+        CalculateSizeFromPercentage(4);
     }
 
     public static void CalculatePositionFromPercentage(int index)
