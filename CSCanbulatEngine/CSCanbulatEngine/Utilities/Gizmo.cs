@@ -45,7 +45,7 @@ public class Gizmo
         float sin = MathF.Sin(-rotation);
 
         var localXAxis = new Vector2(cos, sin);
-        var localYAxis = new Vector2(-sin, cos);
+        var localYAxis = new Vector2(sin, -cos);
         
         float gizmoSize = 50f; // Length of the gizmo arms in pixel
 
@@ -343,6 +343,13 @@ public class Gizmo
         float sin = MathF.Sin(angle); // X axis Value
         
         return new Vector4(closestPart.X, closestPart.Y, sin, cos);
+    }
+    
+    public static Vector2 RotateRadians(Vector2 v, float radians)
+    {
+        var ca = MathF.Cos(radians);
+        var sa = MathF.Sin(radians);
+        return new Vector2(ca * v.X - sa * v.Y, sa * v.X + ca * v.Y);
     }
 
     public static void RenderToolbar()

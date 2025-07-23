@@ -561,7 +561,8 @@ public class Engine
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[0]);
         ImGui.Begin("Game Viewport", editorPanelFlags);
         Vector2 viewportPanelSize = ImGui.GetContentRegionAvail();
-        Vector2 viewportPos = ImGui.GetWindowPos();
+        // Vector2 viewportPos = ImGui.GetWindowPos();
+        Vector2 viewportPos = ImGui.GetCursorScreenPos();
 
         var dpiScaleX = (float)window.FramebufferSize.X / window.Size.X;
         var dpiScaleY = (float)window.FramebufferSize.Y / window.Size.Y;
