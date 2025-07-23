@@ -9,7 +9,7 @@ namespace CSCanbulatEngine.GameObjectScripts;
 public class Transform : Component
 {
 #if EDITOR
-    private bool ratioLocked
+    public bool ratioLocked
     {
         get { return _ratioLocked; }
         set

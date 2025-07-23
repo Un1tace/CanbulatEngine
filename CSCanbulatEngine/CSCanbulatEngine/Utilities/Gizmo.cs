@@ -2,6 +2,7 @@ using System.Numerics;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
+using Silk.NET.Maths;
 
 namespace CSCanbulatEngine.Utilities;
 
@@ -19,10 +20,13 @@ public class Gizmo
     private Vector2 _dragStartObjectPos;
     private Vector2 _dragStartObjectSize;
     private float _dragStartObjectRotation;
+    private float _dragStartAngle = 0f;
 
     private static float lastFrameAngle = 0f;
 
     private float rotCircleRadius = 100f;
+    
+    float handleSize = 5f; 
 
     public void UpdateAndRender(GameObject selectedObject, Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix,
         Vector2 viewportPos, Vector2 viewportSize)
@@ -35,16 +39,38 @@ public class Gizmo
         //Turning the objects world position into the screen position in the viewport
         Vector2 objectScreenPos = WorldToScreen(selectedObject.GetComponent<Transform>().Position, viewMatrix,
             projectionMatrix, viewportPos, viewportSize);
+        float rotation = selectedObject.GetComponent<Transform>().Rotation;
+        
+        float cos = MathF.Cos(-rotation);
+        float sin = MathF.Sin(-rotation);
 
+        var localXAxis = new Vector2(cos, sin);
+        var localYAxis = new Vector2(-sin, cos);
+        
         float gizmoSize = 50f; // Length of the gizmo arms in pixel
-        Vector2 xAxisEnd = objectScreenPos + new Vector2(gizmoSize, 0);
-        Vector2 yAxisEnd = objectScreenPos - new Vector2(0, gizmoSize); // Y axis inverted
+
+        Vector2 screenXAxis = new Vector2(cos, sin);
+        Vector2 screenYAxis = new Vector2(sin, -cos);
+
+        Vector2 xAxisEnd;
+        Vector2 yAxisEnd;
+        if (_selectedFunction == GizmoFunction.Scale)
+        {
+            xAxisEnd = objectScreenPos + screenXAxis * gizmoSize;
+            yAxisEnd = objectScreenPos + screenYAxis * gizmoSize;
+        }
+        else
+        {
+            xAxisEnd = objectScreenPos + new Vector2(gizmoSize, 0);
+            yAxisEnd = objectScreenPos - new Vector2(0, gizmoSize);
+        }
+        
         Vector2[] xyAxisVertices =
         [
-            objectScreenPos + new Vector2(gizmoSize * 0.1f, gizmoSize * 0.1f), 
-            objectScreenPos + new Vector2(-gizmoSize * 0.1f, gizmoSize * 0.1f),
-            objectScreenPos - new Vector2(gizmoSize * 0.1f, gizmoSize * 0.1f),
-            objectScreenPos - new Vector2(-gizmoSize * 0.1f, gizmoSize * 0.1f)
+            objectScreenPos - screenXAxis * handleSize - screenYAxis * handleSize,
+            objectScreenPos + screenXAxis * handleSize - screenYAxis * handleSize,
+            objectScreenPos + screenXAxis * handleSize + screenYAxis * handleSize,
+            objectScreenPos - screenXAxis * handleSize + screenYAxis * handleSize
         ];
 
         //Check for hovering if not dragging anything
@@ -57,6 +83,12 @@ public class Gizmo
             _dragStartObjectPos = selectedObject.GetComponent<Transform>().Position;
             _dragStartObjectSize = selectedObject.GetComponent<Transform>().Scale;
             _dragStartObjectRotation = selectedObject.GetComponent<Transform>().Rotation;
+
+            if (_selectedFunction == GizmoFunction.Rotation)
+            {
+                Vector2 startVector = io.MousePos - objectScreenPos;
+                _dragStartAngle = MathF.Atan2(startVector.Y, startVector.X);
+            }
         }
         else if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
         {
@@ -92,31 +124,74 @@ public class Gizmo
             {
                 if (_draggedAxis == GizmoAxis.XY)
                 {
-                    selectedObject.GetComponent<Transform>().Scale =
-                        new Vector2(_dragStartObjectSize.X + worldDelta.X, _dragStartObjectSize.Y + worldDelta.Y);
+                    Vector2 newScale = new Vector2(_dragStartObjectSize.X + worldDelta.X, _dragStartObjectSize.Y + worldDelta.Y);
+
+                    if (selectedObject.GetComponent<Transform>().ratioLocked)
+                    {
+                        if (newScale.X > newScale.Y)
+                        {
+                            Vector2D<int> resolution = Engine._selectedGameObject.GetComponent<MeshRenderer>().ImageResolution;
+                            newScale.Y = newScale.X * ((float)resolution.Y / (float)resolution.X);
+                        }
+                        else
+                        {
+                            Vector2D<int> resolution = Engine._selectedGameObject.GetComponent<MeshRenderer>().ImageResolution;
+                            newScale.X = newScale.Y * ((float)resolution.X / (float)resolution.Y);
+                        }
+                    }
+
+                    selectedObject.GetComponent<Transform>().Scale = newScale;
                 }
                 else if (_draggedAxis == GizmoAxis.Y)
                 {
-                    selectedObject.GetComponent<Transform>().Scale =
-                        new Vector2(_dragStartObjectSize.X, _dragStartObjectSize.Y + worldDelta.Y);
+                    float scaleAmount = Vector2.Dot(worldDelta, localYAxis);
+                    Vector2 newScale = new Vector2(_dragStartObjectSize.X, _dragStartObjectSize.Y + scaleAmount);
+                    
+                        
+                    if (selectedObject.GetComponent<Transform>().ratioLocked)
+                    {
+                        Vector2D<int> resolution = Engine._selectedGameObject.GetComponent<MeshRenderer>().ImageResolution;
+                        newScale.X = newScale.Y * ((float)resolution.X / (float)resolution.Y);
+                    }
+
+                    selectedObject.GetComponent<Transform>().Scale = newScale;
                 }
                 else if (_draggedAxis == GizmoAxis.X)
                 {
-                    selectedObject.GetComponent<Transform>().Scale =
-                        new Vector2(_dragStartObjectSize.X + worldDelta.X, _dragStartObjectSize.Y);
+                    float scaleAmount = Vector2.Dot(worldDelta, localXAxis);
+                    Vector2 newScale = new Vector2(_dragStartObjectSize.X + scaleAmount, _dragStartObjectSize.Y);
+                    
+                    if (selectedObject.GetComponent<Transform>().ratioLocked)
+                    {
+                        Vector2D<int> resolution = Engine._selectedGameObject.GetComponent<MeshRenderer>().ImageResolution;
+                        newScale.Y = newScale.X * ((float)resolution.Y / (float)resolution.X);
+                    }
+                    
+                    selectedObject.GetComponent<Transform>().Scale = newScale;
+
                 }
             }
             else if (_selectedFunction == GizmoFunction.Rotation)
             {
-                selectedObject.GetComponent<Transform>().Rotation =
-                    _dragStartObjectRotation + CalcDistanceOnTangent(objectScreenPos, rotCircleRadius, _dragStartMousePos, worldDelta);
-                if (_draggedAxis == GizmoAxis.Z)
-                {
-                    
-                }
+                Vector2 currentVec = io.MousePos - objectScreenPos;
+                
+                float currentAngle = MathF.Atan2(currentVec.Y, currentVec.X);
+                
+                float deltaAngle = currentAngle - _dragStartAngle;
+                
+                selectedObject.GetComponent<Transform>().Rotation = _dragStartObjectRotation - deltaAngle;
+                
+                
+                // selectedObject.GetComponent<Transform>().Rotation =
+                //     _dragStartObjectRotation + CalcDistanceOnTangent(objectScreenPos, rotCircleRadius, _dragStartMousePos, worldDelta);
+                // if (_draggedAxis == GizmoAxis.Z)
+                // {
+                //     
+                // }
             }
         }
 
+        //Drawing logic
         uint xAxisColor = GetAxisColor(GizmoAxis.X);
         uint yAxisColor = GetAxisColor(GizmoAxis.Y);
         uint xyAxisColor = GetAxisColor(GizmoAxis.XY);
@@ -125,25 +200,35 @@ public class Gizmo
 
         if (_selectedFunction == GizmoFunction.Position || _selectedFunction == GizmoFunction.Scale)
         {
-            //Draw X axis
             drawList.AddLine(objectScreenPos, xAxisEnd, xAxisColor, thickness);
+            drawList.AddLine(objectScreenPos, yAxisEnd, yAxisColor, thickness);
+            
             if (_selectedFunction == GizmoFunction.Position)
+            {
                 drawList.AddTriangleFilled(xAxisEnd, xAxisEnd + new Vector2(-10, -5), xAxisEnd + new Vector2(-10, 5),
                     xAxisColor);
+                drawList.AddTriangleFilled(yAxisEnd, yAxisEnd + new Vector2(-5, 10), yAxisEnd + new Vector2(5, 10), yAxisColor);
+            }
             else if (_selectedFunction == GizmoFunction.Scale)
-                drawList.AddQuadFilled(xAxisEnd + new Vector2(0, 5), xAxisEnd + new Vector2(0, -5),
-                    xAxisEnd + new Vector2(-10, -5), xAxisEnd + new Vector2(-10, 5), xAxisColor);
-
-            //Draw Y axis
-            drawList.AddLine(objectScreenPos, yAxisEnd, yAxisColor, thickness);
-            if (_selectedFunction == GizmoFunction.Position)
-                drawList.AddTriangleFilled(yAxisEnd, yAxisEnd + new Vector2(-5, 10), yAxisEnd + new Vector2(5, 10),
+            {
+                
+                // X-axis handle
+                drawList.AddQuadFilled(
+                    xAxisEnd - screenXAxis * handleSize - screenYAxis * handleSize,
+                    xAxisEnd + screenXAxis * handleSize - screenYAxis * handleSize,
+                    xAxisEnd + screenXAxis * handleSize + screenYAxis * handleSize,
+                    xAxisEnd - screenXAxis * handleSize + screenYAxis * handleSize,
+                    xAxisColor);
+                    
+                // Y-axis handle
+                drawList.AddQuadFilled(
+                    yAxisEnd - screenXAxis * handleSize - screenYAxis * handleSize,
+                    yAxisEnd + screenXAxis * handleSize - screenYAxis * handleSize,
+                    yAxisEnd + screenXAxis * handleSize + screenYAxis * handleSize,
+                    yAxisEnd - screenXAxis * handleSize + screenYAxis * handleSize,
                     yAxisColor);
-            else if (_selectedFunction == GizmoFunction.Scale)
-                drawList.AddQuadFilled(yAxisEnd + new Vector2(5, 0), yAxisEnd + new Vector2(-5, 0),
-                    yAxisEnd + new Vector2(-5, 10), yAxisEnd + new Vector2(5, 10), yAxisColor);
-
-
+            }
+            
             //Draw Pivot
             drawList.AddQuadFilled(xyAxisVertices[0], xyAxisVertices[1], xyAxisVertices[2], xyAxisVertices[3],
                 xyAxisColor);
@@ -152,16 +237,16 @@ public class Gizmo
         {
             drawList.AddCircle(objectScreenPos, rotCircleRadius, zAxisColor, 30, thickness);
 
-            if (_draggedAxis == GizmoAxis.Z)
-            {
-                Vector4 posDir = CalcTangentLine(objectScreenPos, rotCircleRadius, _dragStartMousePos);
-
-                // drawList.AddLine((new Vector2(posDir.Z, posDir.W)) + new Vector2(posDir.X, posDir.Y), (new Vector2(posDir.Z, posDir.W)) + new Vector2(posDir.X, posDir.Y), zAxisColor, thickness);
-                drawList.AddCircleFilled(new Vector2(posDir.X + objectScreenPos.X, posDir.Y + objectScreenPos.Y), 5f,
-                    zAxisColor);
-                drawList.AddLine((new Vector2(posDir.Z, -posDir.W) * 1000) + new Vector2(posDir.X + objectScreenPos.X, posDir.Y + objectScreenPos.Y), (new Vector2(posDir.Z, -posDir.W) * -1000) + new Vector2(posDir.X + objectScreenPos.X, posDir.Y + objectScreenPos.Y),
-                    zAxisColor, thickness);
-            }
+            // if (_draggedAxis == GizmoAxis.Z)
+            // {
+            //     Vector4 posDir = CalcTangentLine(objectScreenPos, rotCircleRadius, _dragStartMousePos);
+            //
+            //     // drawList.AddLine((new Vector2(posDir.Z, posDir.W)) + new Vector2(posDir.X, posDir.Y), (new Vector2(posDir.Z, posDir.W)) + new Vector2(posDir.X, posDir.Y), zAxisColor, thickness);
+            //     drawList.AddCircleFilled(new Vector2(posDir.X + objectScreenPos.X, posDir.Y + objectScreenPos.Y), 5f,
+            //         zAxisColor);
+            //     drawList.AddLine((new Vector2(posDir.Z, -posDir.W) * 1000) + new Vector2(posDir.X + objectScreenPos.X, posDir.Y + objectScreenPos.Y), (new Vector2(posDir.Z, -posDir.W) * -1000) + new Vector2(posDir.X + objectScreenPos.X, posDir.Y + objectScreenPos.Y),
+            //         zAxisColor, thickness);
+            // }
         }
     }
 
@@ -219,7 +304,7 @@ public class Gizmo
     {
         float l2 = (end - start).LengthSquared();
         if (l2 == 0) return Vector2.Distance(pos, start);
-        float t = Math.Max(1, Vector2.Dot(pos - start, end - start) / l2);
+        float t = Math.Max(0, MathF.Min(1, Vector2.Dot(pos - start, end - start) / l2));
         Vector2 projection = start + t * (end - start);
         return Vector2.Distance(pos, projection);
     }
