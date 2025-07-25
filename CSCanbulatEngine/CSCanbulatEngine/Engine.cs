@@ -53,7 +53,7 @@ public class Engine
 
 #if EDITOR
     //--- Editor Only Resources ---
-    public static GameObject? _selectedGameObject;
+    public static StoreObject _selectedGameObject;
     //This is the ImGUI controller, we get this from the Silk.Net Library
     private static ImGuiController imGuiController;
 
@@ -278,7 +278,7 @@ public class Engine
                 }
                 else if (InputManager.IsKeyPressed(Key.Backspace))
                 {
-                    _selectedGameObject?.DeleteObject();
+                    _selectedGameObject?.gameObject.DeleteObject();
                 }
                 else if (InputManager.IsKeyPressed(Key.A) && !renamePopupOpen)
                 {
@@ -331,7 +331,7 @@ public class Engine
                 string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
                 if (!string.IsNullOrWhiteSpace(newName) && Engine._selectedGameObject != null)
                 {
-                    _selectedGameObject.Name = newName;
+                    _selectedGameObject.gameObject.Name = newName;
                 }
 
                 renamePopupOpen = false;
@@ -498,7 +498,7 @@ public class Engine
             
             if (_selectedGameObject != null)
             {
-                _selectedGameObject.RenderObjectOptionBar(superKey);
+                _selectedGameObject.gameObject.RenderObjectOptionBar(superKey);
             }
 
             RenderObjectMenu(superKey);
@@ -559,38 +559,56 @@ public class Engine
         // -- Viewport --
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[0]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[0]);
-        ImGui.Begin("Game Viewport", editorPanelFlags);
-        Vector2 viewportPanelSize = ImGui.GetContentRegionAvail();
-        // Vector2 viewportPos = ImGui.GetWindowPos();
-        Vector2 viewportPos = ImGui.GetCursorScreenPos();
-
-        var dpiScaleX = (float)window.FramebufferSize.X / window.Size.X;
-        var dpiScaleY = (float)window.FramebufferSize.Y / window.Size.Y;
-        
-        var newPixelSize = new Vector2D<int>((int)(viewportPanelSize.X * dpiScaleX), (int)(viewportPanelSize.Y * dpiScaleY));
-
-        if (ViewportSize != newPixelSize)
+        ImGui.Begin("Game Viewport", editorPanelFlags | ImGuiWindowFlags.NoTitleBar);
+        if (ImGui.BeginTabBar("MainWindowTabs"))
         {
-            if (newPixelSize.X > 0 && newPixelSize.Y > 0)
+            if (ImGui.BeginTabItem("Viewport"))
             {
-                ViewportSize = newPixelSize;
-                ResizeFramebuffer();
+                Vector2 viewportPanelSize = ImGui.GetContentRegionAvail();
+                // Vector2 viewportPos = ImGui.GetWindowPos();
+                Vector2 viewportPos = ImGui.GetCursorScreenPos();
+
+                var dpiScaleX = (float)window.FramebufferSize.X / window.Size.X;
+                var dpiScaleY = (float)window.FramebufferSize.Y / window.Size.Y;
+
+                var newPixelSize = new Vector2D<int>((int)(viewportPanelSize.X * dpiScaleX),
+                    (int)(viewportPanelSize.Y * dpiScaleY));
+
+                if (ViewportSize != newPixelSize)
+                {
+                    if (newPixelSize.X > 0 && newPixelSize.Y > 0)
+                    {
+                        ViewportSize = newPixelSize;
+                        ResizeFramebuffer();
+                    }
+                }
+
+                ImGui.Image((IntPtr)FboTexture, viewportPanelSize, new Vector2(0, 1),
+                    new Vector2(1, 0));
+
+                if (_selectedGameObject != null)
+                {
+                    var viewMatrix = Matrix4x4.Identity;
+
+                    float viewportAspectRatio =
+                        viewportPanelSize.X > 0 ? viewportPanelSize.X / viewportPanelSize.Y : 1.0f;
+                    float orthoWidth = 2f * (viewportAspectRatio > 1.0f ? viewportAspectRatio : 1.0f) * _cameraZoom;
+                    float orthoHeight = 2f * (viewportAspectRatio < 1.0f ? 1.0f / viewportAspectRatio : 1.0f) *
+                                        _cameraZoom;
+                    var projMatrix = Matrix4x4.CreateOrthographic(orthoWidth, orthoHeight, -1f, 100f);
+
+                    _gizmo.UpdateAndRender(_selectedGameObject.gameObject, viewMatrix, projMatrix, viewportPos, viewportPanelSize);
+                }
+
+                ImGui.EndTabItem();
             }
-        }
 
-        ImGui.Image((IntPtr)FboTexture, viewportPanelSize, new Vector2(0, 1),
-            new Vector2(1, 0));
-
-        if (_selectedGameObject != null)
-        {
-            var viewMatrix = Matrix4x4.Identity;
-
-            float viewportAspectRatio = viewportPanelSize.X > 0 ? viewportPanelSize.X / viewportPanelSize.Y : 1.0f;
-            float orthoWidth = 2f * (viewportAspectRatio > 1.0f ? viewportAspectRatio : 1.0f) * _cameraZoom;
-            float orthoHeight = 2f * (viewportAspectRatio < 1.0f ? 1.0f / viewportAspectRatio : 1.0f) * _cameraZoom;
-            var projMatrix = Matrix4x4.CreateOrthographic(orthoWidth, orthoHeight, -1f, 100f);
-
-            _gizmo.UpdateAndRender(_selectedGameObject, viewMatrix, projMatrix,viewportPos , viewportPanelSize);
+            if (ImGui.BeginTabItem("Circuit Editor"))
+            {
+                ImGui.Text("Circuit Editor");
+                ImGui.EndTabItem();
+            }
+            ImGui.EndTabBar();
         }
         
         ImGui.End();
@@ -619,10 +637,10 @@ public class Engine
         //Puts all the properties in the inspector visible and rendered
         if (_selectedGameObject != null)
         {
-            ImGui.Text($"Editing {_selectedGameObject.Name}");
+            ImGui.Text($"Editing {_selectedGameObject.gameObject.Name}");
             ImGui.Separator();
 
-            foreach (Component component in _selectedGameObject.components)
+            foreach (Component component in _selectedGameObject.gameObject.components)
             {
                 if (ImGui.CollapsingHeader(component.name, ImGuiTreeNodeFlags.DefaultOpen))
                 {
@@ -639,10 +657,10 @@ public class Engine
         foreach(var gameObject in currentScene.GameObjects)
         {
             
-            bool isSelected = (_selectedGameObject == gameObject);
+            bool isSelected = (_selectedGameObject.gameObject == gameObject);
             if (ImGui.Selectable(gameObject.Name, isSelected))
             {
-                _selectedGameObject = gameObject;
+                _selectedGameObject = new (gameObject);
             }
         }
         ImGui.End();
@@ -723,6 +741,8 @@ public class Engine
             }
         }
         else newName = name;
+        
+        Array.Clear(sepDirectories,0 , sepDirectories.Length);
         
         ImGui.Text(newName);
         ImGui.SameLine();
@@ -938,4 +958,16 @@ public class Engine
         _selectedGameObject = null;
     }
 #endif
+}
+
+public class StoreObject
+{
+    public GameObject gameObject { get; set; }
+    public int timeCreated { get; private set; }
+    
+    public StoreObject(GameObject gameObject)
+    {
+        this.gameObject = gameObject;
+        timeCreated = DateTime.UtcNow.Second;
+    }
 }

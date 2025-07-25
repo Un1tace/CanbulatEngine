@@ -130,12 +130,12 @@ public class Gizmo
                     {
                         if (newScale.X > newScale.Y)
                         {
-                            Vector2D<int> resolution = Engine._selectedGameObject.GetComponent<MeshRenderer>().ImageResolution;
+                            Vector2D<int> resolution = Engine._selectedGameObject.gameObject.GetComponent<MeshRenderer>().ImageResolution;
                             newScale.Y = newScale.X * ((float)resolution.Y / (float)resolution.X);
                         }
                         else
                         {
-                            Vector2D<int> resolution = Engine._selectedGameObject.GetComponent<MeshRenderer>().ImageResolution;
+                            Vector2D<int> resolution = Engine._selectedGameObject.gameObject.GetComponent<MeshRenderer>().ImageResolution;
                             newScale.X = newScale.Y * ((float)resolution.X / (float)resolution.Y);
                         }
                     }
@@ -150,7 +150,7 @@ public class Gizmo
                         
                     if (selectedObject.GetComponent<Transform>().ratioLocked)
                     {
-                        Vector2D<int> resolution = Engine._selectedGameObject.GetComponent<MeshRenderer>().ImageResolution;
+                        Vector2D<int> resolution = Engine._selectedGameObject.gameObject.GetComponent<MeshRenderer>().ImageResolution;
                         newScale.X = newScale.Y * ((float)resolution.X / (float)resolution.Y);
                     }
 
@@ -163,7 +163,7 @@ public class Gizmo
                     
                     if (selectedObject.GetComponent<Transform>().ratioLocked)
                     {
-                        Vector2D<int> resolution = Engine._selectedGameObject.GetComponent<MeshRenderer>().ImageResolution;
+                        Vector2D<int> resolution = Engine._selectedGameObject.gameObject.GetComponent<MeshRenderer>().ImageResolution;
                         newScale.Y = newScale.X * ((float)resolution.Y / (float)resolution.X);
                     }
                     
@@ -315,23 +315,6 @@ public class Gizmo
         float mouseDistance = Vector2.Distance(closestPart, pos);
         
         return mouseDistance;
-    }
-
-    private static float CalcDistanceOnTangent(Vector2 centre, float circleRadius, Vector2 posStarted, Vector2 worldPos)
-    {
-        Vector2 closestPart = (Vector2.Normalize(posStarted - centre) * circleRadius);
-        float angle = MathF.Atan2(closestPart.Y, closestPart.X); // Finds angle from positive X axis
-
-        
-
-        bool positiveGrad = ( angle < 0 && angle > (-MathF.PI / 2)) || (angle > (MathF.PI / 2));
-        bool clockwise = ((positiveGrad && worldPos.Y > 0) || (!positiveGrad && worldPos.Y < 0));
-        if (angle >= 0) clockwise = !clockwise;
-        
-        float cos = MathF.Cos(angle); // Y axis value
-        float sin = MathF.Sin(angle); // X axis Value
-        
-        return clockwise? MathF.Sqrt(MathF.Pow(worldPos.X * sin, 2) + MathF.Pow(worldPos.Y * cos, 2)) : -MathF.Sqrt(MathF.Pow(worldPos.X * sin, 2) + MathF.Pow(worldPos.Y * cos, 2));
     }
     
     private static Vector4 CalcTangentLine(Vector2 circleCentre, float circleRadius, Vector2 posStarted)

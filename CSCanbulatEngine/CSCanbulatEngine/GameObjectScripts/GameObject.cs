@@ -35,7 +35,7 @@ public class GameObject
             Engine.currentScene.GameObjects.Add(this);
         }
 #if EDITOR
-        Engine._selectedGameObject = this;
+        Engine._selectedGameObject = new (this);
 #endif
     }
 
@@ -93,7 +93,7 @@ public class GameObject
 
         Engine.currentScene.GameObjects.Remove(this);
 #if EDITOR
-        if (Engine._selectedGameObject == this)
+        if (Engine._selectedGameObject.gameObject == this)
         {
             Engine._selectedGameObject = null;
         }
@@ -116,7 +116,7 @@ public class GameObject
                 Array.Clear(Engine._nameBuffer, 0, Engine._nameBuffer.Length);
                 if (Engine._selectedGameObject != null)
                 {
-                    byte[] currentNameBytes = Encoding.UTF8.GetBytes(Engine._selectedGameObject.Name);
+                    byte[] currentNameBytes = Encoding.UTF8.GetBytes(Engine._selectedGameObject.gameObject.Name);
                     Array.Copy(currentNameBytes, Engine._nameBuffer, currentNameBytes.Length);
                     Engine.renamePopupOpen = true;
                 }
