@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text;
+using CSCanbulatEngine.Circuits;
 using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.FileHandling.ProjectManager;
 using CSCanbulatEngine.GameObjectScripts;
@@ -242,6 +243,17 @@ public class Engine
         gameObject1.GetComponent<Transform>().Position = new Vector2(-0.75f, 0f);
         var renderer1 = gameObject1.GetComponent<MeshRenderer>();
         if (renderer1 != null) renderer1.Color = new Vector4(1, 0, 0, 1); // <- Red
+
+        var addChip = new Chip(1, "Add", new Vector2(50, 50));
+        addChip.AddPin("A", true, [typeof(float), typeof(int)]);
+        addChip.AddPin("B", true, [typeof(float), typeof(int)]);
+        addChip.AddPin("Result", false, [typeof(float), typeof(int)]);
+        CircuitEditor.chips.Add(addChip);
+
+        var constChip = new Chip(2, "Constant", new Vector2(300, 150));
+        constChip.AddPin("Value", false , [typeof(float), typeof(int)]);
+        CircuitEditor.chips.Add(constChip);
+
     }
     
 
@@ -605,7 +617,7 @@ public class Engine
 
             if (ImGui.BeginTabItem("Circuit Editor"))
             {
-                ImGui.Text("Circuit Editor");
+                CircuitEditor.Render(); 
                 ImGui.EndTabItem();
             }
             ImGui.EndTabBar();
