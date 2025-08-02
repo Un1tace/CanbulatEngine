@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
 using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
 using Silk.NET.Maths;
@@ -88,34 +89,6 @@ public static class ProjectManager
         }
     }
 
-    public static bool DrawFileIcon(IntPtr textureId, string label, Vector2 size)
-    {
-        ImGui.PushID(label);
-        
-        ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
-
-        bool clicked = ImGui.ImageButton(label, textureId, size);
-        
-        ImGui.PopStyleColor();
-
-        float textWidth = ImGui.CalcTextSize(label).X;
-        
-        float iconWidth = ImGui.GetItemRectSize().X;
-        
-        float textPadding = (iconWidth - textWidth) * 0.5f;
-        
-        if (textPadding > 0)
-        {
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + textPadding);
-        }
-            
-        ImGui.Text(label);
-
-        ImGui.PopID();
-
-        return clicked;
-    }
-
     public static void RenderProjectManagerIcons()
     {
         zoom = SliderZoom;
@@ -174,22 +147,52 @@ public static class ProjectManager
             bool isHeightBigger = actualSize.Y > actualSize.X;
 
             Vector2 size = isHeightBigger ? new Vector2((int)((float)iconSize * ((float)actualSize.X/(float)actualSize.Y)),iconSize) : new Vector2(iconSize, (int)((float)iconSize * ((float)actualSize.Y / (float)actualSize.X)));
-
+            
+            ImGui.PushID(FileHandling.GetNameOfFile(name));
+            
             ImGui.BeginGroup();
-            if (DrawFileIcon((IntPtr)iconId, FileHandling.GetNameOfFile(name), size))
             {
-                Console.WriteLine($"Clicked on {name}");
-                if (isDir)
+                ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
+                if (ImGui.ImageButton(name, (IntPtr)iconId, new Vector2(iconSize, iconSize)))
                 {
-                    selectedDir = name;
+                    Console.WriteLine($"Clicked on {name}");
+                    if (isDir)
+                    {
+                        selectedDir = name;
+                    }
+                    else if (Path.GetExtension(name) == ".cbs")
+                    {
+                        SceneSerialiser ss = new SceneSerialiser(Engine.gl, Engine._squareMesh);
+                        ss.LoadScene(name);
+                    }
                 }
-                else if (Path.GetExtension(name) == ".cbs")
+                ImGui.PopStyleColor();
+                
+                if (!isDir && ImGui.BeginDragDropSource())
                 {
-                    SceneSerialiser ss = new SceneSerialiser(Engine.gl, Engine._squareMesh);
-                    ss.LoadScene(name);
+                    byte[] pathBytes = Encoding.UTF8.GetBytes(name);
+                    IntPtr pathPtr = Marshal.AllocHGlobal(pathBytes.Length + 1);
+                    Marshal.Copy(pathBytes, 0, pathPtr, pathBytes.Length);
+                    Marshal.WriteByte(pathPtr, pathBytes.Length, 0);
+
+                    ImGui.SetDragDropPayload("DND_ASSET_PATH", pathPtr, (uint)pathBytes.Length + 1);
+                
+                    ImGui.Image((IntPtr)iconId, new Vector2(32, 32));
+                    ImGui.SameLine();
+                    ImGui.Text(Path.GetFileName(name));
+                
+                    ImGui.EndDragDropSource();
                 }
+
+                float textWidth = ImGui.CalcTextSize(Path.GetFileNameWithoutExtension(name)).X;
+                float currentIconWidth = ImGui.GetItemRectSize().X;
+                float textPadding = (currentIconWidth - textWidth) * 0.5f;
+                if (textPadding > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + textPadding);
+                ImGui.Text(Path.GetFileNameWithoutExtension(name));
             }
             ImGui.EndGroup();
+
+           
             
             
             
@@ -227,6 +230,7 @@ public static class ProjectManager
                 ImGui.EndPopup();
             }
 
+            ImGui.PopID();
             ImGui.NextColumn();
         }
         

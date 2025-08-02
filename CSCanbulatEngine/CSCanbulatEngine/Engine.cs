@@ -88,6 +88,9 @@ public class Engine
     
     //Gizmo
     private Gizmo _gizmo;
+
+    private RectangleF _projectManagerBounds;
+    private string[]? _pendingDroppedFiles = null;
 #endif
 
     public void Run()
@@ -108,6 +111,7 @@ public class Engine
         window.Render += OnRender;
         window.Update += OnUpdate;
         window.Closing += OnClose;
+        window.FileDrop += OnFileDrop;
         
         #if EDITOR
         window.FramebufferResize += OnFramebufferResize;
@@ -245,14 +249,19 @@ public class Engine
         if (renderer1 != null) renderer1.Color = new Vector4(1, 0, 0, 1); // <- Red
 
         var addChip = new Chip(1, "Add", new Vector2(50, 50));
-        addChip.AddPin("A", true, [typeof(float), typeof(int)]);
-        addChip.AddPin("B", true, [typeof(float), typeof(int)]);
-        addChip.AddPin("Result", false, [typeof(float), typeof(int)]);
+        addChip.AddPort("A", true, [typeof(float), typeof(int)], new Vector4(0.5f, 0f, 0f, 1f));
+        addChip.AddPort("B", true, [typeof(float), typeof(int)], new Vector4(0.5f, 0f, 0f, 1f));
+        addChip.AddPort("Result", false, [typeof(float), typeof(int)], new Vector4(0.5f, 0f, 0f, 1f));
         CircuitEditor.chips.Add(addChip);
 
         var constChip = new Chip(2, "Constant", new Vector2(300, 150));
-        constChip.AddPin("Value", false , [typeof(float), typeof(int)]);
+        constChip.AddPort("Value", false , [typeof(float), typeof(int)], new Vector4(0f, 0.5f, 0f, 1f));
         CircuitEditor.chips.Add(constChip);
+
+        var constantChip = CircuitEditor.FindChip("Constant");
+        var addChip2 = CircuitEditor.FindChip("Add");
+        
+        addChip2.InputPorts[0].ConnectPort(constantChip.OutputPorts[0]);
 
     }
     
@@ -721,6 +730,32 @@ public class Engine
             ProjectManager.selectedDir = ProjectSerialiser.GetAssetsFolder();
             Console.WriteLine(ProjectManager.selectedDir);
         }
+
+        _projectManagerBounds = new RectangleF(new(ImGui.GetWindowPos()), new (ImGui.GetWindowSize()));
+
+        if (_pendingDroppedFiles != null)
+        {
+            if (ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows))
+            {
+                Console.WriteLine("Files dropped onto Project Manager!");
+
+                foreach (var path in _pendingDroppedFiles)
+                {
+                    try
+                    {
+                        string fileName = Path.GetFileName(path);
+                        string destPath = Path.Combine(ProjectManager.selectedDir, fileName);
+                        File.Copy(path, destPath, true);
+                        Console.WriteLine($"Imported '{fileName}' to assets.");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Failed to import file '{path}': {e.Message}");
+                    }
+                }
+            }
+            _pendingDroppedFiles = null;
+        }
         
         ProjectManager.RenderDirectories();
         ImGui.EndChild();
@@ -780,6 +815,12 @@ public class Engine
         // }
         
         SetLook();
+    }
+
+    private void OnFileDrop(string[] paths)
+    {
+        _pendingDroppedFiles = paths;
+        Console.WriteLine("File drop detected by OS, pending processing");
     }
     #endif
 

@@ -43,7 +43,7 @@ public class MeshRenderer : Component
     {
         try
         {
-            string fullPath = Path.Combine(AppContext.BaseDirectory, "EditorAssets/Images/Logo.png");
+            string fullPath = path;
             Vector2D<int> sizeOutput = new Vector2D<int>();
             TextureID = TextureLoader.Load(Engine.gl, fullPath, out sizeOutput);
             ImageResolution = sizeOutput;
@@ -57,7 +57,7 @@ public class MeshRenderer : Component
     
 #if EDITOR
     //Color picker
-    public override void RenderInspector()
+    public override unsafe void RenderInspector()
     {
         if (ImGui.ColorEdit4("Color", ref Color))
         {
@@ -75,8 +75,32 @@ public class MeshRenderer : Component
             TextureID = 0;
         }
         ImGui.SameLine();
-        if (ImGui.ImageButton("Image", (IntPtr)TextureID, new Vector2(100, 100)))
-        {}
+        ImGui.ImageButton("Image", (IntPtr)TextureID, new Vector2(100, 100));
+        
+
+        if (ImGui.BeginDragDropTarget())
+        {
+            ImGuiPayloadPtr payloadPtr = ImGui.AcceptDragDropPayload("DND_ASSET_PATH");
+
+            if (payloadPtr.NativePtr != null)
+            {
+                string assetPath = System.Runtime.InteropServices.Marshal.PtrToStringUTF8(payloadPtr.Data);
+
+                if (assetPath.ToLower().EndsWith(".png") || assetPath.ToLower().EndsWith(".jpg") || assetPath.ToLower().EndsWith(".jpeg"))
+                {
+                    try
+                    {
+                        AssignTexture(assetPath);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Failed to load dropped texture: {e.Message}");
+                    }
+                }
+            }
+            
+            ImGui.EndDragDropTarget();
+        }
     }
 #endif
 }
