@@ -16,6 +16,8 @@ public static class ProjectManager
     public static string selectedDir = "";
 
     public static float maxZoom = -1f;
+    
+    private static string selectedFileToRename = "";
 
     
     public static float zoom
@@ -225,12 +227,25 @@ public static class ProjectManager
 
                 if (ImGui.MenuItem("Rename"))
                 {
+                    selectedFileToRename = name;
                     
+                    Array.Clear(Engine._nameBuffer, 0, Engine._nameBuffer.Length);
+                        byte[] currentNameBytes = Encoding.UTF8.GetBytes(Path.GetFileNameWithoutExtension(name));
+                        Array.Copy(currentNameBytes, Engine._nameBuffer, currentNameBytes.Length);
+                        Engine.renameFilePopupOpen = true;
                 }
 
                 if (ImGui.MenuItem("Delete"))
                 {
-                    
+                    string filePath = Path.Combine(selectedDir, name);
+                    if (File.GetAttributes(filePath).HasFlag(FileAttributes.Directory))
+                    {
+                        Directory.Delete(filePath, true);
+                    }
+                    else
+                    {
+                        File.Delete(filePath);
+                    }
                 }
                 
                 if (ImGui.MenuItem($"Open in {(RuntimeInformation.IsOSPlatform(OSPlatform.OSX)? "Finder" : "Explorer")}"))
@@ -246,6 +261,20 @@ public static class ProjectManager
         }
         
         ImGui.Columns(1);
+    }
+
+    public static void RenameFileContinued(string name)
+    {
+        string filePath = Path.Combine(selectedDir, name);
+        if (File.GetAttributes(selectedFileToRename).HasFlag(FileAttributes.Directory))
+        {
+            Directory.Move(selectedFileToRename, filePath);
+        }
+        else
+        {
+            File.Move(selectedFileToRename, filePath + Path.GetExtension(selectedFileToRename), true);
+        }
+        
     }
     #endif
 }

@@ -82,6 +82,7 @@ public class Engine
     public static bool nameSceneAsPopup = false;
     public static bool createProjectPopup = false;
     public static bool projectFoundPopup = false;
+    public static bool renameFilePopupOpen = false;
     
     //Project Manager
     public static string projectFilePath = "";
@@ -424,6 +425,33 @@ public class Engine
             ImGui.EndPopup();
         }
         
+        //Renaming a file in project manager
+        if (ImGui.BeginPopupModal("Rename File", ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("Enter a new name for the file.");
+            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
+
+            if (ImGui.Button("OK"))
+            {
+                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
+                if (!string.IsNullOrWhiteSpace(newName) && Engine._selectedGameObject != null)
+                {
+                    ProjectManager.RenameFileContinued(newName);
+                }
+
+                renameFilePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                renameFilePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+                
+            }
+            ImGui.EndPopup();
+        }
+        
         ProjectSerialiser.CreateProjectPopUp();
         
         ProjectSerialiser.ProjectAlreadyHerePopup();
@@ -718,6 +746,11 @@ public class Engine
         if (projectFoundPopup)
         {
             ImGui.OpenPopup("Project Found");
+        }
+
+        if (renameFilePopupOpen)
+        {
+            ImGui.OpenPopup("Rename File");
         }
         
         // -- Project File Manager --
