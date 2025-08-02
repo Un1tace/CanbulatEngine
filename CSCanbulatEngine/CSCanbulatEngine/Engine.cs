@@ -214,6 +214,7 @@ public class Engine
         }
 
         LoadIcons.PreloadIcons();
+        LoadIcons.LoadImageIcons();
         _gizmo = new Gizmo();
 #endif
 

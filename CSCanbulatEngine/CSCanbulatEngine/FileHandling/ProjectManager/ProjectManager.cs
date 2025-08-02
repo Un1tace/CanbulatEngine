@@ -144,6 +144,17 @@ public static class ProjectManager
 
             Vector2D<int> actualSize = LoadIcons.iconSizes[iconName];
 
+            if (name.ToLower().EndsWith(".png") ||  name.ToLower().EndsWith(".jpg") || name.ToLower().EndsWith(".jpeg"))
+            {
+                if (!LoadIcons.imageIcons.ContainsKey(name))
+                {
+                    LoadIcons.LoadImageIcons();
+                }
+
+                iconId = LoadIcons.imageIcons[name];
+                actualSize = LoadIcons.imageIconSizes[name];
+            }
+
             bool isHeightBigger = actualSize.Y > actualSize.X;
 
             Vector2 size = isHeightBigger ? new Vector2((int)((float)iconSize * ((float)actualSize.X/(float)actualSize.Y)),iconSize) : new Vector2(iconSize, (int)((float)iconSize * ((float)actualSize.Y / (float)actualSize.X)));
