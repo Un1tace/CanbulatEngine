@@ -259,6 +259,10 @@ public class Engine
         var constChip = new Chip(2, "Constant", new Vector2(300, 150));
         constChip.AddPort("Value", false , [typeof(float), typeof(int)], new Vector4(0f, 0.5f, 0f, 1f));
         CircuitEditor.chips.Add(constChip);
+        
+        constChip = new Chip(3, "Constant2", new Vector2(300, 150));
+        constChip.AddPort("Value", false , [typeof(float), typeof(int)], new Vector4(0f, 0.5f, 0f, 1f));
+        CircuitEditor.chips.Add(constChip);
 
         var constantChip = CircuitEditor.FindChip("Constant");
         var addChip2 = CircuitEditor.FindChip("Add");
