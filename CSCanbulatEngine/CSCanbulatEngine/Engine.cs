@@ -250,25 +250,6 @@ public class Engine
         var renderer1 = gameObject1.GetComponent<MeshRenderer>();
         if (renderer1 != null) renderer1.Color = new Vector4(1, 0, 0, 1); // <- Red
 
-        var addChip = new Chip(1, "Add", new Vector2(50, 50));
-        addChip.AddPort("A", true, [typeof(float), typeof(int)], new Vector4(0.5f, 0f, 0f, 1f));
-        addChip.AddPort("B", true, [typeof(float), typeof(int)], new Vector4(0.5f, 0f, 0f, 1f));
-        addChip.AddPort("Result", false, [typeof(float), typeof(int)], new Vector4(0.5f, 0f, 0f, 1f));
-        CircuitEditor.chips.Add(addChip);
-
-        var constChip = new Chip(2, "Constant", new Vector2(300, 150));
-        constChip.AddPort("Value", false , [typeof(float), typeof(int)], new Vector4(0f, 0.5f, 0f, 1f));
-        CircuitEditor.chips.Add(constChip);
-        
-        constChip = new Chip(3, "Constant2", new Vector2(300, 150));
-        constChip.AddPort("Value", false , [typeof(float), typeof(int)], new Vector4(0f, 0.5f, 0f, 1f));
-        CircuitEditor.chips.Add(constChip);
-
-        var constantChip = CircuitEditor.FindChip("Constant");
-        var addChip2 = CircuitEditor.FindChip("Add");
-        
-        addChip2.InputPorts[0].ConnectPort(constantChip.OutputPorts[0]);
-
     }
     
 

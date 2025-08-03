@@ -7,10 +7,11 @@ using Silk.NET.Input;
 
 namespace CSCanbulatEngine.Circuits;
 
+// Rules
 public class ChipPortValue
 {
     public ChipPort AssignedChipPort;
-    public Func<ChipPort?, object?> ValueFunction;
+    public Func<ChipPort?, Values> ValueFunction;
     public bool? b { get; set;  }
     public int? i { get; set; }
     public float? f { get; set; }
@@ -18,10 +19,8 @@ public class ChipPortValue
     public Vector2? v2 { get; set; }
     public GameObject? gObj { get; set; }
 
-    public ChipPortValue(List<Type> acceptedTypes, ChipPort assignedChipPort)
+    public ChipPortValue(ChipPort assignedChipPort)
     {
-        //Allows for multiple values
-        acceptedTypes = acceptedTypes;
         // Setting default values
         b = false;
         i = 0;
@@ -79,7 +78,7 @@ public class ChipPortValue
         return false;
     }
     
-    public object? GetValue()
+    public Values GetValue()
     {
         if (AssignedChipPort.IsInput)
         {
@@ -89,32 +88,41 @@ public class ChipPortValue
             }
             else
             {
-                if (AssignedChipPort.PortType == typeof(bool))
-                {
-                    return b;
-                }
-                else if (AssignedChipPort.PortType == typeof(int))
-                {
-                    return i;
-                }
-                else if (AssignedChipPort.PortType == typeof(float))
-                {
-                    return f;
-                }
-                else if (AssignedChipPort.PortType == typeof(Vector2))
-                {
-                    return v2;
-                }
-                else if (AssignedChipPort.PortType == typeof(GameObject))
-                {
-                    return gObj;
-                }
-                else if (AssignedChipPort.PortType == typeof(string))
-                {
-                    return s;
-                }
-        
-                return null;
+                // if (AssignedChipPort.PortType == typeof(bool))
+                // {
+                //     return b;
+                // }
+                // else if (AssignedChipPort.PortType == typeof(int))
+                // {
+                //     return i;
+                // }
+                // else if (AssignedChipPort.PortType == typeof(float))
+                // {
+                //     return f;
+                // }
+                // else if (AssignedChipPort.PortType == typeof(Vector2))
+                // {
+                //     return v2;
+                // }
+                // else if (AssignedChipPort.PortType == typeof(GameObject))
+                // {
+                //     return gObj;
+                // }
+                // else if (AssignedChipPort.PortType == typeof(string))
+                // {
+                //     return s;
+                // }
+                //
+                // return null;
+                
+                Values values = new Values();
+                values.b = b ?? false;
+                values.i = i ?? 0;
+                values.f = f ?? 0;
+                values.s = s ?? "";
+                values.v2 = v2 ?? Vector2.Zero;
+                values.gObj = gObj ?? null;
+                return values;
             }
         }
         else
@@ -140,9 +148,9 @@ public class ChipPort
         }
         set
         {
+            _PortType = value;
             UpdateColor();
             Parent.PortTypeChanged(this);
-            _PortType = value;
         }}
     public Type? _PortType;
     public List<Type> acceptedTypes;
@@ -153,19 +161,48 @@ public class ChipPort
 
     public ChipPortValue Value;
 
-    public ChipPort(int id, string name, Chip parent, bool isInput, List<Type> acceptedValueTypes, Vector4 color)
+    public ChipPort(int id, string name, Chip parent, bool isInput, List<Type> acceptedValueTypes)
     {
         Id = id;
         Name = name;
         Parent = parent;
         IsInput = isInput;
-        Value = new ChipPortValue(acceptedValueTypes, this);
-        Color = color;
+        Value = new ChipPortValue(this);
+        acceptedTypes = acceptedValueTypes;
+
+        if (acceptedValueTypes.Count == 1)
+        {
+            PortType = acceptedValueTypes[0];
+        }
+        
+        UpdateColor();
+    }
+    
+    public ChipPort(int id, string name, Chip parent, bool isInput, Type portType)
+    {
+        Id = id;
+        Name = name;
+        Parent = parent;
+        IsInput = isInput;
+        Value = new ChipPortValue(this);
+        PortType = portType;
+
+        acceptedTypes = new List<Type>() { portType };
+        
+        UpdateColor();
     }
 
     public void UpdateColor()
     {
-        Color = ChipColor.GetColor(PortType);
+        if (PortType == null)
+        {
+            if (acceptedTypes.Count == 1)
+            {
+                Color = ChipColor.GetColor(acceptedTypes[0]);
+            }
+            else Color = ChipColor.GetColor(ChipColors.Default);
+        }
+        else Color = ChipColor.GetColor(PortType);
     }
 
     // !! Need to check if they are the same type
@@ -174,12 +211,21 @@ public class ChipPort
         if (!IsInput) port.ConnectPort(this);
         if (port.IsInput == IsInput) return false;
         if (this.Parent == port.Parent) return false;
+        if (!this.acceptedTypes.Intersect(port.acceptedTypes).Any()) return false;
+        if (PortType != null)  if (PortType != port.PortType) return false;
 
         if (port == ConnectedPort)
         {
             ConnectedPort = null;
+            Parent.PortTypeChanged(null);
+            UpdateColor();
         }
-        else ConnectedPort = port;
+        else
+        {
+            ConnectedPort = port;
+            PortType = port.PortType;
+            UpdateColor();
+        }
         Parent.UpdateChipConfig();
         return true;
     }
@@ -259,7 +305,7 @@ public class Chip
         Size = new Vector2(150, 100);
     }
 
-    public ChipPort AddPort(string name, bool isInput, List<Type> acceptedValueTypes, Vector4 color)
+    public ChipPort AddPort(string name, bool isInput, List<Type> acceptedValueTypes)
     {
         int nextAvaliableID = -1;
         bool idFound = false;
@@ -271,7 +317,7 @@ public class Chip
                 idFound = true;
             }
         }
-        var port = new ChipPort(nextAvaliableID, name, this, isInput, acceptedValueTypes, color);
+        var port = new ChipPort(nextAvaliableID, name, this, isInput, acceptedValueTypes);
         if (isInput)
         {
             InputPorts.Add(port);
@@ -286,12 +332,16 @@ public class Chip
     
     public virtual void UpdateChipConfig()
     {
-        
+        foreach (var port in InputPorts)
+        {
+            port.UpdateColor();
+        }
     }
 
-    public virtual void PortTypeChanged(ChipPort port)
+    public virtual void PortTypeChanged(ChipPort? port)
     {
-        
+        if (port == null) return;
+        port.UpdateColor();
     }
 }
 
@@ -331,23 +381,23 @@ public static class CircuitEditor
             if (targetPort != null)
             {
                 Console.WriteLine("attempting to connect to port");
-                // Attempt to connect the source to the target
                 if (_portDragSource.ConnectPort(targetPort))
                 {
                     Console.WriteLine($"Connected '{_portDragSource.Name}' to '{targetPort.Name}'");
                 }
             }
-            // End the drag operation regardless of success
             _portDragSource = null;
         }
         
         if (_portDragSource != null && ImGui.IsMouseDragging(ImGuiMouseButton.Left))
         {
-            // We need a dummy port to call the render function
-            var tempPort = new ChipPort(-1, "", null, !_portDragSource.IsInput, new List<Type>(), _portDragSource.Color);
-            tempPort.Position = _portDragSource.Position;
-            tempPort.RenderFakeWire();
+            // var tempPort = new ChipPort(-1, "", null, !_portDragSource.IsInput, _portDragSource.acceptedTypes);
+            // tempPort.Position = _portDragSource.Position;
+            // tempPort.RenderFakeWire();
+            _portDragSource.RenderFakeWire();
         }
+
+        CircuitChips.ChipsMenu(io, canvasPos, panning);
 
         foreach (var chip in chips)
         {
@@ -437,7 +487,7 @@ public static class CircuitEditor
         drawList.AddText(chipPos + new Vector2(5f, 5f), ImGui.GetColorU32(new Vector4(1f, 1f, 1f, 1.0f)), chip.Name);
         
         ImGui.SetCursorScreenPos(chipPos);
-        ImGui.InvisibleButton("chip_drag_area", new Vector2(chipSize.X-5f, chipSize.Y-5f));
+        ImGui.InvisibleButton("chip_drag_area", new Vector2(chipSize.X-5f, titleBarHeight));
         if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left))
         {
             selectedChip = chip;
@@ -457,6 +507,31 @@ public static class CircuitEditor
             drawList.AddCircleFilled(portPos, portRadius, ImGui.GetColorU32(port.Color));
             
             port.RenderWire();
+
+            if (port.ConnectedPort == null && port.PortType != null) 
+            {
+                ImGui.PushItemWidth(60);
+                ImGui.SetCursorScreenPos(portPos + new Vector2(30, -10));
+
+                Type portType = port.PortType;
+                if (portType == typeof(float))
+                {
+                    float val = port.Value.f ?? 0f;
+                    if (ImGui.InputFloat($"##{port.Id}", ref val, 0, 0, "%.2f"))
+                    {
+                        port.Value.SetValue(val);
+                    }
+                }
+                else if (portType == typeof(int))
+                {
+                    int val = port.Value.i ?? 0;
+                    if (ImGui.InputInt($"##{port.Id}", ref val))
+                    {
+                        port.Value.SetValue(val);
+                    }
+                }
+                ImGui.PopItemWidth();
+            }
         }
         
         //Output ports
@@ -468,6 +543,39 @@ public static class CircuitEditor
             port.Position = portPos;
 
             drawList.AddCircleFilled(portPos, portRadius, ImGui.GetColorU32(port.Color));
+            
+            if (port.PortType != null)
+            {
+                ImGui.PushItemWidth(60);
+                ImGui.SetCursorScreenPos(portPos + new Vector2(30, -10));
+
+                Type portType = port.PortType;
+                if (portType == typeof(float))
+                {
+                    ImGui.LabelText($"##{port.Id}", $"{port.Value.GetValue().f}");
+                }
+                else if (portType == typeof(int))
+                {
+                    ImGui.LabelText($"##{port.Id}", $"{port.Value.GetValue().i}");
+                }
+                else if (portType == typeof(bool))
+                {
+                    ImGui.LabelText($"##{port.Id}", $"{port.Value.GetValue().b}");
+                }
+                else if (portType == typeof(string))
+                {
+                    ImGui.LabelText($"##{port.Id}", $"{port.Value.GetValue().s}");
+                }
+                else if (portType == typeof(Vector2))
+                {
+                    ImGui.LabelText($"##{port.Id}", $"{port.Value.GetValue().v2}");
+                }
+                else if (portType == typeof(GameObject))
+                {
+                    ImGui.LabelText($"##{port.Id}", $"{(port.Value.GetValue().gObj != null? port.Value.GetValue().gObj.Name : "")}");;
+                }
+                ImGui.PopItemWidth();
+            }
         }
         ImGui.PopID();
     }
@@ -509,6 +617,26 @@ public static class CircuitEditor
             }
         }
         return null;
+    }
+
+    public static int GetNextAvaliableChipID()
+    {
+        bool found = false;
+        int id = 0;
+        while (!found)
+        {
+            if (FindChip(id) == null)
+            {
+                return id;
+                found = true;
+            }
+            else
+            {
+                id++;
+            }
+        }
+
+        return id;
     }
 }
 
@@ -581,4 +709,14 @@ public static class ChipColor
             return Vector4.One;
         }
     }
+}
+
+public class Values()
+{
+    public bool b = false;
+    public float f = 0f;
+    public int i = 0;
+    public string s = "";
+    public Vector2 v2 = Vector2.Zero;
+    public GameObject? gObj = null;
 }
