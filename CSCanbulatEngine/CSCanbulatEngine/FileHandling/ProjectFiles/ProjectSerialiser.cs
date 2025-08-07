@@ -73,6 +73,7 @@ public class ProjectSerialiser
         Directory.CreateDirectory(Path.Combine(assetFolderPath, "Audio"));
         Directory.CreateDirectory(Path.Combine(assetFolderPath, "GameObjects"));
         Directory.CreateDirectory(Path.Combine(assetFolderPath, "Scenes"));
+        Directory.CreateDirectory(Path.Combine(assetFolderPath, "Circuits"));
         
         SaveProjectFile(projectFolder, projectName);
         
@@ -131,6 +132,7 @@ public class ProjectSerialiser
             Directory.CreateDirectory(Path.Combine(assetFolderPath, "Audio"));
             Directory.CreateDirectory(Path.Combine(assetFolderPath, "GameObjects"));
             Directory.CreateDirectory(Path.Combine(assetFolderPath, "Scenes"));
+            Directory.CreateDirectory(Path.Combine(assetFolderPath, "Circuits"));
             return assetFolderPath;
         }
         
@@ -154,6 +156,11 @@ public class ProjectSerialiser
         if (!Directory.Exists(Path.Combine(assetPath, "Scenes")))
         {
             Directory.CreateDirectory(Path.Combine(assetPath, "Scenes"));
+        }
+
+        if (!Directory.Exists(Path.Combine(assetPath, "Circuits")))
+        {
+            Directory.CreateDirectory(Path.Combine(assetPath, "Circuits"));
         }
 
         return assetPath;
