@@ -131,12 +131,12 @@ public class AddChip : Chip
         {
             foreach (var port in InputPorts)
             {
-                port._PortType = chipPort.PortType;
+                port._PortType = chipPort?.PortType ?? null;
                 port.UpdateColor();
             }
             foreach (var port in OutputPorts)
             {
-                port._PortType = chipPort.PortType;
+                port._PortType = chipPort?.PortType ?? null;
                 port.UpdateColor();
             }
         }

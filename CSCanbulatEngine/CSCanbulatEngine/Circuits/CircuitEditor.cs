@@ -155,7 +155,7 @@ public class ChipPort
     public Type? _PortType;
     public List<Type> acceptedTypes;
     public Vector4 Color { get; set; }
-    public ChipPort? ConnectedPort { get; set; } //Only used for ports that are inputs
+    public virtual ChipPort? ConnectedPort { get; set; } //Only used for ports that are inputs
     
     public Vector2 Position { get; set; }
 
@@ -178,35 +178,45 @@ public class ChipPort
         UpdateColor();
     }
     
-    public ChipPort(int id, string name, Chip parent, bool isInput, Type portType)
+    public ChipPort(int id, string name, Chip parent, bool isInput, Type? portType = null)
     {
         Id = id;
         Name = name;
         Parent = parent;
         IsInput = isInput;
         Value = new ChipPortValue(this);
-        PortType = portType;
+        if (portType != null)
+        {
+            PortType = portType;
 
-        acceptedTypes = new List<Type>() { portType };
+            acceptedTypes = new List<Type>() { portType };
+        }
         
         UpdateColor();
     }
 
     public void UpdateColor()
     {
-        if (PortType == null)
+        if (this is ExecPort)
         {
-            if (acceptedTypes.Count == 1)
-            {
-                Color = ChipColor.GetColor(acceptedTypes[0]);
-            }
-            else Color = ChipColor.GetColor(ChipColors.Default);
+            Color = ChipColor.GetColor(ChipColors.Exec);
         }
-        else Color = ChipColor.GetColor(PortType);
+        else
+        {
+            if (PortType == null)
+            {
+                if (acceptedTypes.Count == 1)
+                {
+                    Color = ChipColor.GetColor(acceptedTypes[0]);
+                }
+                else Color = ChipColor.GetColor(ChipColors.Default);
+            }
+            else Color = ChipColor.GetColor(PortType);
+        }
     }
 
     // !! Need to check if they are the same type
-    public bool ConnectPort(ChipPort port)
+    public virtual bool ConnectPort(ChipPort port)
     {
         if (!IsInput) port.ConnectPort(this);
         if (port.IsInput == IsInput) return false;
@@ -285,6 +295,58 @@ public class ChipPort
     }
 }
 
+public class ExecPort : ChipPort
+{
+    public ExecPort? ConnectedPort;
+    public ExecPort(int id, string name, Chip parent, bool isInput) : base(id, name, parent, isInput)
+    {
+         
+    }
+
+    public override bool ConnectPort(ChipPort port)
+    {
+        if (!IsInput) port.ConnectPort(this);
+        if (port.IsInput == IsInput) return false;
+        if (this.Parent == port.Parent) return false;
+        if (port is not ExecPort) return false;
+
+        if (port == ConnectedPort)
+        {
+            ConnectedPort = null;
+            Parent.PortTypeChanged(null);
+            UpdateColor();
+        }
+        else
+        {
+            ConnectedPort = port as ExecPort;
+            PortType = port.PortType;
+            UpdateColor();
+        }
+        Parent.UpdateChipConfig();
+        return true;
+    }
+
+    public void Execute()
+    {
+        if (IsInput)
+        {
+            OnExecute();
+        }
+        else
+        {
+            if (ConnectedPort != null)
+            {
+                ConnectedPort.Execute();
+            }
+        }
+    }
+
+    protected virtual void OnExecute()
+    {
+        Parent.OutputExecPorts[0].Execute();
+    }
+}
+
 public class Chip
 {
     public int Id { get; }
@@ -296,13 +358,17 @@ public class Chip
     // Ports
     public List<ChipPort> InputPorts = new List<ChipPort>();
     public List<ChipPort> OutputPorts = new List<ChipPort>();
+    public List<ExecPort> InputExecPorts = new List<ExecPort>();
+    public List<ExecPort> OutputExecPorts = new List<ExecPort>();
 
-    public Chip(int id, string name, Vector2 position)
+    public Chip(int id, string name, Vector2 position, bool requiresExec = false)
     {
         Id = id;
         Name = name;
         Position = position;
         Size = new Vector2(150, 100);
+        InputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Input", this, true));
+        OutputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Output", this, false));
     }
 
     public ChipPort AddPort(string name, bool isInput, List<Type> acceptedValueTypes)
@@ -312,7 +378,7 @@ public class Chip
         while (nextAvaliableID <= -1 && !idFound)
         {
             nextAvaliableID += 1;
-            if (CircuitEditor.FindChip(nextAvaliableID) == null)
+            if (FindPort(nextAvaliableID) == null)
             {
                 idFound = true;
             }
@@ -329,6 +395,24 @@ public class Chip
 
         return port;
     }
+
+    public ExecPort AddExecPort(string name, bool isInput)
+    {
+        int nextAvaliableID = -1;
+        bool idFound = false;
+        while (nextAvaliableID <= -1 && !idFound)
+        {
+            nextAvaliableID += 1;
+            if (FindPort(nextAvaliableID) == null)
+            {
+                idFound = true;
+            }
+        }
+        var port = new ExecPort(nextAvaliableID, name, this, isInput);
+        if (isInput) InputExecPorts.Add(port);
+        else OutputExecPorts.Add(port);
+        return port;
+    }
     
     public virtual void UpdateChipConfig()
     {
@@ -342,6 +426,34 @@ public class Chip
     {
         if (port == null) return;
         port.UpdateColor();
+    }
+
+    private ChipPort? FindPort(int id)
+    {
+        foreach (var port in new List<ChipPort>().Concat(InputPorts).Concat(OutputPorts).Concat(InputExecPorts).Concat(OutputExecPorts))
+        {
+            if (port.Id == id)
+            {
+                return port;
+            }
+        }
+
+        return null;
+    }
+
+    private int NextAvaliablePortIDFunc()
+    {
+        int nextAvaliableID = -1;
+        bool idFound = false;
+        while (nextAvaliableID <= -1 && !idFound)
+        {
+            nextAvaliableID += 1;
+            if (FindPort(nextAvaliableID) == null)
+            {
+                idFound = true;
+            }
+        }
+        return nextAvaliableID;
     }
 }
 
@@ -642,7 +754,7 @@ public static class CircuitEditor
 
 public enum ChipColors
 {
-    Default, Bool, Int, Float, String, Vector2, GameObject
+    Default, Bool, Int, Float, String, Vector2, GameObject, Exec
 }
 
 public static class ChipColor
@@ -671,6 +783,9 @@ public static class ChipColor
                 break;
             case ChipColors.GameObject:
                 return new Vector4(1f, 0.89f, 0.15f, 1f);
+                break;
+            case ChipColors.Exec:
+                return new Vector4(1f, 0.29f, 0.13f, 1f);
                 break;
             default:
                 return Vector4.One;
