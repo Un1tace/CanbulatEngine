@@ -1,4 +1,5 @@
 using System.Numerics;
+using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
 using Silk.NET.Maths;
@@ -16,6 +17,8 @@ public class MeshRenderer : Component
     private static Vector2D<int> _imageResolution = Vector2D<int>.Zero;
 
     public string? TexturePath;
+
+    private bool searchButtonClicked = false;
 
     public Vector2D<int> ImageResolution
     {
@@ -67,7 +70,43 @@ public class MeshRenderer : Component
         ImGui.Text("Image: ");
         ImGui.SameLine();
         if (ImGui.ImageButton("SearchImage", (IntPtr)LoadIcons.icons["MagnifyingGlass.png"], new Vector2(20, 20)))
-        {}
+        {
+            searchButtonClicked = true;
+        }
+
+        Vector2 buttonPos = ImGui.GetItemRectMin();
+        
+        if (searchButtonClicked)
+        {
+            ImGui.SetNextWindowPos(buttonPos, ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
+            ImGui.SetNextWindowSize(new Vector2(240, 300), ImGuiCond.Appearing);
+            ImGui.Begin("Search", ref searchButtonClicked, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize);
+            ImGui.Columns(3, "Image Column", false);
+            var imageFiles = ProjectSerialiser.FindAllImageFiles();
+            foreach (var path in imageFiles)
+            {
+                ImGui.BeginGroup();
+                if (!LoadIcons.icons.ContainsKey(path))
+                {
+                    LoadIcons.LoadImageIcons();
+                }
+                if (ImGui.ImageButton(path, (IntPtr)LoadIcons.imageIcons[path], new Vector2(60, 60)))
+                {
+                    AssignTexture(path);
+                    searchButtonClicked = false;
+                }
+                float textWidth = ImGui.CalcTextSize(Path.GetFileNameWithoutExtension(name)).X;
+                float currentIconWidth = ImGui.GetItemRectSize().X;
+                float textPadding = (currentIconWidth - textWidth) * 0.5f;
+                if (textPadding > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + textPadding);
+                ImGui.Text(Path.GetFileNameWithoutExtension(path));
+                ImGui.EndGroup();
+                
+                ImGui.NextColumn();
+            }
+            ImGui.Columns(1);
+            ImGui.End();
+        }
 
         ImGui.SameLine();
         if (ImGui.ImageButton("ClearImage", (IntPtr)LoadIcons.icons["Cross.png"], new Vector2(20, 20)))

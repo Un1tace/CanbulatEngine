@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Text;
 using CSCanbulatEngine.InfoHolders;
 using ImGuiNET;
@@ -260,6 +261,38 @@ public class ProjectSerialiser
             }
 
             ImGui.EndPopup();
+        }
+    }
+
+    private static List<string> imageFiles = new List<string>();
+    
+    public static List<string> FindAllImageFiles()
+    {
+        imageFiles = new List<string>();
+        ScanDirectoryForFilesWithExtension(GetAssetsFolder(), [".png", ".jpg", ".jpeg"]);
+        return imageFiles;
+    }
+
+    public static void ScanDirectoryForFilesWithExtension(string path, string[] extensions)
+    {
+        string[] dirs = Directory.GetDirectories(path);
+        string[] files = Directory.GetFiles(path);
+
+        foreach (string file in files)
+        {
+            foreach (string extension in extensions)
+            {
+                if (file.ToLower().EndsWith(extension))
+                {
+                    imageFiles.Add(file);
+                    continue;
+                }
+            }
+        }
+
+        foreach (string dir in dirs)
+        {
+            ScanDirectoryForFilesWithExtension(dir, extensions);
         }
     }
 #endif

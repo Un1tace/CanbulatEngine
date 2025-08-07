@@ -166,7 +166,7 @@ public static class ProjectManager
             ImGui.BeginGroup();
             {
                 ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
-                if (ImGui.ImageButton(name, (IntPtr)iconId, new Vector2(iconSize, iconSize)))
+                if (ImGui.ImageButton(name, (IntPtr)iconId, new Vector2(size.X, size.Y)))
                 {
                     Console.WriteLine($"Clicked on {name}");
                     if (isDir)
