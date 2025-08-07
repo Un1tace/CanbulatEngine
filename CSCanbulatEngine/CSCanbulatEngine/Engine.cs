@@ -92,6 +92,8 @@ public class Engine
 
     private RectangleF _projectManagerBounds;
     private string[]? _pendingDroppedFiles = null;
+
+    private bool circuitEditorIsOpen = false;
 #endif
 
     public void Run()
@@ -530,19 +532,26 @@ public class Engine
                 }
                 ImGui.EndMenu();
             }
-            
-            if (_selectedGameObject != null)
+
+            if (circuitEditorIsOpen)
             {
-                _selectedGameObject.gameObject.RenderObjectOptionBar(superKey);
+                CircuitEditor.MainMenuBar();
             }
-
-            RenderObjectMenu(superKey);
-
-            if (ImGui.BeginMenu("Debug"))
+            else
             {
-                bool dockingEnabled = ImGui.GetIO().ConfigFlags.HasFlag(ImGuiConfigFlags.DockingEnable);
-                ImGui.MenuItem("Docking Enabled", "", dockingEnabled);
-                ImGui.EndMenu();
+                if (_selectedGameObject != null)
+                {
+                    _selectedGameObject.gameObject.RenderObjectOptionBar(superKey);
+                }
+
+                RenderObjectMenu(superKey);
+
+                if (ImGui.BeginMenu("Debug"))
+                {
+                    bool dockingEnabled = ImGui.GetIO().ConfigFlags.HasFlag(ImGuiConfigFlags.DockingEnable);
+                    ImGui.MenuItem("Docking Enabled", "", dockingEnabled);
+                    ImGui.EndMenu();
+                }
             }
 
             if (ImGui.MenuItem("Info"))
@@ -599,6 +608,7 @@ public class Engine
         {
             if (ImGui.BeginTabItem("Viewport"))
             {
+                circuitEditorIsOpen = false;
                 Vector2 viewportPanelSize = ImGui.GetContentRegionAvail();
                 // Vector2 viewportPos = ImGui.GetWindowPos();
                 Vector2 viewportPos = ImGui.GetCursorScreenPos();
@@ -640,6 +650,7 @@ public class Engine
 
             if (ImGui.BeginTabItem("Circuit Editor"))
             {
+                circuitEditorIsOpen = true;
                 CircuitEditor.Render(); 
                 ImGui.EndTabItem();
             }

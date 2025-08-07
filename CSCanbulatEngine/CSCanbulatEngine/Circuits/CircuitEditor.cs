@@ -760,6 +760,32 @@ public static class CircuitEditor
         
         ImGui.PopID();
     }
+
+    public static void MainMenuBar()
+    {
+        string superKey = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "CMD" : "CTRL";
+        string altKey = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "Option" : "ALT"; 
+        if (ImGui.BeginMenu("Circuit Script"))
+        {
+            if (ImGui.MenuItem("New Circuit Script", superKey + "+" + altKey + "+" + "N"))
+            {
+                    
+            }
+
+            if (ImGui.MenuItem("Open Circuit Script", superKey + "+" + altKey + "+" + "O"))
+            {
+                    
+            }
+
+            if (ImGui.MenuItem("Save Circuit Script", superKey + "+" + altKey + "+" + "S"))
+            {
+                    
+            }
+                
+            ImGui.EndMenu();
+        }
+        
+    }
     
     public static Chip? FindChip(int id)
     {
