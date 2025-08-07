@@ -12,19 +12,48 @@ public class CircuitChips
         if (ImGui.BeginPopupContextWindow("SpawnChipMenu"))
         {
             Vector2 spawnPos = io.MousePos - canvasPos - panning;
-            if (ImGui.MenuItem("Create Add Chip"))
-            {
-                CircuitEditor.chips.Add(new AddChip(CircuitEditor.GetNextAvaliableChipID(), "Add", spawnPos));
-            }
 
-            if (ImGui.MenuItem("Create Float Constant"))
+            if (ImGui.BeginMenu("Create Chips"))
             {
-                CircuitEditor.chips.Add(new FloatConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Float Constant", spawnPos));
-            }
+                if (ImGui.MenuItem("Test Button"))
+                {
+                    CircuitEditor.chips.Add(new TestButton(CircuitEditor.GetNextAvaliableChipID(), "Test Button", spawnPos));    
+                }
+                
+                if (ImGui.BeginMenu("Constant Chips"))
+                {
+                    if (ImGui.MenuItem("Create Float Constant"))
+                    {
+                        CircuitEditor.chips.Add(new FloatConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Float Constant", spawnPos));
+                    }
 
-            if (ImGui.MenuItem("Create Int Constant"))
-            {
-                CircuitEditor.chips.Add(new IntConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Int Constant", spawnPos));
+                    if (ImGui.MenuItem("Create Int Constant"))
+                    {
+                        CircuitEditor.chips.Add(new IntConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Int Constant", spawnPos));
+                    }
+                    ImGui.EndMenu();
+                }
+
+                if (ImGui.BeginMenu("Math Chips"))
+                {
+                    if (ImGui.MenuItem("Create Add Chip"))
+                    {
+                        CircuitEditor.chips.Add(new AddChip(CircuitEditor.GetNextAvaliableChipID(), "Add", spawnPos));
+                    }
+                    ImGui.EndMenu();
+                }
+
+                if (ImGui.BeginMenu("Variable Chips"))
+                {
+                    if (ImGui.MenuItem("Create Float Variable"))
+                    {
+                        CircuitEditor.chips.Add(new FloatVariable(CircuitEditor.GetNextAvaliableChipID(), "Float Variable", spawnPos));
+                    }
+
+                    ImGui.EndMenu();
+                }
+
+                ImGui.EndMenu();
             }
 
             ImGui.EndPopup();
@@ -141,4 +170,46 @@ public class AddChip : Chip
             }
         }
     }
+}
+
+public class TestButton : Chip
+{
+    public TestButton(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        ShowCustomItemOnChip = true;
+        AddExecPort("Output", false);
+    }
+
+    public override void DisplayCustomItem()
+    {
+        if (ImGui.Button("Button"))
+        {
+            OutputExecPorts[0].Execute();
+        }
+    }
+}
+
+public class FloatVariable : Chip
+{
+    private Values varValues;
+    public FloatVariable(int id, string name, Vector2 position) : base(id, name, position, true)
+    {
+        varValues = new Values();
+        AddPort("Input", true, new List<Type>() { typeof(float) });
+        AddPort("Output", false, new List<Type>() { typeof(float) });
+        base.OutputPorts[0].Value.ValueFunction = VarOutput;
+    }
+
+    public Values VarOutput(ChipPort port)
+    {
+        return varValues;
+    }
+
+    public override void OnExecute()
+    {
+        varValues = InputPorts[0].Value.GetValue();
+        base.OnExecute();
+    }
+    
+    
 }

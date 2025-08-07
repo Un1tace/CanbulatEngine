@@ -219,6 +219,7 @@ public class ChipPort
     public virtual bool ConnectPort(ChipPort port)
     {
         if (!IsInput) port.ConnectPort(this);
+        if (port is ExecPort execPort) return false;
         if (port.IsInput == IsInput) return false;
         if (this.Parent == port.Parent) return false;
         if (!this.acceptedTypes.Intersect(port.acceptedTypes).Any()) return false;
@@ -297,7 +298,6 @@ public class ChipPort
 
 public class ExecPort : ChipPort
 {
-    public ExecPort? ConnectedPort;
     public ExecPort(int id, string name, Chip parent, bool isInput) : base(id, name, parent, isInput)
     {
          
@@ -308,18 +308,16 @@ public class ExecPort : ChipPort
         if (!IsInput) port.ConnectPort(this);
         if (port.IsInput == IsInput) return false;
         if (this.Parent == port.Parent) return false;
-        if (port is not ExecPort) return false;
+        if (port is not ExecPort execPort) return false;
 
         if (port == ConnectedPort)
         {
             ConnectedPort = null;
-            Parent.PortTypeChanged(null);
             UpdateColor();
         }
         else
         {
-            ConnectedPort = port as ExecPort;
-            PortType = port.PortType;
+            ConnectedPort = execPort;
             UpdateColor();
         }
         Parent.UpdateChipConfig();
@@ -330,21 +328,18 @@ public class ExecPort : ChipPort
     {
         if (IsInput)
         {
-            OnExecute();
+            Parent.OnExecute();
         }
         else
         {
-            if (ConnectedPort != null)
+            if (ConnectedPort is ExecPort connectedExecPort)
             {
-                ConnectedPort.Execute();
+                connectedExecPort.Execute();
             }
         }
     }
 
-    protected virtual void OnExecute()
-    {
-        Parent.OutputExecPorts[0].Execute();
-    }
+    
 }
 
 public class Chip
@@ -354,6 +349,7 @@ public class Chip
     public Vector2 Position { get; set; }
     public Vector2 Size { get; set; }
     public Action CircuitFunction { get; set; }
+    public bool ShowCustomItemOnChip { get; set; }
     
     // Ports
     public List<ChipPort> InputPorts = new List<ChipPort>();
@@ -367,8 +363,11 @@ public class Chip
         Name = name;
         Position = position;
         Size = new Vector2(150, 100);
-        InputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Input", this, true));
-        OutputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Output", this, false));
+        if (requiresExec)
+        {
+            InputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Input", this, true));
+            OutputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Output", this, false));
+        }
     }
 
     public ChipPort AddPort(string name, bool isInput, List<Type> acceptedValueTypes)
@@ -414,6 +413,11 @@ public class Chip
         return port;
     }
     
+    public virtual void OnExecute()
+    {
+        OutputExecPorts[0].Execute();
+    }
+    
     public virtual void UpdateChipConfig()
     {
         foreach (var port in InputPorts)
@@ -455,6 +459,12 @@ public class Chip
         }
         return nextAvaliableID;
     }
+
+    // Used for displaying custom stuff on chips, used in override on chips
+    public virtual void DisplayCustomItem()
+    {
+        
+    }
 }
 
 public static class CircuitEditor
@@ -463,6 +473,10 @@ public static class CircuitEditor
     private static Vector2 panning = Vector2.Zero;
     private static Chip? selectedChip = null;
     private static ChipPort? _portDragSource = null;
+
+    public static float Zoom = 1f;
+    public const float MinZoom = 0.3f;
+    public const float MaxZoom = 2f;
 
     public static void Render()
     {
@@ -476,6 +490,20 @@ public static class CircuitEditor
                                          (InputManager.IsKeyDown(RuntimeInformation.IsOSPlatform(OSPlatform.OSX)? Key.SuperLeft : Key.AltLeft) && ImGui.IsMouseDragging(ImGuiMouseButton.Right))))
         {
             panning += ImGui.GetIO().MouseDelta;
+        }
+
+        if (ImGui.IsWindowHovered())
+        {
+            if (io.MouseWheel != 0)
+            {
+                Vector2 mousePosInCanvas = (io.MousePos - canvasPos - panning) / Zoom;
+
+                float oldZoom = Zoom;
+                Zoom += io.MouseWheel * Zoom * 0.1f;
+                Zoom = Math.Clamp(Zoom, MinZoom, MaxZoom);
+                
+                panning += mousePosInCanvas * (oldZoom - Zoom);
+            }
         }
         
         if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) && ImGui.IsWindowHovered())
@@ -548,7 +576,7 @@ public static class CircuitEditor
         // }
         if (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && selectedChip != null)
         {
-            selectedChip.Position += ImGui.GetIO().MouseDelta;
+            selectedChip.Position += ImGui.GetIO().MouseDelta/Zoom;
         }
         else
         {
@@ -590,12 +618,12 @@ public static class CircuitEditor
     {
         ImGui.PushID(chip.Id);
 
-        var chipPos = canvasPos + chip.Position + panning;
-        var chipSize = chip.Size;
-        var titleBarHeight = 30f;
+        var chipPos = canvasPos + (chip.Position * Zoom) + panning;
+        var chipSize = chip.Size * Zoom;
+        var titleBarHeight = 30f * Zoom;
         
         drawList.AddRectFilled(chipPos, chipPos + chipSize, ImGui.GetColorU32(new Vector4(0.2f, 0.2f, 0.2f, 1.0f)));
-        drawList.AddRectFilled(chipPos, chipPos + new Vector2(chipSize.X, titleBarHeight), ImGui.GetColorU32(new Vector4(0.5f, 0.5f, 0.5f, 1.0f)), 5f, ImDrawFlags.RoundCornersTop);
+        drawList.AddRectFilled(chipPos, chipPos + new Vector2(chipSize.X, titleBarHeight), ImGui.GetColorU32(new Vector4(0.5f, 0.5f, 0.5f, 1.0f)), 5f * Zoom, ImDrawFlags.RoundCornersTop);
         drawList.AddText(chipPos + new Vector2(5f, 5f), ImGui.GetColorU32(new Vector4(1f, 1f, 1f, 1.0f)), chip.Name);
         
         ImGui.SetCursorScreenPos(chipPos);
@@ -605,25 +633,44 @@ public static class CircuitEditor
             selectedChip = chip;
         }
 
-        float portRadius = 5f;
-        float portSpacing = 25f;
+        float portRadius = 5f * Zoom;
+        float portSpacing = 25f * Zoom;
+        
+        List<ChipPort> inputChipPorts = new List<ChipPort>();
+        inputChipPorts.AddRange(chip.InputExecPorts);
+        inputChipPorts.AddRange(chip.InputPorts);
+        
+        List<ChipPort> outputChipPorts = new List<ChipPort>();
+        outputChipPorts.AddRange(chip.OutputExecPorts);
+        outputChipPorts.AddRange(chip.OutputPorts);
 
         //Input ports
-        for (int i = 0; i < chip.InputPorts.Count; i++)
+        for (int i = 0; i < inputChipPorts.Count; i++)
         {
-            var port = chip.InputPorts[i];
+            ChipPort port = inputChipPorts[i];
             var portPos = chipPos + new Vector2(0, titleBarHeight + portSpacing * (i + 1));
 
             port.Position = portPos;
 
-            drawList.AddCircleFilled(portPos, portRadius, ImGui.GetColorU32(port.Color));
+            if (port is ExecPort execPort)
+            {
+                float multiplier = 2f;
+                float half = MathF.Sqrt(MathF.Pow(portRadius, 2) / 2) * multiplier;
+                drawList.AddTriangleFilled(new Vector2(portPos.X - half, portPos.Y + half),  new Vector2(portPos.X - half, portPos.Y - half), new Vector2(portPos.X +
+                    (portRadius * multiplier) - half, portPos.Y), ImGui.GetColorU32(port.Color));
+                
+            }
+            else
+            {
+                drawList.AddCircleFilled(portPos, portRadius, ImGui.GetColorU32(port.Color));
+            }
             
             port.RenderWire();
 
             if (port.ConnectedPort == null && port.PortType != null) 
             {
-                ImGui.PushItemWidth(60);
-                ImGui.SetCursorScreenPos(portPos + new Vector2(30, -10));
+                ImGui.PushItemWidth(60 * Zoom);
+                ImGui.SetCursorScreenPos(portPos + new Vector2(30 * Zoom, -10 * Zoom));
 
                 Type portType = port.PortType;
                 if (portType == typeof(float))
@@ -647,14 +694,24 @@ public static class CircuitEditor
         }
         
         //Output ports
-        for (int i = 0; i < chip.OutputPorts.Count; i++)
+        for (int i = 0; i < outputChipPorts.Count; i++)
         {
-            var port = chip.OutputPorts[i];
+            var port = outputChipPorts[i];
             var portPos = chipPos + new Vector2(chipSize.X, titleBarHeight + portSpacing * (i + 1));
 
             port.Position = portPos;
 
-            drawList.AddCircleFilled(portPos, portRadius, ImGui.GetColorU32(port.Color));
+            if (port is ExecPort execPort)
+            {
+                float multiplier = 2f;
+                float half = MathF.Sqrt(MathF.Pow(portRadius, 2) / 2) * multiplier;
+                drawList.AddTriangleFilled(new Vector2(portPos.X - half, portPos.Y + half),  new Vector2(portPos.X - half, portPos.Y - half), new Vector2(portPos.X +
+                    (portRadius * multiplier) - half, portPos.Y), ImGui.GetColorU32(port.Color));
+            }
+            else
+            {
+                drawList.AddCircleFilled(portPos, portRadius, ImGui.GetColorU32(port.Color));
+            }
             
             if (port.PortType != null)
             {
@@ -689,6 +746,18 @@ public static class CircuitEditor
                 ImGui.PopItemWidth();
             }
         }
+
+        if (chip.ShowCustomItemOnChip)
+        {
+            int highestAmountOfPorts = inputChipPorts.Count > outputChipPorts.Count
+                ? inputChipPorts.Count
+                : outputChipPorts.Count;
+            var portLatePos = chipPos + new Vector2(0, titleBarHeight + portSpacing * (highestAmountOfPorts + 1));
+
+            ImGui.SetCursorScreenPos(portLatePos + new Vector2(30 * Zoom, -10 * Zoom));
+            chip.DisplayCustomItem();
+        }
+        
         ImGui.PopID();
     }
     
@@ -719,13 +788,21 @@ public static class CircuitEditor
     {
         foreach (var chip in chips)
         {
+            foreach (var port in chip.InputExecPorts)
+            {
+                if (Vector2.Distance(port.Position, mousePos) < 10f * Zoom) return port;
+            }
             foreach (var port in chip.InputPorts)
             {
-                if (Vector2.Distance(port.Position, mousePos) < 10f) return port;
+                if (Vector2.Distance(port.Position, mousePos) < 10f * Zoom) return port;
+            }
+            foreach (var port in chip.OutputExecPorts)
+            {
+                if (Vector2.Distance(port.Position, mousePos) < 10f * Zoom) return port;
             }
             foreach (var port in chip.OutputPorts)
             {
-                if (Vector2.Distance(port.Position, mousePos) < 10f) return port;
+                if (Vector2.Distance(port.Position, mousePos) < 10f * Zoom) return port;
             }
         }
         return null;
