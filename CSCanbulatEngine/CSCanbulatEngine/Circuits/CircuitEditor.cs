@@ -199,7 +199,7 @@ public class ChipPort
     {
         if (this is ExecPort)
         {
-            Color = ChipColor.GetColor(ChipColors.Exec);
+            Color = ChipColor.GetColor(ChipTypes.Exec);
         }
         else
         {
@@ -209,7 +209,7 @@ public class ChipPort
                 {
                     Color = ChipColor.GetColor(acceptedTypes[0]);
                 }
-                else Color = ChipColor.GetColor(ChipColors.Default);
+                else Color = ChipColor.GetColor(ChipTypes.Default);
             }
             else Color = ChipColor.GetColor(PortType);
         }
@@ -473,6 +473,7 @@ public static class CircuitEditor
     private static Vector2 panning = Vector2.Zero;
     private static Chip? selectedChip = null;
     private static ChipPort? _portDragSource = null;
+    private static ChipPort? HoveredPort = null;
 
     public static float Zoom = 1f;
     public const float MinZoom = 0.3f;
@@ -505,13 +506,16 @@ public static class CircuitEditor
                 panning += mousePosInCanvas * (oldZoom - Zoom);
             }
         }
-        
+
+        if (ImGui.IsWindowHovered())
+        {
+            HoveredPort = GetPortAt(io.MousePos);
+        }
         if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) && ImGui.IsWindowHovered())
         {
-            ChipPort port = GetPortAt(io.MousePos);
-            if (port != null)
+            if (HoveredPort != null)
             {
-                _portDragSource = port;
+                _portDragSource = HoveredPort;
             }
         }
         
@@ -691,6 +695,74 @@ public static class CircuitEditor
                 }
                 ImGui.PopItemWidth();
             }
+
+            if (HoveredPort == port)
+            {
+                ImGui.PushFont(Engine._extraThickFont);
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(new Vector4(0.788f, 0.788f, 0.125f, 1f)));
+                if (port is ExecPort)
+                {
+                    ExecPort portAsExecPort = port as ExecPort;
+                    float textWidth = ImGui.CalcTextSize("Exec").X;
+                    ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -40));
+                    ImGui.LabelText($"##{port.Id}", "Exec");
+                }
+                else if (port.PortType != null)
+                {
+                    float textWidth = ImGui.CalcTextSize(TypeHelper.GetName(port.PortType)).X;
+                    ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -40));
+                    ImGui.LabelText($"##{port.Id}", TypeHelper.GetName(port.PortType));
+                    if (port.PortType == typeof(float))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.f.ToString()).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.f.ToString());
+                    }
+                    else if (port.PortType == typeof(int))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.i.ToString()).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.i.ToString());
+                    }
+                    else if (port.PortType == typeof(string))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.s).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.s);
+                    }
+                    else if (port.PortType == typeof(bool))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.b.ToString()).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.b.ToString());
+                    }
+                    else if (port.PortType == typeof(Vector2))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.v2.ToString()).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.v2.ToString());
+                    }
+                    else if (port.PortType == typeof(GameObject))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.v2.ToString()).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.v2.ToString());
+                    }
+                }
+                else if (port.acceptedTypes != null)
+                {
+                    string typeString = "";
+                    for (int x = 0; x < port.acceptedTypes.Count; x++)
+                    {
+                        typeString += x == 0? TypeHelper.GetName(port.acceptedTypes[x]) : " | " + TypeHelper.GetName(port.acceptedTypes[x]);
+                    }
+                    float textWidth = ImGui.CalcTextSize(typeString).X;
+                    ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -40));
+                    ImGui.LabelText($"##{port.Id}", typeString);
+                }
+                ImGui.PopStyleColor();
+                ImGui.PopFont();
+            }
         }
         
         //Output ports
@@ -713,37 +785,72 @@ public static class CircuitEditor
                 drawList.AddCircleFilled(portPos, portRadius, ImGui.GetColorU32(port.Color));
             }
             
-            if (port.PortType != null)
+            if (HoveredPort == port)
             {
-                ImGui.PushItemWidth(60);
-                ImGui.SetCursorScreenPos(portPos + new Vector2(30, -10));
-
-                Type portType = port.PortType;
-                if (portType == typeof(float))
+                ImGui.PushFont(Engine._extraThickFont);
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(new Vector4(0.788f, 0.788f, 0.125f, 1f)));
+                if (port is ExecPort)
                 {
-                    ImGui.LabelText($"##{port.Id}", $"{port.Value.GetValue().f}");
+                    ExecPort portAsExecPort = port as ExecPort;
+                    float textWidth = ImGui.CalcTextSize("Exec").X;
+                    ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -40));
+                    ImGui.LabelText($"##{port.Id}", "Exec");
                 }
-                else if (portType == typeof(int))
+                else if (port.PortType != null)
                 {
-                    ImGui.LabelText($"##{port.Id}", $"{port.Value.GetValue().i}");
+                    float textWidth = ImGui.CalcTextSize(TypeHelper.GetName(port.PortType)).X;
+                    ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -40));
+                    ImGui.LabelText($"##{port.Id}", TypeHelper.GetName(port.PortType));
+                    if (port.PortType == typeof(float))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.f.ToString()).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.f.ToString());
+                    }
+                    else if (port.PortType == typeof(int))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.i.ToString()).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.i.ToString());
+                    }
+                    else if (port.PortType == typeof(string))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.s).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.s);
+                    }
+                    else if (port.PortType == typeof(bool))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.b.ToString()).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.b.ToString());
+                    }
+                    else if (port.PortType == typeof(Vector2))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.v2.ToString()).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.v2.ToString());
+                    }
+                    else if (port.PortType == typeof(GameObject))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.v2.ToString()).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.v2.ToString());
+                    }
                 }
-                else if (portType == typeof(bool))
+                else if (port.acceptedTypes != null)
                 {
-                    ImGui.LabelText($"##{port.Id}", $"{port.Value.GetValue().b}");
+                    string typeString = "";
+                    for (int x = 0; x < port.acceptedTypes.Count; x++)
+                    {
+                        typeString += x == 0? TypeHelper.GetName(port.acceptedTypes[x]) : " | " + TypeHelper.GetName(port.acceptedTypes[x]);
+                    }
+                    float textWidth = ImGui.CalcTextSize(typeString).X;
+                    ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -40));
+                    ImGui.LabelText($"##{port.Id}", typeString);
                 }
-                else if (portType == typeof(string))
-                {
-                    ImGui.LabelText($"##{port.Id}", $"{port.Value.GetValue().s}");
-                }
-                else if (portType == typeof(Vector2))
-                {
-                    ImGui.LabelText($"##{port.Id}", $"{port.Value.GetValue().v2}");
-                }
-                else if (portType == typeof(GameObject))
-                {
-                    ImGui.LabelText($"##{port.Id}", $"{(port.Value.GetValue().gObj != null? port.Value.GetValue().gObj.Name : "")}");;
-                }
-                ImGui.PopItemWidth();
+                ImGui.PopStyleColor();
+                ImGui.PopFont();
             }
         }
 
@@ -810,7 +917,7 @@ public static class CircuitEditor
         return null;
     }
     
-    private static ChipPort GetPortAt(Vector2 mousePos)
+    private static ChipPort? GetPortAt(Vector2 mousePos)
     {
         foreach (var chip in chips)
         {
@@ -855,39 +962,76 @@ public static class CircuitEditor
     }
 }
 
-public enum ChipColors
+public enum ChipTypes
 {
     Default, Bool, Int, Float, String, Vector2, GameObject, Exec
 }
 
+public static class TypeHelper
+{
+    public static string GetName(Type type)
+    {
+            if (type == typeof(bool))
+            {
+                return "Bool";
+            }
+            else if (type == typeof(int))
+            {
+                return "Int";
+            }
+            else if (type == typeof(float))
+            {
+                return "Float";
+            }
+            else if (type == typeof(string))
+            {
+                return "String";
+            }
+            else if (type == typeof(Vector2))
+            {
+                return "Vector2";
+            }
+            else if (type == typeof(GameObject))
+            {
+                return "GameObject";
+            }
+            else
+            {
+                return "";
+            }
+    }
+    
+    
+}
+
 public static class ChipColor
 {
-    public static Vector4 GetColor(ChipColors color)
+    public static Vector4 GetColor(ChipTypes type)
     {
-        switch (color)
+        switch (type)
         {
-            case ChipColors.Default:
+            case ChipTypes.Default:
                 return Vector4.One;
                 break;
-            case ChipColors.Bool:
+            case ChipTypes.Bool:
                 return new Vector4(0.5f, 0, 0, 1f);
                 break;
-            case ChipColors.Int:
+            case ChipTypes.Int:
                 return new Vector4(0, 0.5f, 0, 1f);
                 break;
-            case ChipColors.Float:
+            case ChipTypes.Float:
                 return new Vector4(0, 0, 0.5f, 1f);
                 break;
-            case ChipColors.String:
+            case ChipTypes.String:
                 return new Vector4(0.56f, 0.35f, 0.88f, 1f);
                 break;
-            case ChipColors.Vector2:
+            case ChipTypes.Vector2:
                 return new Vector4(0.35f, 0.88f, 0.8f, 1f);
                 break;
-            case ChipColors.GameObject:
+            case ChipTypes.GameObject:
                 return new Vector4(1f, 0.89f, 0.15f, 1f);
                 break;
-            case ChipColors.Exec:
+            case ChipTypes.Exec:
                 return new Vector4(1f, 0.29f, 0.13f, 1f);
                 break;
             default:

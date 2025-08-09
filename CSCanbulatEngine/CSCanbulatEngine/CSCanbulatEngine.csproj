@@ -82,6 +82,9 @@
       <None Update="Resources\Icons\Scale.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="EditorAssets\Fonts\Nunito-ExtraBold.ttf">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>

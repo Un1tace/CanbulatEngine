@@ -67,6 +67,7 @@ public class Engine
     
     // Font
     private static ImFontPtr _customFont;
+    public static ImFontPtr _extraThickFont;
 
     private bool showInfoWindow = false;
     
@@ -167,34 +168,39 @@ public class Engine
             Console.WriteLine("Could not find font file: " + fontPath + ". Using default font");
         }
         
-        // 1. Get the font texture data from ImGui
-        io.Fonts.GetTexDataAsRGBA32(out byte* pixelData, out int width, out int height, out int bytesPerPixel);
+        fontPath = Path.Combine(AppContext.BaseDirectory, "EditorAssets/Fonts/Nunito-ExtraBold.ttf");
 
-        // 2. Create our own OpenGL texture
+        if (File.Exists(fontPath))
+        {
+            _extraThickFont = io.Fonts.AddFontFromFileTTF(fontPath, 18f);
+            Console.WriteLine("Extra-Bold Font queued for loading");
+
+            io.Fonts.Build();
+            Console.WriteLine("ImGui font atlas built");
+        }
+        else
+        {
+            Console.WriteLine("Could not find font file: " + fontPath + ". Using default font");
+        }
+        
+        io.Fonts.GetTexDataAsRGBA32(out byte* pixelData, out int width, out int height, out int bytesPerPixel);
+        
         uint fontTextureId = gl.GenTexture();
         gl.BindTexture(TextureTarget.Texture2D, fontTextureId);
-    
-        // 3. Upload the pixel data to the GPU
+        
         gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
-
-        // 4. Set texture parameters
+        
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.Repeat);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.Repeat);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.Linear);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
-
-        // --- THIS IS THE FIX ---
-        // Explicitly tell OpenGL that our texture has no mipmaps.
-        // This is a common requirement on macOS to prevent the "unloadable" texture error.
+        
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 0);
 
-
-        // 5. Tell ImGui to use our manually created texture.
-        // We cast the uint texture ID to an IntPtr, which is what ImGui expects.
+        
         io.Fonts.SetTexID((IntPtr)fontTextureId);
-
-        // 6. Clear the CPU-side texture data now that it's on the GPU.
+        
         io.Fonts.ClearTexData();
     
         Console.WriteLine("Font texture manually created and uploaded to GPU.");
