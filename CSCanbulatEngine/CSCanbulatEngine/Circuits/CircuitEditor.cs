@@ -1,6 +1,7 @@
 using System.Net.Sockets;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
 using CSCanbulatEngine.GameObjectScripts;
 using ImGuiNET;
 using Silk.NET.Input;
@@ -19,6 +20,8 @@ public class ChipPortValue
     public Vector2? v2 { get; set; }
     public GameObject? gObj { get; set; }
 
+    public byte[] S_bufer = new byte[100];
+
     public ChipPortValue(ChipPort assignedChipPort)
     {
         // Setting default values
@@ -29,6 +32,15 @@ public class ChipPortValue
         v2 = Vector2.Zero;
         gObj = null;
         AssignedChipPort = assignedChipPort;
+    }
+
+    public void UpdateSBuffer()
+    {
+        var bytes = Encoding.UTF8.GetBytes(s ?? "");
+        Array.Clear(S_bufer, 0, S_bufer.Length);
+        
+        var lengthToCopy = Math.Min(bytes.Length, S_bufer.Length - 1);
+        Array.Copy(bytes, S_bufer, lengthToCopy);
     }
     
     //Returns if value is accepted or not
@@ -70,6 +82,7 @@ public class ChipPortValue
         else if (AssignedChipPort.acceptedTypes.Contains(typeof(string)))
         {
             s = value.ToString();
+            UpdateSBuffer();
             AssignedChipPort.PortType = typeof(T);
             return true;
         }
@@ -218,7 +231,10 @@ public class ChipPort
     // !! Need to check if they are the same type
     public virtual bool ConnectPort(ChipPort port)
     {
-        if (!IsInput) port.ConnectPort(this);
+        if (!IsInput)
+        {
+            return port.ConnectPort(this);
+        }
         if (port is ExecPort execPort) return false;
         if (port.IsInput == IsInput) return false;
         if (this.Parent == port.Parent) return false;
@@ -228,7 +244,11 @@ public class ChipPort
         if (port == ConnectedPort)
         {
             ConnectedPort = null;
-            Parent.PortTypeChanged(null);
+            if (acceptedTypes.Count != 1)
+            {
+                _PortType = null;
+            }
+            Parent.PortTypeChanged(this);
             UpdateColor();
         }
         else
@@ -239,6 +259,23 @@ public class ChipPort
         }
         Parent.UpdateChipConfig();
         return true;
+    }
+
+    public virtual void DisconnectPort()
+    {
+        if (ConnectedPort == null) return;
+        if (!IsInput)
+        {
+            ConnectedPort.DisconnectPort();
+            return;
+        }
+        ConnectedPort = null;
+        if (acceptedTypes.Count != 1)
+        {
+            _PortType = null;
+        }
+        Parent.PortTypeChanged(this);
+        UpdateColor();
     }
 
     public void RenderWire()
@@ -374,7 +411,7 @@ public class Chip
     {
         int nextAvaliableID = -1;
         bool idFound = false;
-        while (nextAvaliableID <= -1 && !idFound)
+        while (!idFound)
         {
             nextAvaliableID += 1;
             if (FindPort(nextAvaliableID) == null)
@@ -524,8 +561,11 @@ public static class CircuitEditor
             ChipPort targetPort = GetPortAt(io.MousePos);
             if (targetPort != null)
             {
-                Console.WriteLine("attempting to connect to port");
-                if (_portDragSource.ConnectPort(targetPort))
+                if (_portDragSource == targetPort)
+                {
+                    _portDragSource.DisconnectPort();
+                }
+                else if (_portDragSource.ConnectPort(targetPort))
                 {
                     Console.WriteLine($"Connected '{_portDragSource.Name}' to '{targetPort.Name}'");
                 }
@@ -535,9 +575,6 @@ public static class CircuitEditor
         
         if (_portDragSource != null && ImGui.IsMouseDragging(ImGuiMouseButton.Left))
         {
-            // var tempPort = new ChipPort(-1, "", null, !_portDragSource.IsInput, _portDragSource.acceptedTypes);
-            // tempPort.Position = _portDragSource.Position;
-            // tempPort.RenderFakeWire();
             _portDragSource.RenderFakeWire();
         }
 
@@ -557,27 +594,7 @@ public static class CircuitEditor
                 closestChip = chip;
             }
         }
-
-        // if (closestChip != null && ImGui.IsMouseDragging(ImGuiMouseButton.Left))
-        // {
-        //     ChipPort closestPort = null;
-        //     List<ChipPort> ports =  closestChip.InputPorts;
-        //     ports.AddRange(closestChip.OutputPorts);
-        //     foreach (var chipPort in ports)
-        //     {
-        //         if (closestChip == null || (Vector2.Distance(chipPort.Position, ImGui.GetIO().MousePos) <
-        //                                     Vector2.Distance(closestChip.Position, chipPort.Position)))
-        //         {
-        //             closestPort = chipPort;
-        //         }
-        //     }
-        //
-        //     if (Vector2.Distance(closestPort.Position, ImGui.GetIO().MousePos) < 25f && selectedChip == null)
-        //     {
-        //         selectedPort = closestPort;
-        //         Console.WriteLine($"Selected port: {selectedPort.Name}");
-        //     }
-        // }
+        
         if (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && selectedChip != null)
         {
             selectedChip.Position += ImGui.GetIO().MouseDelta/Zoom;
@@ -586,34 +603,6 @@ public static class CircuitEditor
         {
             selectedChip = null;
         }
-
-        if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
-        {
-            // Vector2 mousePos = ImGui.GetIO().MousePos;
-            // ChipPort portReleasedOn = null;
-            // ChipPort closestPort = null;
-            // List<ChipPort> ports = new List<ChipPort>();
-            // ports.AddRange(closestChip.InputPorts);
-            // ports.AddRange(closestChip.OutputPorts);
-            // foreach (var chipPort in ports)
-            // {
-            //     if (portReleasedOn == null || (Vector2.Distance(chipPort.Position, mousePos) <
-            //                                 Vector2.Distance(closestChip.Position, chipPort.Position)))
-            //     {
-            //         closestPort = chipPort;
-            //     }
-            // }
-            //
-            // if (Vector2.Distance(closestPort.Position, ImGui.GetIO().MousePos) < 25f && portReleasedOn != null)
-            // {
-            //     portReleasedOn = closestPort;
-            //     Console.WriteLine($"Connecting to {closestPort.Name}");
-            //     selectedPort.ConnectPort(portReleasedOn);
-            // }
-            
-        }
-
-        
         
         ImGui.EndChild();
     }
@@ -671,14 +660,14 @@ public static class CircuitEditor
             
             port.RenderWire();
 
-            if (port.ConnectedPort == null && port.PortType != null) 
+            if ((port.ConnectedPort == null && port.PortType != null) && port.PortType != typeof(GameObject)) 
             {
-                ImGui.PushItemWidth(60 * Zoom);
                 ImGui.SetCursorScreenPos(portPos + new Vector2(30 * Zoom, -10 * Zoom));
 
                 Type portType = port.PortType;
                 if (portType == typeof(float))
                 {
+                    ImGui.PushItemWidth(60 * Zoom);
                     float val = port.Value.f ?? 0f;
                     if (ImGui.InputFloat($"##{port.Id}", ref val, 0, 0, "%.2f"))
                     {
@@ -687,12 +676,40 @@ public static class CircuitEditor
                 }
                 else if (portType == typeof(int))
                 {
+                    ImGui.PushItemWidth(90 * Zoom);
                     int val = port.Value.i ?? 0;
                     if (ImGui.InputInt($"##{port.Id}", ref val))
                     {
                         port.Value.SetValue(val);
                     }
                 }
+                else if (portType == typeof(bool))
+                {
+                    ImGui.PushItemWidth(60 * Zoom);
+                    bool val = port.Value.b ?? false;
+                    if (ImGui.Checkbox($"##{port.Id}", ref val))
+                    {
+                        port.Value.SetValue(val);
+                    }
+                }
+                else if (portType == typeof(Vector2))
+                {
+                    ImGui.PushItemWidth(90 * Zoom);
+                    Vector2 val = port.Value.v2 ?? Vector2.Zero;
+                    if (ImGui.InputFloat2($"##{port.Id}", ref val))
+                    {
+                        port.Value.SetValue(val);
+                    }
+                }
+                else if (portType == typeof(string))
+                {
+                    ImGui.PushItemWidth(100 * Zoom);
+                    if (ImGui.InputText($"##{port.Name}{chip.Id}", port.Value.S_bufer, (uint)port.Value.S_bufer.Length))
+                    {
+                        port.Value.s = Encoding.UTF8.GetString(port.Value.S_bufer).TrimEnd('\0');
+                    }
+                }
+                else ImGui.PushItemWidth(60 * Zoom);
                 ImGui.PopItemWidth();
             }
 
@@ -714,39 +731,39 @@ public static class CircuitEditor
                     ImGui.LabelText($"##{port.Id}", TypeHelper.GetName(port.PortType));
                     if (port.PortType == typeof(float))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.f.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().f.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.f.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().f.ToString());
                     }
                     else if (port.PortType == typeof(int))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.i.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().i.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.i.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().i.ToString());
                     }
                     else if (port.PortType == typeof(string))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.s).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().s).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.s);
+                        ImGui.LabelText($"##{port.Id}", "\"" + port.Value.GetValue().s + "\"");
                     }
                     else if (port.PortType == typeof(bool))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.b.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().b.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.b.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().b.ToString());
                     }
                     else if (port.PortType == typeof(Vector2))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.v2.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().v2.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.v2.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().v2.ToString());
                     }
                     else if (port.PortType == typeof(GameObject))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.v2.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().gObj?.Name ?? "").X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.v2.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().gObj?.Name ?? "");
                     }
                 }
                 else if (port.acceptedTypes != null)
@@ -803,39 +820,39 @@ public static class CircuitEditor
                     ImGui.LabelText($"##{port.Id}", TypeHelper.GetName(port.PortType));
                     if (port.PortType == typeof(float))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.f.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().f.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.f.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().f.ToString());
                     }
                     else if (port.PortType == typeof(int))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.i.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().i.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.i.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().i.ToString());
                     }
                     else if (port.PortType == typeof(string))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.s).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().s).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.s);
+                        ImGui.LabelText($"##{port.Id}", "\"" + port.Value.GetValue().s + "\"");
                     }
                     else if (port.PortType == typeof(bool))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.b.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().b.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.b.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().b.ToString());
                     }
                     else if (port.PortType == typeof(Vector2))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.v2.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().v2.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.v2.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().v2.ToString());
                     }
                     else if (port.PortType == typeof(GameObject))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.v2.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().gObj?.Name ?? "").X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.v2.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().gObj?.Name ?? "");
                     }
                 }
                 else if (port.acceptedTypes != null)
