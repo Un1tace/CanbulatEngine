@@ -685,20 +685,27 @@ public class Engine
         ImGui.PopStyleColor(1);
         
         ImGui.Separator();
-        
-        //Puts all the properties in the inspector visible and rendered
-        if (_selectedGameObject != null)
-        {
-            ImGui.Text($"Editing {_selectedGameObject.gameObject.Name}");
-            ImGui.Separator();
 
-            foreach (Component component in _selectedGameObject.gameObject.components)
+        if (!circuitEditorIsOpen)
+        {
+            //Puts all the properties in the inspector visible and rendered
+            if (_selectedGameObject != null)
             {
-                if (ImGui.CollapsingHeader(component.name, ImGuiTreeNodeFlags.DefaultOpen))
+                ImGui.Text($"Editing {_selectedGameObject.gameObject.Name}");
+                ImGui.Separator();
+
+                foreach (Component component in _selectedGameObject.gameObject.components)
                 {
-                    component.RenderInspector();
+                    if (ImGui.CollapsingHeader(component.name, ImGuiTreeNodeFlags.DefaultOpen))
+                    {
+                        component.RenderInspector();
+                    }
                 }
             }
+        }
+        else
+        {
+            CircuitEditor.RenderChipInspector();
         }
         ImGui.End();
         

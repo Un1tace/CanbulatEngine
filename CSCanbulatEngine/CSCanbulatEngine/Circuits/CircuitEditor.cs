@@ -387,6 +387,8 @@ public class Chip
     public Vector2 Size { get; set; }
     public Action CircuitFunction { get; set; }
     public bool ShowCustomItemOnChip { get; set; }
+
+    public Vector4 Color = new Vector4(0.5f, 0.5f, 0.5f, 1.0f); 
     
     // Ports
     public List<ChipPort> InputPorts = new List<ChipPort>();
@@ -502,6 +504,11 @@ public class Chip
     {
         
     }
+
+    public virtual void ChipInspectorProperties()
+    {
+        
+    }
 }
 
 public static class CircuitEditor
@@ -509,6 +516,7 @@ public static class CircuitEditor
     public static List<Chip> chips = new List<Chip>();
     private static Vector2 panning = Vector2.Zero;
     private static Chip? selectedChip = null;
+    private static Chip? lastSelectedChip = null;
     private static ChipPort? _portDragSource = null;
     private static ChipPort? HoveredPort = null;
 
@@ -616,7 +624,7 @@ public static class CircuitEditor
         var titleBarHeight = 30f * Zoom;
         
         drawList.AddRectFilled(chipPos, chipPos + chipSize, ImGui.GetColorU32(new Vector4(0.2f, 0.2f, 0.2f, 1.0f)));
-        drawList.AddRectFilled(chipPos, chipPos + new Vector2(chipSize.X, titleBarHeight), ImGui.GetColorU32(new Vector4(0.5f, 0.5f, 0.5f, 1.0f)), 5f * Zoom, ImDrawFlags.RoundCornersTop);
+        drawList.AddRectFilled(chipPos, chipPos + new Vector2(chipSize.X, titleBarHeight), ImGui.GetColorU32(chip.Color), 5f * Zoom, ImDrawFlags.RoundCornersTop);
         drawList.AddText(chipPos + new Vector2(5f, 5f), ImGui.GetColorU32(new Vector4(1f, 1f, 1f, 1.0f)), chip.Name);
         
         ImGui.SetCursorScreenPos(chipPos);
@@ -624,6 +632,7 @@ public static class CircuitEditor
         if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left))
         {
             selectedChip = chip;
+            lastSelectedChip = chip;
         }
 
         float portRadius = 5f * Zoom;
@@ -935,6 +944,11 @@ public static class CircuitEditor
         {
             selectedChip = null;
         }
+
+        if (lastSelectedChip == chipToDelete)
+        {
+            lastSelectedChip = null;
+        }
         
         chips.Remove(chipToDelete);
     }
@@ -1004,6 +1018,17 @@ public static class CircuitEditor
         }
 
         return id;
+    }
+    
+    
+    // Inspector Stuff For Chips
+    public static void RenderChipInspector()
+    {
+        if (lastSelectedChip != null)
+        {
+            ImGui.ColorEdit4("Chip Color", ref lastSelectedChip.Color);
+            lastSelectedChip.ChipInspectorProperties();
+        }
     }
 }
 
