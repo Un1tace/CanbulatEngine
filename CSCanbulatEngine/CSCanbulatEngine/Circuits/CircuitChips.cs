@@ -1,163 +1,229 @@
+using System.Drawing;
 using System.Numerics;
 using System.Windows.Markup;
 using CSCanbulatEngine.GameObjectScripts;
 using ImGuiNET;
+using SixLabors.ImageSharp;
+using RectangleF = System.Drawing.RectangleF;
 
 namespace CSCanbulatEngine.Circuits;
 
 public class CircuitChips
 {
+    private static Vector2 spawnPos = Vector2.Zero;
+    
+    private static Chip? hoveredChip = null;
     public static void ChipsMenu(ImGuiIOPtr io, Vector2 canvasPos, Vector2 panning)
     {
-        if (ImGui.BeginPopupContextWindow("SpawnChipMenu"))
+        
+        Vector2 mousePosInWorld = (io.MousePos - canvasPos - panning) / CircuitEditor.Zoom;
+        
+
+        if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
         {
-            Vector2 spawnPos = io.MousePos - canvasPos - panning;
-
-            if (ImGui.BeginMenu("Create Chips"))
+            spawnPos = io.MousePos - canvasPos - panning;
+            
+            foreach (var chip in CircuitEditor.chips)
             {
-                if (ImGui.MenuItem("Test Button"))
+                var chipRectangle = new RectangleF(chip.Position.X, chip.Position.Y, chip.Size.X, chip.Size.Y);
+                if (chipRectangle.Contains(mousePosInWorld.X, mousePosInWorld.Y))
                 {
-                    CircuitEditor.chips.Add(new TestButton(CircuitEditor.GetNextAvaliableChipID(), "Test Button", spawnPos));    
+                    hoveredChip = chip;
+                    continue;
                 }
-                
-                if (ImGui.BeginMenu("Constant Chips"))
-                {
-                    if (ImGui.MenuItem("Create Bool Constant"))
-                    {
-                        CircuitEditor.chips.Add(new BoolConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Bool Constant", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Float Constant"))
-                    {
-                        CircuitEditor.chips.Add(new FloatConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Float Constant", spawnPos));
-                    }
-
-                    if (ImGui.MenuItem("Create Int Constant"))
-                    {
-                        CircuitEditor.chips.Add(new IntConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Int Constant", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create String Constant"))
-                    {
-                        CircuitEditor.chips.Add(new StringConstantChip(CircuitEditor.GetNextAvaliableChipID(), "String Constant", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Vector2 Constant"))
-                    {
-                        CircuitEditor.chips.Add(new Vector2ConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Constant", spawnPos));
-                    }
-                    ImGui.EndMenu();
-                }
-
-                if (ImGui.BeginMenu("Math Chips"))
-                {
-                    if (ImGui.MenuItem("Create Add Chip"))
-                    {
-                        CircuitEditor.chips.Add(new AddChip(CircuitEditor.GetNextAvaliableChipID(), "Add", spawnPos));
-                    }
-                    ImGui.EndMenu();
-                }
-
-                if (ImGui.BeginMenu("Logic & Comparison Chips"))
-                {
-                    if (ImGui.MenuItem("Create Not Chip"))
-                    {
-                        CircuitEditor.chips.Add(new NotChip(CircuitEditor.GetNextAvaliableChipID(), "Not Chip", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create And Chip"))
-                    {
-                        CircuitEditor.chips.Add(new AndChip(CircuitEditor.GetNextAvaliableChipID(), "And Chip", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Or Chip"))
-                    {
-                        CircuitEditor.chips.Add(new OrChip(CircuitEditor.GetNextAvaliableChipID(), "Or Chip", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Nor Chip"))
-                    {
-                        CircuitEditor.chips.Add(new NorChip(CircuitEditor.GetNextAvaliableChipID(),  "Nor Chip", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Nand Chip"))
-                    {
-                        CircuitEditor.chips.Add(new NandChip(CircuitEditor.GetNextAvaliableChipID(), "Nand Chip", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Xor Chip"))
-                    {
-                        CircuitEditor.chips.Add(new XorChip(CircuitEditor.GetNextAvaliableChipID(), "Xor Chip", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Equals Chip"))
-                    {
-                        CircuitEditor.chips.Add(new EqualsChip(CircuitEditor.GetNextAvaliableChipID(), "Equals Chip", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Less Than Chip"))
-                    {
-                        CircuitEditor.chips.Add(new LessThanChip(CircuitEditor.GetNextAvaliableChipID(), "Less Than Chip", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Less Than Or Equals Chip"))
-                    {
-                        CircuitEditor.chips.Add(new LessThanOrEqualsChip(CircuitEditor.GetNextAvaliableChipID(), "Less Than Or Equals Chip", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Greater Than Chip"))
-                    {
-                        CircuitEditor.chips.Add(new GreaterThanChip(CircuitEditor.GetNextAvaliableChipID(), "Greater Than Chip", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Greater Than Or Equals Chip"))
-                    {
-                        CircuitEditor.chips.Add(new GreaterThanOrEqualsChip(CircuitEditor.GetNextAvaliableChipID(), "Greater Than Or Equals Chip", spawnPos));
-                    }
-
-                    ImGui.EndMenu();
-                }
-
-                if (ImGui.BeginMenu("Variable Chips"))
-                {
-                    if (ImGui.MenuItem("Create Bool Variable"))
-                    {
-                        CircuitEditor.chips.Add(new BoolVariable(CircuitEditor.GetNextAvaliableChipID(), "Bool Variable", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Float Variable"))
-                    {
-                        CircuitEditor.chips.Add(new FloatVariable(CircuitEditor.GetNextAvaliableChipID(), "Float Variable", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Int Variable"))
-                    {
-                        CircuitEditor.chips.Add(new IntVariable(CircuitEditor.GetNextAvaliableChipID(), "Int Variable", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create String Variable"))
-                    {
-                        CircuitEditor.chips.Add(new StringVariable(CircuitEditor.GetNextAvaliableChipID(), "String Variable", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create Vector2 Variable"))
-                    {
-                        CircuitEditor.chips.Add(new Vector2Variable(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Variable", spawnPos));
-                    }
-                    
-                    if (ImGui.MenuItem("Create GameObject Variable"))
-                    {
-                        CircuitEditor.chips.Add(new GameObjectVariable(CircuitEditor.GetNextAvaliableChipID(), "GameObject Variable", spawnPos));
-                    }
-                    
-
-                    ImGui.EndMenu();
-                }
-
-                ImGui.EndMenu();
             }
+        }
+        
+        if (hoveredChip == null)
+        {
+            if (ImGui.BeginPopupContextWindow("SpawnChipMenu"))
+            {
+                
 
-            ImGui.EndPopup();
+                if (ImGui.BeginMenu("Create Chips"))
+                {
+                    if (ImGui.MenuItem("Test Button"))
+                    {
+                        CircuitEditor.chips.Add(new TestButton(CircuitEditor.GetNextAvaliableChipID(), "Test Button",
+                            spawnPos));
+                    }
+
+                    if (ImGui.BeginMenu("Constant Chips"))
+                    {
+                        if (ImGui.MenuItem("Create Bool Constant"))
+                        {
+                            CircuitEditor.chips.Add(new BoolConstantChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Bool Constant", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Float Constant"))
+                        {
+                            CircuitEditor.chips.Add(new FloatConstantChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Float Constant", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Int Constant"))
+                        {
+                            CircuitEditor.chips.Add(new IntConstantChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Int Constant", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create String Constant"))
+                        {
+                            CircuitEditor.chips.Add(new StringConstantChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "String Constant", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Vector2 Constant"))
+                        {
+                            CircuitEditor.chips.Add(new Vector2ConstantChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Vector2 Constant", spawnPos));
+                        }
+
+                        ImGui.EndMenu();
+                    }
+
+                    if (ImGui.BeginMenu("Math Chips"))
+                    {
+                        if (ImGui.MenuItem("Create Add Chip"))
+                        {
+                            CircuitEditor.chips.Add(
+                                new AddChip(CircuitEditor.GetNextAvaliableChipID(), "Add", spawnPos));
+                        }
+
+                        ImGui.EndMenu();
+                    }
+
+                    if (ImGui.BeginMenu("Logic & Comparison Chips"))
+                    {
+                        if (ImGui.MenuItem("Create Not Chip"))
+                        {
+                            CircuitEditor.chips.Add(new NotChip(CircuitEditor.GetNextAvaliableChipID(), "Not Chip",
+                                spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create And Chip"))
+                        {
+                            CircuitEditor.chips.Add(new AndChip(CircuitEditor.GetNextAvaliableChipID(), "And Chip",
+                                spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Or Chip"))
+                        {
+                            CircuitEditor.chips.Add(new OrChip(CircuitEditor.GetNextAvaliableChipID(), "Or Chip",
+                                spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Nor Chip"))
+                        {
+                            CircuitEditor.chips.Add(new NorChip(CircuitEditor.GetNextAvaliableChipID(), "Nor Chip",
+                                spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Nand Chip"))
+                        {
+                            CircuitEditor.chips.Add(new NandChip(CircuitEditor.GetNextAvaliableChipID(), "Nand Chip",
+                                spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Xor Chip"))
+                        {
+                            CircuitEditor.chips.Add(new XorChip(CircuitEditor.GetNextAvaliableChipID(), "Xor Chip",
+                                spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Equals Chip"))
+                        {
+                            CircuitEditor.chips.Add(new EqualsChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Equals Chip", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Less Than Chip"))
+                        {
+                            CircuitEditor.chips.Add(new LessThanChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Less Than Chip", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Less Than Or Equals Chip"))
+                        {
+                            CircuitEditor.chips.Add(new LessThanOrEqualsChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Less Than Or Equals Chip", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Greater Than Chip"))
+                        {
+                            CircuitEditor.chips.Add(new GreaterThanChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Greater Than Chip", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Greater Than Or Equals Chip"))
+                        {
+                            CircuitEditor.chips.Add(new GreaterThanOrEqualsChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Greater Than Or Equals Chip", spawnPos));
+                        }
+
+                        ImGui.EndMenu();
+                    }
+
+                    if (ImGui.BeginMenu("Variable Chips"))
+                    {
+                        if (ImGui.MenuItem("Create Bool Variable"))
+                        {
+                            CircuitEditor.chips.Add(new BoolVariable(CircuitEditor.GetNextAvaliableChipID(),
+                                "Bool Variable", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Float Variable"))
+                        {
+                            CircuitEditor.chips.Add(new FloatVariable(CircuitEditor.GetNextAvaliableChipID(),
+                                "Float Variable", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Int Variable"))
+                        {
+                            CircuitEditor.chips.Add(new IntVariable(CircuitEditor.GetNextAvaliableChipID(),
+                                "Int Variable", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create String Variable"))
+                        {
+                            CircuitEditor.chips.Add(new StringVariable(CircuitEditor.GetNextAvaliableChipID(),
+                                "String Variable", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create Vector2 Variable"))
+                        {
+                            CircuitEditor.chips.Add(new Vector2Variable(CircuitEditor.GetNextAvaliableChipID(),
+                                "Vector2 Variable", spawnPos));
+                        }
+
+                        if (ImGui.MenuItem("Create GameObject Variable"))
+                        {
+                            CircuitEditor.chips.Add(new GameObjectVariable(CircuitEditor.GetNextAvaliableChipID(),
+                                "GameObject Variable", spawnPos));
+                        }
+
+
+                        ImGui.EndMenu();
+                    }
+
+                    ImGui.EndMenu();
+                }
+
+                ImGui.EndPopup();
+            }
+        }
+        else
+        {
+            if (ImGui.BeginPopupContextWindow("Chip Menu"))
+            {
+                if (ImGui.MenuItem("Delete Chip"))
+                {
+                    CircuitEditor.DeleteChip(hoveredChip);
+                    hoveredChip = null;
+                }
+                ImGui.EndPopup();
+            }
         }
     }
 }

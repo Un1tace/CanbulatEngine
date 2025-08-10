@@ -910,6 +910,34 @@ public static class CircuitEditor
         }
         
     }
+
+    public static void DeleteChip(Chip chipToDelete)
+    {
+        if (chipToDelete == null) return;
+        
+        List<Chip> allChips = new List<Chip>(chips);
+        foreach (Chip chip in allChips)
+        {
+            if (chip == chipToDelete) continue;
+
+            var allPorts = chip.InputPorts.Concat(chip.InputExecPorts);
+
+            foreach (var port in allPorts)
+            {
+                if (port.ConnectedPort != null && port.ConnectedPort.Parent == chipToDelete)
+                {
+                    port.DisconnectPort();
+                }
+            }
+        }
+
+        if (selectedChip == chipToDelete)
+        {
+            selectedChip = null;
+        }
+        
+        chips.Remove(chipToDelete);
+    }
     
     public static Chip? FindChip(int id)
     {
