@@ -395,8 +395,8 @@ public class BoolVariable : Chip
     public BoolVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
         varValues = new Values();
-        AddPort("Input", true, new List<Type>() { typeof(bool) });
-        AddPort("Output", false, new List<Type>() { typeof(bool) });
+        AddPort("Input", true, [typeof(bool)]);
+        AddPort("Output", false, [typeof(bool)]);
         base.OutputPorts[0].Value.ValueFunction = VarOutput;
     }
 
@@ -408,6 +408,10 @@ public class BoolVariable : Chip
     public override void OnExecute()
     {
         varValues = InputPorts[0].Value.GetValue();
+        if (InputPorts[0] is ExecPort)
+        {
+            Console.WriteLine("Is a exec port");
+        }
         base.OnExecute();
     }
 }
@@ -1004,22 +1008,22 @@ public class EventChip : Chip
             AddExecPort("Then", false);
             
             foreach (var (key, value) in SelectedEvent.BaseEventValues.bools)
-                AddPort(key, false, [typeof(bool)]).Value.ValueFunction = (p) => new Values
+                AddPort(key, false, [typeof(bool)], true).Value.ValueFunction = (p) => new Values
                     { b = LastRecievedPayload.bools.GetValueOrDefault(p.Name) };
             foreach (var (key, value) in SelectedEvent.BaseEventValues.ints)
-                AddPort(key, false, [typeof(int)]).Value.ValueFunction = (p) => new Values
+                AddPort(key, false, [typeof(int)], true).Value.ValueFunction = (p) => new Values
                     { i = LastRecievedPayload.ints.GetValueOrDefault(p.Name) };
             foreach (var (key, value) in SelectedEvent.BaseEventValues.floats)
-                AddPort(key, false, [typeof(float)]).Value.ValueFunction = (p) => new Values
+                AddPort(key, false, [typeof(float)], true).Value.ValueFunction = (p) => new Values
                     { f = LastRecievedPayload.floats.GetValueOrDefault(p.Name) };
             foreach (var (key, value) in SelectedEvent.BaseEventValues.Vector2s)
-                AddPort(key, false, [typeof(Vector2)]).Value.ValueFunction = (p) => new Values
+                AddPort(key, false, [typeof(Vector2)], true).Value.ValueFunction = (p) => new Values
                     { v2 = LastRecievedPayload.Vector2s.GetValueOrDefault(p.Name) };
             foreach (var (key, value) in SelectedEvent.BaseEventValues.strings)
-                AddPort(key, false, [typeof(string)]).Value.ValueFunction = (p) => new Values
+                AddPort(key, false, [typeof(string)], true).Value.ValueFunction = (p) => new Values
                     { s = LastRecievedPayload.strings.GetValueOrDefault(p.Name) };
             foreach (var (key, value) in SelectedEvent.BaseEventValues.GameObjects)
-                AddPort(key, false, [typeof(GameObject)]).Value.ValueFunction = (p) => new Values
+                AddPort(key, false, [typeof(GameObject)], true).Value.ValueFunction = (p) => new Values
                     { gObj = LastRecievedPayload.GameObjects.GetValueOrDefault(p.Name) };
 
             ListenerAction = (payload) =>
@@ -1035,17 +1039,17 @@ public class EventChip : Chip
             AddExecPort("Execute", true);
             
             foreach (var (key, value) in SelectedEvent.BaseEventValues.bools)
-                AddPort(key, true, [typeof(bool)]);
+                AddPort(key, true, [typeof(bool)], true);
             foreach (var (key, value) in SelectedEvent.BaseEventValues.ints)
-                AddPort(key, true, [typeof(int)]);
+                AddPort(key, true, [typeof(int)], true);
             foreach (var (key, value) in SelectedEvent.BaseEventValues.floats)
-                AddPort(key, true, [typeof(float)]);
+                AddPort(key, true, [typeof(float)], true);
             foreach (var (key, value) in SelectedEvent.BaseEventValues.Vector2s)
-                AddPort(key, true, [typeof(Vector2)]);
+                AddPort(key, true, [typeof(Vector2)], true);
             foreach (var (key, value) in SelectedEvent.BaseEventValues.strings)
-                AddPort(key, true, [typeof(string)]);
+                AddPort(key, true, [typeof(string)], true);
             foreach (var (key, value) in SelectedEvent.BaseEventValues.GameObjects)
-                AddPort(key, true, [typeof(GameObject)]);
+                AddPort(key, true, [typeof(GameObject)], true);
         }
     }
 

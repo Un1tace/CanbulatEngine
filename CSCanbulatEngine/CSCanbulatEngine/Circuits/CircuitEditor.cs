@@ -101,33 +101,6 @@ public class ChipPortValue
             }
             else
             {
-                // if (AssignedChipPort.PortType == typeof(bool))
-                // {
-                //     return b;
-                // }
-                // else if (AssignedChipPort.PortType == typeof(int))
-                // {
-                //     return i;
-                // }
-                // else if (AssignedChipPort.PortType == typeof(float))
-                // {
-                //     return f;
-                // }
-                // else if (AssignedChipPort.PortType == typeof(Vector2))
-                // {
-                //     return v2;
-                // }
-                // else if (AssignedChipPort.PortType == typeof(GameObject))
-                // {
-                //     return gObj;
-                // }
-                // else if (AssignedChipPort.PortType == typeof(string))
-                // {
-                //     return s;
-                // }
-                //
-                // return null;
-                
                 Values values = new Values();
                 values.b = b ?? false;
                 values.i = i ?? 0;
@@ -174,7 +147,10 @@ public class ChipPort
 
     public ChipPortValue Value;
 
-    public ChipPort(int id, string name, Chip parent, bool isInput, List<Type> acceptedValueTypes)
+    public bool ShowName = false;
+
+    public ChipPort(int id, string name, Chip parent, bool isInput, List<Type> acceptedValueTypes,
+        bool showName = false)
     {
         Id = id;
         Name = name;
@@ -182,6 +158,7 @@ public class ChipPort
         IsInput = isInput;
         Value = new ChipPortValue(this);
         acceptedTypes = acceptedValueTypes;
+        ShowName = showName;
 
         if (acceptedValueTypes.Count == 1)
         {
@@ -191,13 +168,14 @@ public class ChipPort
         UpdateColor();
     }
     
-    public ChipPort(int id, string name, Chip parent, bool isInput, Type? portType = null)
+    public ChipPort(int id, string name, Chip parent, bool isInput, Type? portType = null, bool showName = false)
     {
         Id = id;
         Name = name;
         Parent = parent;
         IsInput = isInput;
         Value = new ChipPortValue(this);
+        ShowName = showName;
         if (portType != null)
         {
             PortType = portType;
@@ -270,7 +248,7 @@ public class ChipPort
             return;
         }
         ConnectedPort = null;
-        if (acceptedTypes.Count != 1)
+        if ((acceptedTypes?.Count ?? -1) != 1)
         {
             _PortType = null;
         }
@@ -409,7 +387,7 @@ public class Chip
         }
     }
 
-    public ChipPort AddPort(string name, bool isInput, List<Type> acceptedValueTypes)
+    public ChipPort AddPort(string name, bool isInput, List<Type> acceptedValueTypes, bool showName = false)
     {
         int nextAvaliableID = -1;
         bool idFound = false;
@@ -421,7 +399,7 @@ public class Chip
                 idFound = true;
             }
         }
-        var port = new ChipPort(nextAvaliableID, name, this, isInput, acceptedValueTypes);
+        var port = new ChipPort(nextAvaliableID, name, this, isInput, acceptedValueTypes, showName);
         if (isInput)
         {
             InputPorts.Add(port);
@@ -662,6 +640,15 @@ public static class CircuitEditor
             {
                 drawList.AddCircleFilled(portPos, portRadius, ImGui.GetColorU32(port.Color));
             }
+
+            if (port.ShowName)
+            {
+                float nameTextWidth = ImGui.CalcTextSize(port.Name).X;
+                float nameTextHeight = ImGui.CalcTextSize(port.Name).Y;
+                ImGui.SetCursorScreenPos(portPos +
+                                         new Vector2(nameTextWidth > 50 ? nameTextWidth + 10 : 50, nameTextHeight / 2));
+                ImGui.LabelText($"##{port.Id}", port.Name);
+            }
             
             port.RenderWire();
 
@@ -805,6 +792,16 @@ public static class CircuitEditor
             else
             {
                 drawList.AddCircleFilled(portPos, portRadius, ImGui.GetColorU32(port.Color));
+            }
+
+            if (port.ShowName)
+            {
+                float nameTextWidth = ImGui.CalcTextSize(port.Name).X;
+                float nameTextHeight = ImGui.CalcTextSize(port.Name).Y;
+                ImGui.SetCursorScreenPos(portPos +
+                                         new Vector2(nameTextWidth > 50 ? -nameTextWidth - 10 : -50,
+                                             -nameTextHeight / 2));
+                ImGui.LabelText($"##{port.Id}", port.Name);
             }
             
             if (HoveredPort == port)
