@@ -2,6 +2,7 @@ using System.Drawing;
 using System.Numerics;
 using System.Windows.Markup;
 using CSCanbulatEngine.GameObjectScripts;
+using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
 using SixLabors.ImageSharp;
 using RectangleF = System.Drawing.RectangleF;
@@ -38,10 +39,13 @@ public class CircuitChips
         {
             if (ImGui.BeginPopupContextWindow("SpawnChipMenu"))
             {
-                
-
                 if (ImGui.BeginMenu("Create Chips"))
                 {
+                    if (ImGui.MenuItem("Spawn Event Chip"))
+                    {
+                        CircuitEditor.chips.Add(new EventChip(CircuitEditor.GetNextAvaliableChipID(), "Event Chip", spawnPos));
+                    }
+                    
                     if (ImGui.MenuItem("Test Button"))
                     {
                         CircuitEditor.chips.Add(new TestButton(CircuitEditor.GetNextAvaliableChipID(), "Test Button",
@@ -946,6 +950,180 @@ public class EqualsChip : Chip
         {
             InputPorts[0]._PortType = InputPorts[1].PortType;
             InputPorts[0].UpdateColor();
+        }
+    }
+}
+
+// Event Chips
+public class EventChip : Chip
+{
+    private Event? SelectedEvent;
+    private EventMode Mode = EventMode.Receive;
+    private Action<EventValues>? ListenerAction;
+    private EventValues LastRecievedPayload = new();
+    
+    private enum EventMode {Receive, Send}
+
+    public EventChip(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        ConfigurePorts();
+    }
+
+    private void ConfigurePorts()
+    {
+        if (Mode == EventMode.Receive && (!SelectedEvent?.CanReceive ?? false) && SelectedEvent.CanSend)
+        {
+            Mode = EventMode.Send;
+        }
+        else if (Mode == EventMode.Send && (!SelectedEvent?.CanSend ?? false) && SelectedEvent.CanReceive)
+        {
+            Mode = EventMode.Receive;
+        }
+        InputPorts.Clear();
+        OutputPorts.Clear();
+        InputExecPorts.Clear();
+        OutputExecPorts.Clear();
+
+        if (ListenerAction != null && SelectedEvent != null)
+        {
+            EventManager.Unsubscribe(SelectedEvent, ListenerAction);
+            ListenerAction = null;
+        }
+
+        if (SelectedEvent == null)
+        {
+            Name = "Event (UnConfigured)";
+            return;
+        }
+
+        Name = SelectedEvent.EventName;
+
+        //Receiving events
+        if (Mode == EventMode.Receive)
+        {
+            AddExecPort("Then", false);
+            
+            foreach (var (key, value) in SelectedEvent.BaseEventValues.bools)
+                AddPort(key, false, [typeof(bool)]).Value.ValueFunction = (p) => new Values
+                    { b = LastRecievedPayload.bools.GetValueOrDefault(p.Name) };
+            foreach (var (key, value) in SelectedEvent.BaseEventValues.ints)
+                AddPort(key, false, [typeof(int)]).Value.ValueFunction = (p) => new Values
+                    { i = LastRecievedPayload.ints.GetValueOrDefault(p.Name) };
+            foreach (var (key, value) in SelectedEvent.BaseEventValues.floats)
+                AddPort(key, false, [typeof(float)]).Value.ValueFunction = (p) => new Values
+                    { f = LastRecievedPayload.floats.GetValueOrDefault(p.Name) };
+            foreach (var (key, value) in SelectedEvent.BaseEventValues.Vector2s)
+                AddPort(key, false, [typeof(Vector2)]).Value.ValueFunction = (p) => new Values
+                    { v2 = LastRecievedPayload.Vector2s.GetValueOrDefault(p.Name) };
+            foreach (var (key, value) in SelectedEvent.BaseEventValues.strings)
+                AddPort(key, false, [typeof(string)]).Value.ValueFunction = (p) => new Values
+                    { s = LastRecievedPayload.strings.GetValueOrDefault(p.Name) };
+            foreach (var (key, value) in SelectedEvent.BaseEventValues.GameObjects)
+                AddPort(key, false, [typeof(GameObject)]).Value.ValueFunction = (p) => new Values
+                    { gObj = LastRecievedPayload.GameObjects.GetValueOrDefault(p.Name) };
+
+            ListenerAction = (payload) =>
+            {
+                LastRecievedPayload = payload;
+                OutputExecPorts[0].Execute();
+            };
+            EventManager.Subscribe(SelectedEvent, ListenerAction);
+        }
+        //Sending Events
+        else
+        {
+            AddExecPort("Execute", true);
+            
+            foreach (var (key, value) in SelectedEvent.BaseEventValues.bools)
+                AddPort(key, true, [typeof(bool)]);
+            foreach (var (key, value) in SelectedEvent.BaseEventValues.ints)
+                AddPort(key, true, [typeof(int)]);
+            foreach (var (key, value) in SelectedEvent.BaseEventValues.floats)
+                AddPort(key, true, [typeof(float)]);
+            foreach (var (key, value) in SelectedEvent.BaseEventValues.Vector2s)
+                AddPort(key, true, [typeof(Vector2)]);
+            foreach (var (key, value) in SelectedEvent.BaseEventValues.strings)
+                AddPort(key, true, [typeof(string)]);
+            foreach (var (key, value) in SelectedEvent.BaseEventValues.GameObjects)
+                AddPort(key, true, [typeof(GameObject)]);
+        }
+    }
+
+    public override void OnExecute()
+    {
+        if (Mode == EventMode.Send && SelectedEvent != null)
+        {
+            var payload = new EventValues();
+            foreach (var port in InputPorts)
+            {
+                if (port.PortType == typeof(bool)) payload.bools[port.Name] = port.Value.GetValue().b;
+                else if (port.PortType == typeof(int)) payload.ints[port.Name] = port.Value.GetValue().i;
+                else if (port.PortType == typeof(float)) payload.floats[port.Name] = port.Value.GetValue().f;
+                else if (port.PortType == typeof(string)) payload.strings[port.Name] = port.Value.GetValue().s;
+                else if (port.PortType == typeof(Vector2)) payload.Vector2s[port.Name] = port.Value.GetValue().v2;
+                else if (port.PortType == typeof(GameObject)) payload.GameObjects[port.Name] = port.Value.GetValue().gObj;
+            }
+            
+            EventManager.Trigger(SelectedEvent, payload);
+        }
+    }
+
+    public override void ChipInspectorProperties()
+    {
+        string preview = SelectedEvent?.EventName ?? "Select an Event...";
+        if (ImGui.BeginCombo("Event", preview))
+        {
+            foreach (var registeredEvent in EventManager.RegisteredEvents)
+            {
+                if (ImGui.Selectable(registeredEvent.EventName, registeredEvent == SelectedEvent))
+                {
+                    SelectedEvent = registeredEvent;
+                    ConfigurePorts();
+                }
+            }
+            ImGui.EndCombo();
+        }
+
+        if (SelectedEvent != null && SelectedEvent.CanConfig)
+        {
+            ImGui.SameLine();
+            if (ImGui.ImageButton("Event_Config", (IntPtr)LoadIcons.icons["Cog.png"], new (10, 10)))
+            {
+                
+            }
+        }
+
+        ImGui.SameLine();
+        if (ImGui.ImageButton("Event_Create", (IntPtr)LoadIcons.icons["Plus.png"], new (10, 10)))
+        {
+                
+        }
+
+        if (SelectedEvent?.CanReceive ?? false)
+        {
+            if (ImGui.RadioButton("Recieve", Mode == EventMode.Receive))
+            {
+                Mode = EventMode.Receive;
+                ConfigurePorts();
+            }
+        }
+
+        if (SelectedEvent?.CanSend ?? false)
+        {
+            ImGui.SameLine();
+            if (ImGui.RadioButton("Send", Mode == EventMode.Send))
+            {
+                Mode = EventMode.Send;
+                ConfigurePorts();
+            }
+        }
+    }
+    
+    public override void OnDestroy()
+    {
+        if (ListenerAction != null && SelectedEvent != null)
+        {
+            EventManager.Unsubscribe(SelectedEvent, ListenerAction);
         }
     }
 }

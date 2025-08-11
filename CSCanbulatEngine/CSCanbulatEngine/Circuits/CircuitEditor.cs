@@ -500,15 +500,11 @@ public class Chip
     }
 
     // Used for displaying custom stuff on chips, used in override on chips
-    public virtual void DisplayCustomItem()
-    {
-        
-    }
+    public virtual void DisplayCustomItem() {}
 
-    public virtual void ChipInspectorProperties()
-    {
-        
-    }
+    public virtual void ChipInspectorProperties() {}
+
+    public virtual void OnDestroy() {}
 }
 
 public static class CircuitEditor
@@ -923,6 +919,8 @@ public static class CircuitEditor
     public static void DeleteChip(Chip chipToDelete)
     {
         if (chipToDelete == null) return;
+
+        chipToDelete.OnDestroy();
         
         List<Chip> allChips = new List<Chip>(chips);
         foreach (Chip chip in allChips)
@@ -1151,4 +1149,6 @@ public class Values()
     public string s = "";
     public Vector2 v2 = Vector2.Zero;
     public GameObject? gObj = null;
+    
+    public Type? ActiveType { get; set; }
 }
