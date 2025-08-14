@@ -211,6 +211,28 @@ public class CircuitChips
                         ImGui.EndMenu();
                     }
 
+                    if (ImGui.BeginMenu("Miscellaneous Chips"))
+                    {
+                        if (ImGui.MenuItem("Create Log Chip"))
+                        {
+                            CircuitEditor.chips.Add(new LogChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Log Chip", spawnPos));
+                        }
+                        
+                        if (ImGui.MenuItem("Create Log Warning Chip"))
+                        {
+                            CircuitEditor.chips.Add(new LogWarningChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Log Warning Chip", spawnPos));
+                        }
+                        
+                        if (ImGui.MenuItem("Create Log Error Chip"))
+                        {
+                            CircuitEditor.chips.Add(new LogErrorChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Log Error Chip", spawnPos));
+                        }
+                        ImGui.EndMenu();
+                    }
+
                     ImGui.EndMenu();
                 }
 
@@ -526,6 +548,11 @@ public class GameObjectVariable : Chip
 
     public override void OnExecute()
     {
+        if (InputPorts[0].Value.GetValue().gObj == null)
+        {
+            GameConsole.Log("Game Object Variable doesn't have a acceptable value", LogType.Error);
+            return;
+        }
         varValues = InputPorts[0].Value.GetValue();
         base.OnExecute();
     }
@@ -1129,5 +1156,44 @@ public class EventChip : Chip
         {
             EventManager.Unsubscribe(SelectedEvent, ListenerAction);
         }
+    }
+}
+
+public class LogChip : Chip
+{
+    public LogChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Log", true, [typeof(string)], false);
+    }
+
+    public override void OnExecute()
+    {
+        GameConsole.Log(InputPorts[0].Value.GetValue().s);
+    }
+}
+
+public class LogWarningChip : Chip
+{
+    public LogWarningChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Log", true, [typeof(string)], false);
+    }
+
+    public override void OnExecute()
+    {
+        GameConsole.Log(InputPorts[0].Value.GetValue().s, LogType.Warning);
+    }
+}
+
+public class LogErrorChip : Chip
+{
+    public LogErrorChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Log", true, [typeof(string)], false);
+    }
+
+    public override void OnExecute()
+    {
+        GameConsole.Log(InputPorts[0].Value.GetValue().s, LogType.Error);
     }
 }

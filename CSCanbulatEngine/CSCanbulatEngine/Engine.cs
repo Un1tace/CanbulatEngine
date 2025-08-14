@@ -766,7 +766,7 @@ public class Engine
         // -- Project File Manager --
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[3]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[3]);
-        ImGui.Begin("Project File Manager", editorPanelFlags);
+        ImGui.Begin("Project File Manager", editorPanelFlags |  ImGuiWindowFlags.NoTitleBar);
         if (ImGui.BeginTabBar("Bottom Window"))
         {
             if (ImGui.BeginTabItem("Project Manager"))
@@ -866,9 +866,10 @@ public class Engine
                 ImGui.EndTabItem();
             }
 
+            //Game Console
             if (ImGui.BeginTabItem("Console"))
             {
-                ImGui.Text("Console Window");
+                GameConsole.RenderConsole();
                 ImGui.EndTabItem();
             }
             

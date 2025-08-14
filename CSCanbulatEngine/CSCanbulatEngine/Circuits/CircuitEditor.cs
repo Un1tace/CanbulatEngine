@@ -152,6 +152,8 @@ public class ChipPort
     
     public EngineAnimationManager animationManagerStartWire;
     public EngineAnimationManager animationManagerEndWire;
+    
+    public List<ChipPort> outputConnectedPorts;
 
     public ChipPort(int id, string name, Chip parent, bool isInput, List<Type> acceptedValueTypes,
         bool showName = false)
@@ -185,6 +187,10 @@ public class ChipPort
             PortType = portType;
 
             acceptedTypes = new List<Type>() { portType };
+        }
+        if (!isInput)
+        {
+            outputConnectedPorts = new List<ChipPort>();
         }
         
         UpdateColor();
@@ -225,11 +231,13 @@ public class ChipPort
 
         if (port == ConnectedPort)
         {
+            
             ConnectedPort = null;
             if (acceptedTypes.Count != 1)
             {
                 _PortType = null;
             }
+            port.outputConnectedPorts.Remove(this);
             Parent.PortTypeChanged(this);
             UpdateColor();
         }
@@ -237,6 +245,7 @@ public class ChipPort
         {
             ConnectedPort = port;
             PortType = port.PortType;
+            port.outputConnectedPorts.Add(this);
             UpdateColor();
         }
         Parent.UpdateChipConfig();
@@ -251,6 +260,7 @@ public class ChipPort
             ConnectedPort.DisconnectPort();
             return;
         }
+        ConnectedPort.outputConnectedPorts.Remove(this);
         ConnectedPort = null;
         if ((acceptedTypes?.Count ?? -1) != 1)
         {
@@ -320,15 +330,10 @@ public class ChipPort
 
 public class ExecPort : ChipPort
 {
-    private List<ExecPort> outputConnectedPorts;
     public ExecPort(int id, string name, Chip parent, bool isInput) : base(id, name, parent, isInput)
     {
         animationManagerStartWire = new EngineAnimationManager();
         animationManagerEndWire = new EngineAnimationManager();
-        if (!isInput)
-        {
-            outputConnectedPorts = new List<ExecPort>();
-        }
     }
 
     public override bool ConnectPort(ChipPort port)
@@ -344,15 +349,13 @@ public class ExecPort : ChipPort
         if (execPort == ConnectedPort)
         {
             ConnectedPort = null;
-            ExecPort otherPort = port as ExecPort;
-            otherPort.outputConnectedPorts.Remove(this as ExecPort);
+            port.outputConnectedPorts.Remove(this);
             UpdateColor();
         }
         else
         {
             ConnectedPort = port;
-            ExecPort otherPort = port as ExecPort;
-            otherPort.outputConnectedPorts.Add(this as ExecPort);
+            port.outputConnectedPorts.Add(this);
             UpdateColor();
         }
 
@@ -380,9 +383,13 @@ public class ExecPort : ChipPort
             // {
             //     connectedExecPort.Execute();
             // }
-            foreach (ExecPort port in outputConnectedPorts)
+            foreach (ChipPort port in outputConnectedPorts)
             {
-                port.Execute();
+                ExecPort? execPort = port as ExecPort;
+                if (execPort != null)
+                {
+                    execPort.Execute();
+                }
             }
         }
     }
@@ -959,18 +966,23 @@ public static class CircuitEditor
 
         chipToDelete.OnDestroy();
         
-        List<Chip> allChips = new List<Chip>(chips);
-        foreach (Chip chip in allChips)
+        var allInputPorts = chipToDelete.InputPorts.Concat(chipToDelete.InputExecPorts);
+        foreach (var inputPort in allInputPorts.ToList())
         {
-            if (chip == chipToDelete) continue;
-
-            var allPorts = chip.InputPorts.Concat(chip.InputExecPorts);
-
-            foreach (var port in allPorts)
+            if (inputPort.ConnectedPort != null)
             {
-                if (port.ConnectedPort != null && port.ConnectedPort.Parent == chipToDelete)
+                inputPort.DisconnectPort();
+            }
+        }
+        
+        var allOutputPorts = chipToDelete.OutputPorts.Concat(chipToDelete.OutputExecPorts);
+        foreach (var outputPort in allOutputPorts.ToList())
+        {
+            if (outputPort.outputConnectedPorts != null)
+            {
+                foreach (var connectedInputPort in outputPort.outputConnectedPorts.ToList())
                 {
-                    port.DisconnectPort();
+                    connectedInputPort.DisconnectPort();
                 }
             }
         }
