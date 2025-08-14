@@ -95,6 +95,7 @@ public class Engine
     private string[]? _pendingDroppedFiles = null;
 
     private bool circuitEditorIsOpen = false;
+    private bool consoleIsOpen = false;
 #endif
 
     public void Run()
@@ -115,9 +116,9 @@ public class Engine
         window.Render += OnRender;
         window.Update += OnUpdate;
         window.Closing += OnClose;
-        window.FileDrop += OnFileDrop;
         
         #if EDITOR
+        window.FileDrop += OnFileDrop;
         window.FramebufferResize += OnFramebufferResize;
         #endif
 
@@ -609,7 +610,7 @@ public class Engine
         // -- Viewport --
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[0]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[0]);
-        ImGui.Begin("Game Viewport", editorPanelFlags | ImGuiWindowFlags.NoTitleBar);
+        ImGui.Begin("Game Viewport", editorPanelFlags | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar);
         if (ImGui.BeginTabBar("MainWindowTabs"))
         {
             if (ImGui.BeginTabItem("Viewport"))
@@ -766,90 +767,113 @@ public class Engine
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[3]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[3]);
         ImGui.Begin("Project File Manager", editorPanelFlags);
-        float leftPanelWidth = ImGui.GetContentRegionAvail().X * 0.2f;
-        ImGui.BeginChild("Directories", new Vector2(leftPanelWidth, ImGui.GetContentRegionAvail().Y), ImGuiChildFlags.AutoResizeY);
-        if (ImGui.Selectable("Assets"))
+        if (ImGui.BeginTabBar("Bottom Window"))
         {
-            ProjectManager.selectedDir = ProjectSerialiser.GetAssetsFolder();
-            Console.WriteLine(ProjectManager.selectedDir);
-        }
-
-        _projectManagerBounds = new RectangleF(new(ImGui.GetWindowPos()), new (ImGui.GetWindowSize()));
-
-        if (_pendingDroppedFiles != null)
-        {
-            if (ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows))
+            if (ImGui.BeginTabItem("Project Manager"))
             {
-                Console.WriteLine("Files dropped onto Project Manager!");
-
-                foreach (var path in _pendingDroppedFiles)
+                float leftPanelWidth = ImGui.GetContentRegionAvail().X * 0.2f;
+                ImGui.BeginChild("Directories", new Vector2(leftPanelWidth, ImGui.GetContentRegionAvail().Y),
+                    ImGuiChildFlags.AutoResizeY);
+                if (ImGui.Selectable("Assets"))
                 {
-                    try
+                    ProjectManager.selectedDir = ProjectSerialiser.GetAssetsFolder();
+                    Console.WriteLine(ProjectManager.selectedDir);
+                }
+
+                _projectManagerBounds = new RectangleF(new(ImGui.GetWindowPos()), new(ImGui.GetWindowSize()));
+
+                if (_pendingDroppedFiles != null)
+                {
+                    if (ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows))
                     {
-                        string fileName = Path.GetFileName(path);
-                        string destPath = Path.Combine(ProjectManager.selectedDir, fileName);
-                        File.Copy(path, destPath, true);
-                        Console.WriteLine($"Imported '{fileName}' to assets.");
+                        Console.WriteLine("Files dropped onto Project Manager!");
+
+                        foreach (var path in _pendingDroppedFiles)
+                        {
+                            try
+                            {
+                                string fileName = Path.GetFileName(path);
+                                string destPath = Path.Combine(ProjectManager.selectedDir, fileName);
+                                File.Copy(path, destPath, true);
+                                Console.WriteLine($"Imported '{fileName}' to assets.");
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine($"Failed to import file '{path}': {e.Message}");
+                            }
+                        }
                     }
-                    catch (Exception e)
+
+                    _pendingDroppedFiles = null;
+                }
+
+                ProjectManager.RenderDirectories();
+                ImGui.EndChild();
+
+                ImGui.SameLine();
+
+                //File Icons
+                ImGui.BeginChild("File Icons",
+                    new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y),
+                    ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.AutoResizeX);
+
+                string name = ProjectManager.selectedDir;
+
+                string[] sepDirectories = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? name.Split('\\')
+                    : name.Split("/");
+
+                int assetsFolderIndex = -1;
+
+                for (int i = 0; i < sepDirectories.Length; i++)
+                {
+                    if (sepDirectories[i] == "Assets") assetsFolderIndex = i;
+                }
+
+                string newName = "Assets";
+
+                if (assetsFolderIndex != -1)
+                {
+                    for (int i = assetsFolderIndex + 1; i < sepDirectories.Length; i++)
                     {
-                        Console.WriteLine($"Failed to import file '{path}': {e.Message}");
+                        newName += (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "\\" : "/") +
+                                   sepDirectories[i];
                     }
                 }
+                else newName = name;
+
+                Array.Clear(sepDirectories, 0, sepDirectories.Length);
+
+                ImGui.Text(newName);
+                ImGui.SameLine();
+
+                float sliderWidth = 150f;
+
+                float newCursorPosX = ImGui.GetCursorPos().X + ImGui.GetContentRegionAvail().X - sliderWidth;
+
+                ImGui.SetCursorPosX(newCursorPosX);
+
+                ImGui.PushItemWidth(sliderWidth);
+
+                if (ImGui.SliderFloat("Zoom", ref ProjectManager.SliderZoom, 0.5f, ProjectManager.maxZoom))
+                {
+                }
+
+                ImGui.PopItemWidth();
+                ImGui.Separator();
+                ProjectManager.RenderProjectManagerIcons();
+                ImGui.EndChild();
+                ImGui.EndTabItem();
             }
-            _pendingDroppedFiles = null;
-        }
-        
-        ProjectManager.RenderDirectories();
-        ImGui.EndChild();
-        
-        ImGui.SameLine();
-        
-        //File Icons
-        ImGui.BeginChild("File Icons", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.AutoResizeX);
 
-        string name = ProjectManager.selectedDir;
-        
-        string[] sepDirectories = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? name.Split('\\')
-            : name.Split("/");
-
-        int assetsFolderIndex = -1;
-
-        for (int i = 0; i < sepDirectories.Length; i++)
-        {
-            if (sepDirectories[i] == "Assets") assetsFolderIndex = i;
-        }
-
-        string newName = "Assets";
-
-        if (assetsFolderIndex != -1)
-        {
-            for (int i = assetsFolderIndex + 1; i < sepDirectories.Length; i++)
+            if (ImGui.BeginTabItem("Console"))
             {
-                newName += (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)? "\\" : "/") + sepDirectories[i];
+                ImGui.Text("Console Window");
+                ImGui.EndTabItem();
             }
+            
+            ImGui.EndTabBar();
         }
-        else newName = name;
-        
-        Array.Clear(sepDirectories,0 , sepDirectories.Length);
-        
-        ImGui.Text(newName);
-        ImGui.SameLine();
-
-        float sliderWidth = 150f;
-        
-        float newCursorPosX = ImGui.GetCursorPos().X + ImGui.GetContentRegionAvail().X - sliderWidth;
-        
-        ImGui.SetCursorPosX(newCursorPosX);
-        
-        ImGui.PushItemWidth(sliderWidth);
-        
-        if (ImGui.SliderFloat("Zoom", ref ProjectManager.SliderZoom, 0.5f, ProjectManager.maxZoom))  {}
-        ImGui.PopItemWidth();
-        ImGui.Separator();
-        ProjectManager.RenderProjectManagerIcons();
-        ImGui.EndChild();
         ImGui.End();
 
         // if (fontLoaded)

@@ -2,6 +2,7 @@ using System.Net.Sockets;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using CSCanbulatEngine.EngineComponents;
 using CSCanbulatEngine.GameObjectScripts;
 using ImGuiNET;
 using Silk.NET.Input;
@@ -148,6 +149,9 @@ public class ChipPort
     public ChipPortValue Value;
 
     public bool ShowName = false;
+    
+    public EngineAnimationManager animationManagerStartWire;
+    public EngineAnimationManager animationManagerEndWire;
 
     public ChipPort(int id, string name, Chip parent, bool isInput, List<Type> acceptedValueTypes,
         bool showName = false)
@@ -272,8 +276,11 @@ public class ChipPort
 
         for (float i = -0.1f; i <= 1.1; i += 0.1f)
         {
-            linePositions.Add(new (float.Lerp(outputPortPos.X, Position.X, i), SineLerpFunction(outputPortPos.Y, Position.Y, i)));
-            lineColors.Add(Vector4.Lerp(ConnectedPort.Color, Color, i));
+            Vector4 start = animationManagerStartWire?.GetPulseAnimationColor() ?? ConnectedPort.Color;
+            Vector4 end = animationManagerEndWire?.GetPulseAnimationColor() ?? Color;
+            
+            linePositions.Add(new Vector2(float.Lerp(outputPortPos.X, Position.X, i), SineLerpFunction(outputPortPos.Y, Position.Y, i)));
+            lineColors.Add(Vector4.Lerp(start, end , i));
         }
 
         for (int i = 1; i < linePositions.Count; i++)
@@ -313,28 +320,42 @@ public class ChipPort
 
 public class ExecPort : ChipPort
 {
+    private List<ExecPort> outputConnectedPorts;
     public ExecPort(int id, string name, Chip parent, bool isInput) : base(id, name, parent, isInput)
     {
-         
+        animationManagerStartWire = new EngineAnimationManager();
+        animationManagerEndWire = new EngineAnimationManager();
+        if (!isInput)
+        {
+            outputConnectedPorts = new List<ExecPort>();
+        }
     }
 
     public override bool ConnectPort(ChipPort port)
     {
-        if (!IsInput) port.ConnectPort(this);
+        if (!IsInput)
+        {
+            return port.ConnectPort(this);
+        }
         if (port.IsInput == IsInput) return false;
         if (this.Parent == port.Parent) return false;
         if (port is not ExecPort execPort) return false;
 
-        if (port == ConnectedPort)
+        if (execPort == ConnectedPort)
         {
             ConnectedPort = null;
+            ExecPort otherPort = port as ExecPort;
+            otherPort.outputConnectedPorts.Remove(this as ExecPort);
             UpdateColor();
         }
         else
         {
-            ConnectedPort = execPort;
+            ConnectedPort = port;
+            ExecPort otherPort = port as ExecPort;
+            otherPort.outputConnectedPorts.Add(this as ExecPort);
             UpdateColor();
         }
+
         Parent.UpdateChipConfig();
         return true;
     }
@@ -343,13 +364,25 @@ public class ExecPort : ChipPort
     {
         if (IsInput)
         {
+            if (ConnectedPort != null)
+            {
+                animationManagerStartWire.SetUpPulseAnimation(ConnectedPort.Color,
+                             Vector4.Clamp(ConnectedPort.Color + new Vector4(1f, 1f, 1f, 0f), Vector4.Zero, Vector4.One),
+                             200);
+            }
+            animationManagerEndWire.SetUpPulseAnimation(Color, Vector4.Clamp(Color + new Vector4(1f, 1f, 1f, 0f), Vector4.Zero, Vector4.One), 200);
+                
             Parent.OnExecute();
         }
         else
         {
-            if (ConnectedPort is ExecPort connectedExecPort)
+            // if (ConnectedPort is ExecPort connectedExecPort)
+            // {
+            //     connectedExecPort.Execute();
+            // }
+            foreach (ExecPort port in outputConnectedPorts)
             {
-                connectedExecPort.Execute();
+                port.Execute();
             }
         }
     }
@@ -633,7 +666,7 @@ public static class CircuitEditor
                 float multiplier = 2f;
                 float half = MathF.Sqrt(MathF.Pow(portRadius, 2) / 2) * multiplier;
                 drawList.AddTriangleFilled(new Vector2(portPos.X - half, portPos.Y + half),  new Vector2(portPos.X - half, portPos.Y - half), new Vector2(portPos.X +
-                    (portRadius * multiplier) - half, portPos.Y), ImGui.GetColorU32(port.Color));
+                    (portRadius * multiplier) - half, portPos.Y), ImGui.GetColorU32(port.animationManagerEndWire?.GetPulseAnimationColor() ?? port.Color));
                 
             }
             else
@@ -785,9 +818,16 @@ public static class CircuitEditor
             if (port is ExecPort execPort)
             {
                 float multiplier = 2f;
+                ChipPort? connectedPort = port.ConnectedPort;
+                Vector4 theColor;
+                if (connectedPort == null)
+                {
+                    theColor = port.Color;
+                }
+                else theColor = connectedPort.animationManagerStartWire?.GetPulseAnimationColor() ?? port.Color;
                 float half = MathF.Sqrt(MathF.Pow(portRadius, 2) / 2) * multiplier;
                 drawList.AddTriangleFilled(new Vector2(portPos.X - half, portPos.Y + half),  new Vector2(portPos.X - half, portPos.Y - half), new Vector2(portPos.X +
-                    (portRadius * multiplier) - half, portPos.Y), ImGui.GetColorU32(port.Color));
+                    (portRadius * multiplier) - half, portPos.Y), ImGui.GetColorU32(theColor));
             }
             else
             {
