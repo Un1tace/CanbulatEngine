@@ -170,6 +170,10 @@ public class ChipPort
         {
             PortType = acceptedValueTypes[0];
         }
+        if (!isInput)
+        {
+            outputConnectedPorts = new List<ChipPort>();
+        }
         
         UpdateColor();
     }
@@ -533,6 +537,8 @@ public static class CircuitEditor
     private static Chip? lastSelectedChip = null;
     private static ChipPort? _portDragSource = null;
     private static ChipPort? HoveredPort = null;
+    public static string CircuitScriptName = "";
+    public static string CircuitScriptDirPath = "";
 
     public static float Zoom = 1f;
     public const float MinZoom = 0.3f;
@@ -942,17 +948,19 @@ public static class CircuitEditor
         {
             if (ImGui.MenuItem("New Circuit Script", superKey + "+" + altKey + "+" + "N"))
             {
-                    
+                chips.Clear();
+                CircuitScriptName = "";
+                CircuitScriptDirPath = "";
             }
 
             if (ImGui.MenuItem("Open Circuit Script", superKey + "+" + altKey + "+" + "O"))
             {
-                    
+                Engine.OpenCircuitScript();
             }
 
             if (ImGui.MenuItem("Save Circuit Script", superKey + "+" + altKey + "+" + "S"))
             {
-                    
+                Engine.SaveCircuitScript();
             }
                 
             ImGui.EndMenu();

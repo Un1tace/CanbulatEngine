@@ -7,9 +7,10 @@ public class CircuitData
     public class ChipData
     {
         public int id { get; set; }
-        public string Name;
-        public string ChipType;
-        public Vector2 Position;
+        public string Name { get ; set; }
+        public string ChipType { get ; set; }
+        public Vector2 Position { get ; set; }
+        public Vector4 Color { get ; set; }
     }
 
     public class PortConnectionData

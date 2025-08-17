@@ -1,3 +1,4 @@
+using System.Numerics;
 using CSCanbulatEngine.Circuits;
 using Newtonsoft.Json;
 
@@ -5,10 +6,16 @@ namespace CSCanbulatEngine.FileHandling.CircuitHandling;
 
 public static class CircuitSerialiser
 {
-    public static void SaveCircuit(string circuitName)
+    public static void SaveCircuit(string circuitName, string filePath = "")
     {
-        string filePath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Circuits");
+        if (filePath == "")
+        {
+            filePath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Circuits");
+        }
+        
         Directory.CreateDirectory(filePath);
+        CircuitEditor.CircuitScriptName = circuitName;
+        CircuitEditor.CircuitScriptDirPath = filePath;
 
         var circuitInfo = new CircuitData.CircuitInfo
         {
@@ -22,7 +29,8 @@ public static class CircuitSerialiser
                 id = chip.Id,
                 Name = chip.Name,
                 Position = chip.Position,
-                ChipType = chip.GetType().FullName
+                ChipType = chip.GetType().FullName,
+                Color = chip.Color
             });
         }
 
@@ -55,7 +63,9 @@ public static class CircuitSerialiser
         var circuitInfo = JsonConvert.DeserializeObject<CircuitData.CircuitInfo>(json);
         
         CircuitEditor.chips.Clear();
-
+        CircuitEditor.CircuitScriptName = Path.GetFileNameWithoutExtension(filePath);
+        CircuitEditor.CircuitScriptDirPath = Path.GetDirectoryName(filePath);
+        
         foreach (var chip in circuitInfo.Chips)
         {
             Type chipType = Type.GetType(chip.ChipType);
@@ -63,6 +73,7 @@ public static class CircuitSerialiser
             if (chipType != null)
             {
                 Chip newChip = (Chip)Activator.CreateInstance(chipType, chip.id, chip.Name, chip.Position);
+                newChip.Color = chip.Color;
                 CircuitEditor.chips.Add(newChip);
             }
         }

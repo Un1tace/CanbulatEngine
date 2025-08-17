@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using CSCanbulatEngine.Circuits;
 using CSCanbulatEngine.FileHandling;
+using CSCanbulatEngine.FileHandling.CircuitHandling;
 using CSCanbulatEngine.FileHandling.ProjectManager;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.InfoHolders;
@@ -84,6 +85,9 @@ public class Engine
     public static bool createProjectPopup = false;
     public static bool projectFoundPopup = false;
     public static bool renameFilePopupOpen = false;
+
+    //Ciruit editor popups
+    public static bool renameCircuitFileAsPopup = false;
     
     //Project Manager
     public static string projectFilePath = "";
@@ -392,7 +396,7 @@ public class Engine
         }
         
         //Before using Save as
-        if (ImGui.BeginPopupModal("Name Scene as", ImGuiWindowFlags.AlwaysAutoResize))
+        if (ImGui.BeginPopupModal("Name Scene As", ImGuiWindowFlags.AlwaysAutoResize))
         {
             ImGui.Text("Enter a name for the scene");
             ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
@@ -413,6 +417,33 @@ public class Engine
             if (ImGui.Button("Cancel"))
             {
                 nameSceneAsPopup = false;
+                ImGui.CloseCurrentPopup();
+                
+            }
+            ImGui.EndPopup();
+        }
+        
+        if (ImGui.BeginPopupModal("Name Circuit Script As", ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("Enter a name for the circuit script");
+            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
+
+            if (ImGui.Button("OK"))
+            {
+                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
+                if (!string.IsNullOrWhiteSpace(newName))
+                {
+                    CircuitEditor.CircuitScriptName = newName;
+                    SaveAsCircuitScriptContinued();
+                }
+
+                renameCircuitFileAsPopup = false;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                renameCircuitFileAsPopup = false;
                 ImGui.CloseCurrentPopup();
                 
             }
@@ -745,7 +776,7 @@ public class Engine
         
         if (nameSceneAsPopup)
         {
-            ImGui.OpenPopup("Name Scene as");
+            ImGui.OpenPopup("Name Scene As");
         }
 
         if (createProjectPopup)
@@ -756,6 +787,11 @@ public class Engine
         if (projectFoundPopup)
         {
             ImGui.OpenPopup("Project Found");
+        }
+
+        if (renameCircuitFileAsPopup)
+        {
+            ImGui.OpenPopup("Name Circuit Script As");
         }
 
         if (renameFilePopupOpen)
@@ -1058,7 +1094,7 @@ public class Engine
 
     private static void LoadScene()
     {
-        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        string documentsPath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Scenes");
         string? projectPath = FileDialogHelper.ShowOpenFileDialog(documentsPath, new [] {"*.cbs"});
         Console.WriteLine($"Folder Selected: {projectPath}");
         if (!String.IsNullOrWhiteSpace(projectPath))
@@ -1077,6 +1113,51 @@ public class Engine
     {
         currentScene = new Scene("New Scene");
         _selectedGameObject = null;
+    }
+
+    public static void LoadCircuitScript(string filePath)
+    {
+        CircuitSerialiser.LoadCircuit(filePath);
+    }
+
+    public static void OpenCircuitScript()
+    {
+        string circuitPathFolder = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Circuits");
+        string? circuitScriptPath = FileDialogHelper.ShowOpenFileDialog(circuitPathFolder, new [] {"*.ccs"});
+        Console.WriteLine($"File Selected: {circuitScriptPath}");
+        if (!String.IsNullOrWhiteSpace(circuitScriptPath))
+        {
+            LoadCircuitScript(circuitScriptPath);
+        }
+    }
+
+    public static void SaveCircuitScript()
+    {
+        if (!String.IsNullOrWhiteSpace(CircuitEditor.CircuitScriptName) && !String.IsNullOrWhiteSpace(CircuitEditor.CircuitScriptDirPath))
+        {
+            CircuitSerialiser.SaveCircuit(CircuitEditor.CircuitScriptName, CircuitEditor.CircuitScriptDirPath);
+        }
+        else
+        {
+            SaveAsCircuitScript();
+        }
+    }
+
+    public static void SaveAsCircuitScript()
+    {
+        renameCircuitFileAsPopup = true;
+    }
+
+    private static void SaveAsCircuitScriptContinued()
+    {
+        if (!String.IsNullOrWhiteSpace(CircuitEditor.CircuitScriptName))
+        {
+            CircuitSerialiser.SaveCircuit(CircuitEditor.CircuitScriptName, CircuitEditor.CircuitScriptDirPath);
+        }
+        else
+        {
+            GameConsole.Log("The circuit script name is empty! It has not been saved");
+        }
     }
 #endif
 }
