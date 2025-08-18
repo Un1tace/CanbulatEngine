@@ -273,6 +273,7 @@ public class Engine
         if (primaryKeyboard != null && !ImGui.GetIO().WantCaptureKeyboard)
         {
             bool modifierDown;
+            var altKey = Key.AltLeft;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 modifierDown = InputManager.IsKeyDown(Key.SuperLeft) || InputManager.IsKeyDown(Key.SuperRight);
@@ -284,7 +285,21 @@ public class Engine
 
             if (modifierDown)
             {
-                if (InputManager.IsKeyPressed(Key.S))
+                if (InputManager.IsKeyPressed(altKey) && InputManager.IsKeyPressed(Key.N))
+                {
+                    CircuitEditor.chips.Clear();
+                    CircuitEditor.CircuitScriptName = "";
+                    CircuitEditor.CircuitScriptDirPath = "";
+                }
+                else if (InputManager.IsKeyPressed(altKey) && InputManager.IsKeyPressed(Key.O))
+                {
+                    OpenCircuitScript();
+                }
+                else if (InputManager.IsKeyPressed(altKey) && InputManager.IsKeyPressed(Key.S))
+                {
+                    SaveCircuitScript();
+                }
+                else if (InputManager.IsKeyPressed(Key.S))
                 {
                     SaveScene();
                 }

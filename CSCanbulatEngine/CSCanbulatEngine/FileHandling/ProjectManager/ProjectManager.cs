@@ -137,6 +137,9 @@ public static class ProjectManager
                 case ".cbs":
                     iconName = "Photoframe.png";
                     break;
+                case ".ccs":
+                    iconName = "Circuit.png";
+                    break;
                 case null:
                     break;
                 
@@ -177,6 +180,10 @@ public static class ProjectManager
                     {
                         SceneSerialiser ss = new SceneSerialiser(Engine.gl, Engine._squareMesh);
                         ss.LoadScene(name);
+                    }
+                    else if (Path.GetExtension(name) == ".ccs")
+                    {
+                        Engine.LoadCircuitScript(name);
                     }
                 }
                 ImGui.PopStyleColor();
