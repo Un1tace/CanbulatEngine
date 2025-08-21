@@ -8,6 +8,7 @@ using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.InfoHolders;
 using CSCanbulatEngine.UIHelperScripts;
 using CSCanbulatEngine.Utilities;
+using Newtonsoft.Json;
 
 namespace CSCanbulatEngine;
 
@@ -52,6 +53,10 @@ public class Engine
     private static float _cameraZoom = 2f;
 
     private static uint _whiteTexture;
+    
+    //Engine state config
+    public static EngineState CurrentState = EngineState.Editor;
+    private static string _sceneSnapshotBeforePlay;
 
 #if EDITOR
     //--- Editor Only Resources ---
@@ -328,6 +333,18 @@ public class Engine
         }
        
 #endif
+
+        if (CurrentState == EngineState.Play)
+        {
+            var updateEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnUpdate");
+            if (updateEvent != null)
+            {
+                var payload = new EventValues();
+                payload.floats["Delta Time"] = (float)deltaTime;
+                EventManager.Trigger(updateEvent, payload);
+            }
+        }
+        
         // ! ! ! Keep at last update ! ! !
         InputManager.LateUpdate();
     }
@@ -616,6 +633,8 @@ public class Engine
             ImGuiWindowManager.InitialiseDefaults();
             ImGui.EndMainMenuBar();
         }
+        
+        
         
         // -- Info Window --
         if (showInfoWindow)
@@ -936,6 +955,55 @@ public class Engine
         SetLook();
     }
 
+    public static void RenderToolbar()
+    {
+        // float toolbarHeight = ImGuiWindowManager.menuBarHeight * 1.5f;
+        // Vector2 viewportPos = ImGui.GetMainViewport().Pos;
+        // Vector2 viewportSize = ImGui.GetMainViewport().Size;
+        // ImGui.SetNextWindowPos(new Vector2(viewportPos.X + viewportSize.X * 0.5f, viewportPos.Y + ImGuiWindowManager.menuBarHeight), ImGuiCond.Always, new Vector2(0.5f, 0f));
+        // ImGui.SetNextWindowSize(new Vector2(0, toolbarHeight));
+        //
+        // ImGuiWindowFlags flags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove |
+        //                          ImGuiWindowFlags.NoScrollWithMouse;
+        // ImGui.Begin("Toolbar", flags);
+        float buttonSize = ImGui.GetContentRegionAvail().X - 5f;
+
+        if (CurrentState == EngineState.Editor)
+        {
+            if (ImGui.ImageButton("Play", (IntPtr)LoadIcons.icons["Play.png"], new Vector2(buttonSize)))
+            {
+                CurrentState = EngineState.Play;
+                var sceneData = SceneSerialiser.SceneDataFromCurrentScene();
+                _sceneSnapshotBeforePlay = JsonConvert.SerializeObject(sceneData, Formatting.Indented);
+
+                var startEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnStart");
+                if (startEvent != null) EventManager.Trigger(startEvent, new EventValues());
+            }
+        }
+        else
+        {
+            IntPtr pauseButtonImage = CurrentState == EngineState.Pause ? (IntPtr)LoadIcons.icons["Play.png"] : (IntPtr)LoadIcons.icons["Pause.png"];
+            if (ImGui.ImageButton("Pause", (IntPtr)pauseButtonImage, new Vector2(buttonSize)))
+            {
+                CurrentState = CurrentState == EngineState.Play ? EngineState.Pause : EngineState.Play;
+            }
+        }
+
+        // ImGui.SameLine();
+
+        if (CurrentState != EngineState.Editor)
+        {
+            if (ImGui.ImageButton("Stop", (IntPtr)LoadIcons.icons["Stop.png"], new Vector2(buttonSize)))
+            {
+                CurrentState = EngineState.Editor;
+                
+                SceneSerialiser.LoadSceneFromString(_sceneSnapshotBeforePlay);
+            }
+        }
+        
+        // ImGui.End();
+    }
+
     private void OnFileDrop(string[] paths)
     {
         _pendingDroppedFiles = paths;
@@ -1187,4 +1255,9 @@ public class StoreObject
         this.gameObject = gameObject;
         timeCreated = DateTime.UtcNow.Second;
     }
+}
+
+public enum EngineState
+{
+    Editor, Play, Pause
 }

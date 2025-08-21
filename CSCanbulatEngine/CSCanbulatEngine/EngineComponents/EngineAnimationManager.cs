@@ -35,4 +35,22 @@ public class EngineAnimationManager
         
         return Vector4.Lerp(colorStart, pulseColor, MathF.Sin(percentInPi));
     }
+
+    public void GetPulseAnimationColorNew(ref Vector4 color)
+    {
+        pulseAnimationStart = DateTime.Now.Ticks;
+        this.colorStart = colorStart;
+        this.pulseColor = pulseColor;
+        this.duration = duration*10000;
+        pulseRunning = true;
+
+        while (pulseAnimationStart < duration)
+        {
+            long time =  (DateTime.Now.Ticks) - pulseAnimationStart;
+            float percent = float.Clamp((float)time / duration, 0f, 1f);
+            float percentInPi = percent * MathF.PI;
+        
+            color = Vector4.Lerp(colorStart, pulseColor, MathF.Sin(percentInPi));
+        }
+    }
 }

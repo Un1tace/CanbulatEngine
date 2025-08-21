@@ -352,6 +352,8 @@ public class Gizmo
         {
             _selectedFunction = GizmoFunction.Rotation;
         }
+        
+        Engine.RenderToolbar();
     }
 }
 #endif

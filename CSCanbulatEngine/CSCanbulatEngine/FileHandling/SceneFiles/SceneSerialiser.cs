@@ -61,6 +61,76 @@ public class SceneSerialiser
         Console.WriteLine($"Saved scene: {filePath}");
         Engine.currentScene.SceneSavedOnce = true;
     }
+    
+    public static SceneData.SceneInfo SceneDataFromCurrentScene()
+    {
+        var sceneData = new SceneData.SceneInfo()
+        {
+            SceneFilePath = Engine.currentScene.SceneFilePath,
+            SceneName = Engine.currentScene.SceneName,
+            GameObjects = new List<SceneData.GameObjectData>()
+        };
+
+        foreach (var obj in Engine.currentScene.GameObjects)
+        {
+            var transform = obj.GetComponent<Transform>();
+            var meshRenderer = obj.GetComponent<MeshRenderer>();
+
+            var transformData = new SceneData.TransformData()
+            {
+                Position = transform.Position,
+                Rotation = transform.Rotation,
+                Scale = transform.Scale,
+                Enabled = transform.isEnabled,
+                Name = transform.name
+            };
+
+            var meshRendererData = new SceneData.MeshRendererData()
+            {
+                Color = meshRenderer.Color,
+                TexturePath = meshRenderer.TexturePath,
+                Enabled = meshRenderer.isEnabled,
+                Name = meshRenderer.name
+            };
+
+            sceneData.GameObjects.Add(new SceneData.GameObjectData()
+            {
+                Name = obj.Name,
+                transformData = transformData,
+                meshRendererData = meshRendererData
+            });
+        }
+
+        return sceneData;
+    }
+
+    public static void LoadSceneFromString(string json)
+    {
+        var sceneData = JsonConvert.DeserializeObject<SceneData.SceneInfo>(json);
+
+        Engine.currentScene = new Scene(sceneData.SceneName);
+        Engine.currentScene.SceneName = sceneData.SceneName;
+        Engine.currentScene.SceneFilePath = sceneData.SceneFilePath;
+        Engine.currentScene.SceneSavedOnce = true;
+        Engine._selectedGameObject = null;
+
+        foreach (var objData in sceneData.GameObjects)
+        {
+            GameObject obj = new GameObject(Engine._squareMesh, objData.Name);
+
+            var transform = obj.GetComponent<Transform>();
+            transform.Position = objData.transformData.Position;
+            transform.Rotation = objData.transformData.Rotation;
+            transform.Scale = objData.transformData.Scale;
+            
+            var meshRenderer = obj.GetComponent<MeshRenderer>();
+            meshRenderer.Color = objData.meshRendererData.Color;
+            if (!string.IsNullOrWhiteSpace(objData.meshRendererData.TexturePath))
+            {
+                meshRenderer.AssignTexture(objData.meshRendererData.TexturePath);
+            }
+        }
+    }
 #endif
     public void LoadScene(string filePath)
     {
@@ -84,7 +154,7 @@ public class SceneSerialiser
                 transform.name = transformData.Name;
                 transform.isEnabled = transformData.Enabled;
                 transform.AttachedGameObject = obj;
-                if (obj.GetComponentIndex<MeshRenderer>() != -1)
+                if (obj.GetComponentIndex<Transform>() != -1)
                 {
                     obj.components[obj.GetComponentIndex<Transform>()] = transform;
                 }
