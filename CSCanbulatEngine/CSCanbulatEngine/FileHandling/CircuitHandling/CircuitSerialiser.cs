@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using CSCanbulatEngine.Circuits;
 using Newtonsoft.Json;
@@ -30,7 +31,8 @@ public static class CircuitSerialiser
                 Name = chip.Name,
                 Position = chip.Position,
                 ChipType = chip.GetType().FullName,
-                Color = chip.Color
+                Color = chip.Color,
+                CustomProperties = chip.GetCustomProperties()
             });
         }
 
@@ -47,6 +49,24 @@ public static class CircuitSerialiser
                         InputChipId = chip.Id,
                         OutputChipId = inputPort.ConnectedPort.Parent.Id,
                         OutputPortId = inputPort.ConnectedPort.Id
+                    });
+                }
+                else if (inputPort.PortType != null)
+                {
+                    var portValue = inputPort.Value;
+                    string valueStr = "";
+                    if (inputPort.PortType == typeof(bool)) valueStr = portValue.b.Value.ToString();
+                    else if (inputPort.PortType == typeof(int)) valueStr = portValue.i.Value.ToString();
+                    else if (inputPort.PortType == typeof(float)) valueStr = portValue.f.Value.ToString(CultureInfo.InvariantCulture);
+                    else if (inputPort.PortType == typeof(string)) valueStr = portValue.s;
+                    else if (inputPort.PortType == typeof(Vector2)) valueStr = $"{portValue.v2.Value.X},{portValue.v2.Value.Y}";
+                    
+                    circuitInfo.UnconnectedPortValues.Add(new CircuitData.UnconnectedPortValueData
+                    {
+                        ChipId = chip.Id,
+                        PortId = inputPort.Id,
+                        ValueType = inputPort.PortType.FullName,
+                        Value = valueStr
                     });
                 }
             }
@@ -73,11 +93,36 @@ public static class CircuitSerialiser
             if (chipType != null)
             {
                 Chip newChip = (Chip)Activator.CreateInstance(chipType, chip.id, chip.Name, chip.Position);
+                newChip.SetCustomProperties(chip.CustomProperties);
                 newChip.Color = chip.Color;
                 CircuitEditor.chips.Add(newChip);
             }
         }
 
+        foreach (var portValueData in circuitInfo.UnconnectedPortValues)
+        {
+            var chip = CircuitEditor.FindChip(portValueData.ChipId);
+            var port = chip?.InputPorts.FirstOrDefault(p => p.Id == portValueData.PortId);
+
+            if (port != null)
+            {
+                Type? type = Type.GetType(portValueData.ValueType);
+                if (type != null)
+                {
+                    if (type == typeof(bool)) port.Value.SetValue(bool.Parse(portValueData.Value));
+                    else if (type == typeof(int)) port.Value.SetValue(int.Parse(portValueData.Value));
+                    else if (type == typeof(float)) port.Value.SetValue(float.Parse(portValueData.Value));
+                    else if (type == typeof(string)) port.Value.SetValue(portValueData.Value);
+                    else if (type == typeof(Vector2))
+                    {
+                        var parts = portValueData.Value.Split(',');
+                        port.Value.SetValue(new Vector2(float.Parse(parts[0], CultureInfo.InvariantCulture),
+                            float.Parse(parts[1], CultureInfo.InvariantCulture)));
+                    }
+                }
+            }
+        }
+        
         foreach (var connectionData in circuitInfo.Connections)
         {
             var outputChip = CircuitEditor.FindChip(connectionData.OutputChipId);

@@ -985,7 +985,7 @@ public class EqualsChip : Chip
     }
 }
 
-// Event Chips
+// Event Chip
 public class EventChip : Chip
 {
     private Event? SelectedEvent;
@@ -1148,6 +1148,11 @@ public class EventChip : Chip
                 ConfigurePorts();
             }
         }
+        
+        if (SelectedEvent != null && SelectedEvent.CanConfig)
+        {
+            
+        }
     }
     
     public override void OnDestroy()
@@ -1156,6 +1161,33 @@ public class EventChip : Chip
         {
             EventManager.Unsubscribe(SelectedEvent, ListenerAction);
         }
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        var properties = new Dictionary<string, string>();
+        if (SelectedEvent != null)
+        {
+            properties["SelectedEvent"] = SelectedEvent.EventName;
+        }
+
+        properties["Mode"] = Mode.ToString();
+        return properties;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("SelectedEvent", out var eventName))
+        {
+            SelectedEvent = EventManager.RegisteredEvents.Find(e => e.EventName == eventName);
+        }
+
+        if (properties.TryGetValue("Mode", out var modeName))
+        {
+            Mode = (EventMode)Enum.Parse(typeof(EventMode), modeName);
+        }
+
+        ConfigurePorts();
     }
 }
 

@@ -527,6 +527,13 @@ public class Chip
     public virtual void ChipInspectorProperties() {}
 
     public virtual void OnDestroy() {}
+
+    public virtual Dictionary<string, string> GetCustomProperties()
+    {
+        return new Dictionary<string, string>();
+    }
+
+    public virtual void SetCustomProperties(Dictionary<string, string> properties) {}
 }
 
 public static class CircuitEditor

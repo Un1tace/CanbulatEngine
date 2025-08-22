@@ -12,7 +12,7 @@ namespace CSCanbulatEngine.Circuits;
 public static class EventManager
 {
     private static readonly Dictionary<string, List<Action<EventValues>>> s_eventListeners = new Dictionary<string, List<Action<EventValues>>>();
-    public static List<Event> RegisteredEvents = new List<Event>();
+    public static readonly List<Event> RegisteredEvents = new List<Event>();
 
     //Pre defined Events
     static EventManager()
