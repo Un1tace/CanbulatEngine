@@ -82,3 +82,13 @@ public class Event(string eventName, bool canSend = true, bool canReceive = true
     public bool CanReceive = canReceive;
     public bool CanConfig = canConfig;
 }
+
+public static class VariableManager
+{
+    public static Dictionary<string, Values> Variables = new Dictionary<string, Values>();
+
+    public static void Clear()
+    {
+        Variables.Clear();
+    }
+}

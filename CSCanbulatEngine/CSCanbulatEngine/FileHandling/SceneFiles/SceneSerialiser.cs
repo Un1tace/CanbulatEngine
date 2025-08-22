@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using CSCanbulatEngine.Circuits;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.InfoHolders;
 using Silk.NET.OpenGL;
@@ -178,5 +179,8 @@ public class SceneSerialiser
                 }
             }
         }
+        
+        
+        VariableManager.Clear();
     }
 }

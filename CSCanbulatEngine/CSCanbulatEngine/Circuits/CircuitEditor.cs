@@ -417,6 +417,8 @@ public class Chip
     public List<ChipPort> OutputPorts = new List<ChipPort>();
     public List<ExecPort> InputExecPorts = new List<ExecPort>();
     public List<ExecPort> OutputExecPorts = new List<ExecPort>();
+    
+    public byte[] nameBuffer = new byte[128];
 
     public Chip(int id, string name, Vector2 position, bool requiresExec = false)
     {

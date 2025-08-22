@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Numerics;
+using System.Text;
 using System.Windows.Markup;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.UIHelperScripts;
@@ -420,21 +421,66 @@ public class BoolVariable : Chip
         AddPort("Input", true, [typeof(bool)]);
         AddPort("Output", false, [typeof(bool)]);
         base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        nameBuffer = new byte[128];
+        byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
+        Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
     }
 
     public Values VarOutput(ChipPort port)
     {
-        return varValues;
+        if (VariableManager.Variables.TryGetValue(Name, out var value))
+        {
+            return value;
+        }
+        
+        return new Values { b = false };
     }
 
     public override void OnExecute()
     {
-        varValues = InputPorts[0].Value.GetValue();
-        if (InputPorts[0] is ExecPort)
-        {
-            Console.WriteLine("Is a exec port");
-        }
+        VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
         base.OnExecute();
+    }
+    
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.InputText("Name", nameBuffer,128))
+        {
+            
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Set"))
+        {
+            string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
+            string oldName = Name;
+            
+            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+            {
+                if (VariableManager.Variables.TryGetValue(oldName, out var value))
+                {
+                    VariableManager.Variables.Remove(oldName);
+                    VariableManager.Variables[newName] = value;
+                }
+                Name = newName;
+            }
+        }
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        var properties = new Dictionary<string, string>();
+        
+        properties["Name"] = Name;
+
+        return properties;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Name", out var name))
+        {
+            Name = name;
+        }
     }
 }
 
@@ -447,17 +493,66 @@ public class FloatVariable : Chip
         AddPort("Input", true, [typeof(float)]);
         AddPort("Output", false, [typeof(float)]);
         base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        nameBuffer = new byte[128];
+        byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
+        Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
     }
 
     public Values VarOutput(ChipPort port)
     {
-        return varValues;
+        if (VariableManager.Variables.TryGetValue(Name, out var value))
+        {
+            return value;
+        }
+        
+        return new Values { f = 0 };
     }
 
     public override void OnExecute()
     {
-        varValues = InputPorts[0].Value.GetValue();
+        VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
         base.OnExecute();
+    }
+    
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.InputText("Name", nameBuffer,128))
+        {
+            
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Set"))
+        {
+            string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
+            string oldName = Name;
+            
+            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+            {
+                if (VariableManager.Variables.TryGetValue(oldName, out var value))
+                {
+                    VariableManager.Variables.Remove(oldName);
+                    VariableManager.Variables[newName] = value;
+                }
+                Name = newName;
+            }
+        }
+    }
+    
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        var properties = new Dictionary<string, string>();
+        
+        properties["Name"] = Name;
+
+        return properties;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Name", out var name))
+        {
+            Name = name;
+        }
     }
 }
 
@@ -470,17 +565,66 @@ public class IntVariable : Chip
         AddPort("Input", true, [typeof(int)]);
         AddPort("Output", false, [typeof(int)]);
         base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        nameBuffer = new byte[128];
+        byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
+        Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
     }
 
     public Values VarOutput(ChipPort port)
     {
-        return varValues;
+        if (VariableManager.Variables.TryGetValue(Name, out var value))
+        {
+            return value;
+        }
+        
+        return new Values { i = 0 };
     }
 
     public override void OnExecute()
     {
-        varValues = InputPorts[0].Value.GetValue();
+        VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
         base.OnExecute();
+    }
+    
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.InputText("Name", nameBuffer,128))
+        {
+            
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Set"))
+        {
+            string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
+            string oldName = Name;
+            
+            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+            {
+                if (VariableManager.Variables.TryGetValue(oldName, out var value))
+                {
+                    VariableManager.Variables.Remove(oldName);
+                    VariableManager.Variables[newName] = value;
+                }
+                Name = newName;
+            }
+        }
+    }
+    
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        var properties = new Dictionary<string, string>();
+        
+        properties["Name"] = Name;
+
+        return properties;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Name", out var name))
+        {
+            Name = name;
+        }
     }
 }
 
@@ -493,17 +637,66 @@ public class StringVariable : Chip
         AddPort("Input", true, [typeof(string)]);
         AddPort("Output", false, [typeof(string)]);
         base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        nameBuffer = new byte[128];
+        byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
+        Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
     }
 
     public Values VarOutput(ChipPort port)
     {
-        return varValues;
+        if (VariableManager.Variables.TryGetValue(Name, out var value))
+        {
+            return value;
+        }
+        
+        return new Values { s = "" };
     }
 
     public override void OnExecute()
     {
-        varValues = InputPorts[0].Value.GetValue();
+        VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
         base.OnExecute();
+    }
+    
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.InputText("Name", nameBuffer,128))
+        {
+            
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Set"))
+        {
+            string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
+            string oldName = Name;
+            
+            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+            {
+                if (VariableManager.Variables.TryGetValue(oldName, out var value))
+                {
+                    VariableManager.Variables.Remove(oldName);
+                    VariableManager.Variables[newName] = value;
+                }
+                Name = newName;
+            }
+        }
+    }
+    
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        var properties = new Dictionary<string, string>();
+        
+        properties["Name"] = Name;
+
+        return properties;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Name", out var name))
+        {
+            Name = name;
+        }
     }
 }
 
@@ -516,17 +709,66 @@ public class Vector2Variable : Chip
         AddPort("Input", true, [typeof(Vector2)]);
         AddPort("Output", false, [typeof(Vector2)]);
         base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        nameBuffer = new byte[128];
+        byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
+        Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
     }
 
     public Values VarOutput(ChipPort port)
     {
-        return varValues;
+        if (VariableManager.Variables.TryGetValue(Name, out var value))
+        {
+            return value;
+        }
+        
+        return new Values { v2 = Vector2.Zero };
     }
 
     public override void OnExecute()
     {
-        varValues = InputPorts[0].Value.GetValue();
+        VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
         base.OnExecute();
+    }
+    
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.InputText("Name", nameBuffer,128))
+        {
+            
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Set"))
+        {
+            string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
+            string oldName = Name;
+            
+            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+            {
+                if (VariableManager.Variables.TryGetValue(oldName, out var value))
+                {
+                    VariableManager.Variables.Remove(oldName);
+                    VariableManager.Variables[newName] = value;
+                }
+                Name = newName;
+            }
+        }
+    }
+    
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        var properties = new Dictionary<string, string>();
+        
+        properties["Name"] = Name;
+
+        return properties;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Name", out var name))
+        {
+            Name = name;
+        }
     }
 }
 
@@ -539,11 +781,19 @@ public class GameObjectVariable : Chip
         AddPort("Input", true, [typeof(GameObject)]);
         AddPort("Output", false, [typeof(GameObject)]);
         base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        nameBuffer = new byte[128];
+        byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
+        Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
     }
 
     public Values VarOutput(ChipPort port)
     {
-        return varValues;
+        if (VariableManager.Variables.TryGetValue(Name, out var value))
+        {
+            return value;
+        }
+        
+        return new Values { gObj = null };
     }
 
     public override void OnExecute()
@@ -553,8 +803,49 @@ public class GameObjectVariable : Chip
             GameConsole.Log("Game Object Variable doesn't have a acceptable value", LogType.Error);
             return;
         }
-        varValues = InputPorts[0].Value.GetValue();
+        VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
         base.OnExecute();
+    }
+    
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.InputText("Name", nameBuffer,128))
+        {
+            
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Set"))
+        {
+            string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
+            string oldName = Name;
+            
+            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+            {
+                if (VariableManager.Variables.TryGetValue(oldName, out var value))
+                {
+                    VariableManager.Variables.Remove(oldName);
+                    VariableManager.Variables[newName] = value;
+                }
+                Name = newName;
+            }
+        }
+    }
+    
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        var properties = new Dictionary<string, string>();
+        
+        properties["Name"] = Name;
+
+        return properties;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Name", out var name))
+        {
+            Name = name;
+        }
     }
 }
 
