@@ -542,8 +542,8 @@ public static class CircuitEditor
 {
     public static List<Chip> chips = new List<Chip>();
     private static Vector2 panning = Vector2.Zero;
-    private static Chip? selectedChip = null;
-    private static Chip? lastSelectedChip = null;
+    public static Chip? selectedChip = null;
+    public static Chip? lastSelectedChip = null;
     private static ChipPort? _portDragSource = null;
     private static ChipPort? HoveredPort = null;
     public static string CircuitScriptName = "";
