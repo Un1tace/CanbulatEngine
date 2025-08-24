@@ -21,11 +21,38 @@ public class SceneSerialiser
     public void SaveScene(string sceneName = "Example Scene")
     {
         string filePath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Scenes");
+        var sceneData = SceneDataFromCurrentScene(sceneName);
+
+        string json = JsonConvert.SerializeObject(sceneData, Formatting.Indented);
+        File.WriteAllText(Path.Combine(filePath, sceneName + ".cbs"), json);
+        Engine.currentScene.SceneFilePath = Path.Combine(filePath, sceneName + ".cbs");
+        Console.WriteLine($"Saved scene: {filePath}");
+        Engine.currentScene.SceneSavedOnce = true;
+    }
+    
+    public static SceneData.SceneInfo SceneDataFromCurrentScene(string sceneName = "Example Scene")
+    {
+        string filePath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Scenes");
         var sceneData = new SceneData.SceneInfo();
+        
         sceneData.SceneFilePath = filePath;
         sceneData.SceneName = sceneName;
         sceneData.GameObjects = new List<SceneData.GameObjectData>();
+        sceneData.Events = new List<SceneData.EventData>();
 
+        foreach (var theEvent in EventManager.RegisteredEvents)
+        {
+            SceneData.EventData eventData = new()
+            {
+                Name = theEvent.EventName,
+                canConfig = theEvent.CanConfig,
+                canReceive = theEvent.CanReceive,
+                canSend = theEvent.CanSend,
+                eventValuesData = theEvent.baseValues
+            };
+            sceneData.Events.Add(eventData);
+        }
+        
         foreach (var obj in Engine.currentScene.GameObjects)
         {
             SceneData.TransformData transformData = null;
@@ -56,92 +83,37 @@ public class SceneSerialiser
             sceneData.GameObjects.Add(new SceneData.GameObjectData(){Name = obj.Name, transformData = transformData, meshRendererData = meshRendererData});
         }
 
-        string json = JsonConvert.SerializeObject(sceneData, Formatting.Indented);
-        File.WriteAllText(Path.Combine(filePath, sceneName + ".cbs"), json);
-        Engine.currentScene.SceneFilePath = Path.Combine(filePath, sceneName + ".cbs");
-        Console.WriteLine($"Saved scene: {filePath}");
-        Engine.currentScene.SceneSavedOnce = true;
-    }
-    
-    public static SceneData.SceneInfo SceneDataFromCurrentScene()
-    {
-        var sceneData = new SceneData.SceneInfo()
-        {
-            SceneFilePath = Engine.currentScene.SceneFilePath,
-            SceneName = Engine.currentScene.SceneName,
-            GameObjects = new List<SceneData.GameObjectData>()
-        };
-
-        foreach (var obj in Engine.currentScene.GameObjects)
-        {
-            var transform = obj.GetComponent<Transform>();
-            var meshRenderer = obj.GetComponent<MeshRenderer>();
-
-            var transformData = new SceneData.TransformData()
-            {
-                Position = transform.Position,
-                Rotation = transform.Rotation,
-                Scale = transform.Scale,
-                Enabled = transform.isEnabled,
-                Name = transform.name
-            };
-
-            var meshRendererData = new SceneData.MeshRendererData()
-            {
-                Color = meshRenderer.Color,
-                TexturePath = meshRenderer.TexturePath,
-                Enabled = meshRenderer.isEnabled,
-                Name = meshRenderer.name
-            };
-
-            sceneData.GameObjects.Add(new SceneData.GameObjectData()
-            {
-                Name = obj.Name,
-                transformData = transformData,
-                meshRendererData = meshRendererData
-            });
-        }
-
         return sceneData;
     }
 
     public static void LoadSceneFromString(string json)
     {
         var sceneData = JsonConvert.DeserializeObject<SceneData.SceneInfo>(json);
+        
+        //Reset managers
+        VariableManager.Clear();
+        EventManager.Clear();
 
         Engine.currentScene = new Scene(sceneData.SceneName);
         Engine.currentScene.SceneName = sceneData.SceneName;
         Engine.currentScene.SceneFilePath = sceneData.SceneFilePath;
         Engine.currentScene.SceneSavedOnce = true;
-        Engine._selectedGameObject = null;
 
-        foreach (var objData in sceneData.GameObjects)
+        if (sceneData.Events != null)
         {
-            GameObject obj = new GameObject(Engine._squareMesh, objData.Name);
-
-            var transform = obj.GetComponent<Transform>();
-            transform.Position = objData.transformData.Position;
-            transform.Rotation = objData.transformData.Rotation;
-            transform.Scale = objData.transformData.Scale;
-            
-            var meshRenderer = obj.GetComponent<MeshRenderer>();
-            meshRenderer.Color = objData.meshRendererData.Color;
-            if (!string.IsNullOrWhiteSpace(objData.meshRendererData.TexturePath))
+            foreach (var eventData in sceneData.Events)
             {
-                meshRenderer.AssignTexture(objData.meshRendererData.TexturePath);
+                var theEvent = new Event(eventData.Name);
+                theEvent.CanConfig = eventData.canConfig;
+                theEvent.CanReceive = eventData.canReceive;
+                theEvent.CanSend = eventData.canSend;
+                theEvent.baseValues = eventData.eventValuesData;
+                theEvent.EventName = eventData.Name;
+
+                EventManager.RegisterEvent(theEvent);
             }
         }
-    }
-#endif
-    public void LoadScene(string filePath)
-    {
-        string json = File.ReadAllText(filePath);
-        var sceneData = JsonConvert.DeserializeObject<SceneData.SceneInfo>(json);
-
-        Engine.currentScene = new Scene(sceneData.SceneName);
-        Engine.currentScene.SceneName = sceneData.SceneName;
-        Engine.currentScene.SceneFilePath = sceneData.SceneFilePath;
-        Engine.currentScene.SceneSavedOnce = true;
+        
         foreach (var objData in sceneData.GameObjects)
         {
             GameObject obj = new GameObject(Engine._squareMesh, objData.Name);
@@ -179,8 +151,12 @@ public class SceneSerialiser
                 }
             }
         }
-        
-        
-        VariableManager.Clear();
+    }
+#endif
+    public void LoadScene(string filePath)
+    {
+        string json = File.ReadAllText(filePath);
+
+        LoadSceneFromString(json);
     }
 }

@@ -1,4 +1,5 @@
 using System.Numerics;
+using CSCanbulatEngine.Circuits;
 
 namespace CSCanbulatEngine.FileHandling;
 
@@ -59,11 +60,21 @@ public class SceneData
         public TransformData transformData { get; set; }
         public MeshRendererData meshRendererData { get; set; }
     }
+
+    public class EventData
+    {
+        public string Name { get; set; }
+        public BaseEventValues eventValuesData { get; set; }
+        public bool canSend { get; set; }
+        public bool canReceive { get; set; }
+        public bool canConfig { get; set; }
+    }
     
     public class SceneInfo
     {
         public string SceneFilePath { get; set; }
         public string SceneName { get; set; }
         public List<GameObjectData> GameObjects { get; set; }
+        public List<EventData> Events { get; set; }
     }
 }

@@ -140,7 +140,9 @@ public static class CircuitSerialiser
             }
             
         }
-        
+
+        CircuitEditor.selectedChip = null;
+        CircuitEditor.lastSelectedChip = null;
         Console.WriteLine($"Loaded circuit script: {filePath}");
     }
 }

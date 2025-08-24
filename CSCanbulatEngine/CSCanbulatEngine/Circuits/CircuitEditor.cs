@@ -288,7 +288,7 @@ public class ChipPort
         List<Vector2> linePositions = new List<Vector2>();
         List<Vector4> lineColors = new List<Vector4>();
 
-        for (float i = -0.1f; i <= 1.1; i += 0.1f)
+        for (float i = 0f; i <= 1.1; i += 0.1f)
         {
             Vector4 start = animationManagerStartWire?.GetPulseAnimationColor() ?? ConnectedPort.Color;
             Vector4 end = animationManagerEndWire?.GetPulseAnimationColor() ?? Color;
@@ -312,7 +312,7 @@ public class ChipPort
         List<Vector2> linePositions = new List<Vector2>();
         List<Vector4> lineColors = new List<Vector4>();
 
-        for (float i = -0.1f; i <= 1.1; i += 0.1f)
+        for (float i = 0f; i <= 1.1; i += 0.1f)
         {
             linePositions.Add(new (float.Lerp(outputPortPos.X, Position.X, i), SineLerpFunction(outputPortPos.Y, Position.Y, i)));
             lineColors.Add(new Vector4(Color.X, Color.Y, Color.Z, Color.W - 0.1f));

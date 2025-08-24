@@ -17,11 +17,15 @@ public static class EventManager
     //Pre defined Events
     static EventManager()
     {
+        PredefineMainEvents();
+    }
+
+    public static void PredefineMainEvents()
+    {
         RegisterEvent(new Event("OnStart", false, true, false));
         var updateEvent = new Event("OnUpdate", false, true, false);
-        updateEvent.BaseEventValues.floats.Add("Delta Time", 0);
+        updateEvent.baseValues.floats.Add("Delta Time");
         RegisterEvent(updateEvent);
-        
     }
     
     public static void RegisterEvent(Event values)
@@ -32,6 +36,29 @@ public static class EventManager
         if (!s_eventListeners.ContainsKey(values.EventName))
         {
             s_eventListeners.Add(values.EventName, new List<Action<EventValues>>());
+        }
+    }
+
+    public static void DeleteEvent(Event values)
+    {
+        if (values == null || !values.CanConfig) return;
+
+        if (RegisteredEvents.Contains(values))
+        {
+            RegisteredEvents.Remove(values);
+        }
+
+        if (s_eventListeners.ContainsKey(values.EventName))
+        {
+            s_eventListeners.Remove(values.EventName);
+        }
+        
+        foreach (var chip in CircuitEditor.chips)
+        {
+            if (chip is EventChip eventChip && eventChip.SelectedEvent == values)
+            {
+                eventChip.ResetToUnconfigured();
+            }
         }
     }
     
@@ -61,6 +88,22 @@ public static class EventManager
             listener?.Invoke(payload);
         }
     }
+
+    public static void Clear()
+    { 
+        var eventsToDelete = new List<Event>(RegisteredEvents);
+
+        foreach (var ev in eventsToDelete) 
+        {
+            DeleteEvent(ev); 
+        }
+    
+
+        if (!RegisteredEvents.Any(e => e.EventName == "OnStart" || !RegisteredEvents.Any(e => e.EventName == "OnUpdate"))) 
+        {
+            PredefineMainEvents(); 
+        }
+    }
 }
 
 //<summary> Class for sending values over events </summary>
@@ -74,10 +117,20 @@ public class EventValues
     public Dictionary<string, GameObject> GameObjects = new Dictionary<string, GameObject>();
 }
 
+public class BaseEventValues
+{
+    public List<string> bools = new List<string>();
+    public List<string> floats = new List<string>();
+    public List<string> ints = new List<string>();
+    public List<string> strings = new List<string>();
+    public List<string> Vector2s = new List<string>();
+    public List<string> GameObjects = new List<string>();
+}
+
 public class Event(string eventName, bool canSend = true, bool canReceive = true, bool canConfig = true)
 {
     public string EventName = eventName;
-    public EventValues BaseEventValues = new EventValues();
+    public BaseEventValues baseValues = new BaseEventValues();
     public bool CanSend = canSend;
     public bool CanReceive = canReceive;
     public bool CanConfig = canConfig;

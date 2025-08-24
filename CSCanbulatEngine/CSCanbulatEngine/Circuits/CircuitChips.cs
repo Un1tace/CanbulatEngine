@@ -42,7 +42,7 @@ public class CircuitChips
             {
                 if (ImGui.BeginMenu("Create Chips"))
                 {
-                    if (ImGui.MenuItem("Spawn Event Chip"))
+                    if (ImGui.MenuItem("Event Chip"))
                     {
                         CircuitEditor.chips.Add(new EventChip(CircuitEditor.GetNextAvaliableChipID(), "Event Chip", spawnPos));
                         CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
@@ -1307,7 +1307,7 @@ public class EqualsChip : Chip
 // Event Chip
 public class EventChip : Chip
 {
-    private Event? SelectedEvent;
+    public Event? SelectedEvent;
     private EventMode Mode = EventMode.Receive;
     private Action<EventValues>? ListenerAction;
     private EventValues LastRecievedPayload = new();
@@ -1353,22 +1353,22 @@ public class EventChip : Chip
         {
             AddExecPort("Then", false);
             
-            foreach (var (key, value) in SelectedEvent.BaseEventValues.bools)
+            foreach (var key in SelectedEvent.baseValues.bools)
                 AddPort(key, false, [typeof(bool)], true).Value.ValueFunction = (p) => new Values
                     { b = LastRecievedPayload.bools.GetValueOrDefault(p.Name) };
-            foreach (var (key, value) in SelectedEvent.BaseEventValues.ints)
+            foreach (var key in SelectedEvent.baseValues.ints)
                 AddPort(key, false, [typeof(int)], true).Value.ValueFunction = (p) => new Values
                     { i = LastRecievedPayload.ints.GetValueOrDefault(p.Name) };
-            foreach (var (key, value) in SelectedEvent.BaseEventValues.floats)
+            foreach (var key in SelectedEvent.baseValues.floats)
                 AddPort(key, false, [typeof(float)], true).Value.ValueFunction = (p) => new Values
                     { f = LastRecievedPayload.floats.GetValueOrDefault(p.Name) };
-            foreach (var (key, value) in SelectedEvent.BaseEventValues.Vector2s)
+            foreach (var key in SelectedEvent.baseValues.Vector2s)
                 AddPort(key, false, [typeof(Vector2)], true).Value.ValueFunction = (p) => new Values
                     { v2 = LastRecievedPayload.Vector2s.GetValueOrDefault(p.Name) };
-            foreach (var (key, value) in SelectedEvent.BaseEventValues.strings)
+            foreach (var key in SelectedEvent.baseValues.strings)
                 AddPort(key, false, [typeof(string)], true).Value.ValueFunction = (p) => new Values
                     { s = LastRecievedPayload.strings.GetValueOrDefault(p.Name) };
-            foreach (var (key, value) in SelectedEvent.BaseEventValues.GameObjects)
+            foreach (var key in SelectedEvent.baseValues.GameObjects)
                 AddPort(key, false, [typeof(GameObject)], true).Value.ValueFunction = (p) => new Values
                     { gObj = LastRecievedPayload.GameObjects.GetValueOrDefault(p.Name) };
 
@@ -1384,17 +1384,17 @@ public class EventChip : Chip
         {
             AddExecPort("Execute", true);
             
-            foreach (var (key, value) in SelectedEvent.BaseEventValues.bools)
+            foreach (var key in SelectedEvent.baseValues.bools)
                 AddPort(key, true, [typeof(bool)], true);
-            foreach (var (key, value) in SelectedEvent.BaseEventValues.ints)
+            foreach (var key in SelectedEvent.baseValues.ints)
                 AddPort(key, true, [typeof(int)], true);
-            foreach (var (key, value) in SelectedEvent.BaseEventValues.floats)
+            foreach (var key in SelectedEvent.baseValues.floats)
                 AddPort(key, true, [typeof(float)], true);
-            foreach (var (key, value) in SelectedEvent.BaseEventValues.Vector2s)
+            foreach (var key in SelectedEvent.baseValues.Vector2s)
                 AddPort(key, true, [typeof(Vector2)], true);
-            foreach (var (key, value) in SelectedEvent.BaseEventValues.strings)
+            foreach (var key in SelectedEvent.baseValues.strings)
                 AddPort(key, true, [typeof(string)], true);
-            foreach (var (key, value) in SelectedEvent.BaseEventValues.GameObjects)
+            foreach (var key in SelectedEvent.baseValues.GameObjects)
                 AddPort(key, true, [typeof(GameObject)], true);
         }
     }
@@ -1434,19 +1434,47 @@ public class EventChip : Chip
             ImGui.EndCombo();
         }
 
+        ImGui.SameLine();
+        if (ImGui.ImageButton("Event_Create", (IntPtr)LoadIcons.icons["Plus.png"], new (25)))
+        {
+            var theEvent = new Event("New Event " +
+                                  EventManager.RegisteredEvents.Count(e => e.EventName.Contains("New Event")));
+            EventManager.RegisterEvent(theEvent);
+            SelectedEvent = theEvent;
+            ConfigurePorts();
+        }
+        
+        ImGui.SameLine();
         if (SelectedEvent != null && SelectedEvent.CanConfig)
         {
-            ImGui.SameLine();
-            if (ImGui.ImageButton("Event_Config", (IntPtr)LoadIcons.icons["Cog.png"], new (10, 10)))
+            if (ImGui.ImageButton("Event_Delete", (IntPtr)LoadIcons.icons["Trash.png"], new (25)))
             {
-                
+                if (SelectedEvent != null)
+                {
+                    EventManager.DeleteEvent(SelectedEvent);
+                }
             }
         }
 
-        ImGui.SameLine();
-        if (ImGui.ImageButton("Event_Create", (IntPtr)LoadIcons.icons["Plus.png"], new (10, 10)))
+        if (SelectedEvent != null && SelectedEvent.CanConfig)
         {
-                
+            if (ImGui.InputText("Name", nameBuffer,128))
+            {
+            
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Set"))
+            {
+                string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
+                string oldName = Name;
+            
+                if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+                {
+                    var theEvent = EventManager.RegisteredEvents.Find(e => e == SelectedEvent);
+                    theEvent.EventName = newName;
+                    Name = newName;
+                }
+            }
         }
 
         if (SelectedEvent?.CanReceive ?? false)
@@ -1472,6 +1500,17 @@ public class EventChip : Chip
         {
             
         }
+    }
+    
+    public void ResetToUnconfigured()
+    {
+        if (ListenerAction != null && SelectedEvent != null)
+        {
+            EventManager.Unsubscribe(SelectedEvent, ListenerAction);
+        }
+        ListenerAction = null;
+        SelectedEvent = null;
+        ConfigurePorts();
     }
     
     public override void OnDestroy()
