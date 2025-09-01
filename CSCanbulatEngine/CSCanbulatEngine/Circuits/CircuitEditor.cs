@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Sockets;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -1133,6 +1134,28 @@ public static class TypeHelper
             {
                 return "";
             }
+    }
+
+    public static Type? GetType(string name)
+    {
+        name = name.ToLower();
+        switch (name)
+        {
+            case "bool":
+                return typeof(bool);
+            case "int":
+                return typeof(int);
+            case "float":
+                return typeof(float);
+            case "string":
+                return typeof(string);
+            case "vector2":
+                return typeof(Vector2);
+            case "gameObject":
+                return typeof(GameObject);
+        }
+
+        return null;
     }
     
     

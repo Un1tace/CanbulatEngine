@@ -1312,6 +1312,8 @@ public class EventChip : Chip
     private Action<EventValues>? ListenerAction;
     private EventValues LastRecievedPayload = new();
     
+    int portSelectedIndex = 0;
+    
     private enum EventMode {Receive, Send}
 
     public EventChip(int id, string name, Vector2 position) : base(id, name, position)
@@ -1444,9 +1446,9 @@ public class EventChip : Chip
             ConfigurePorts();
         }
         
-        ImGui.SameLine();
         if (SelectedEvent != null && SelectedEvent.CanConfig)
         {
+            ImGui.SameLine();
             if (ImGui.ImageButton("Event_Delete", (IntPtr)LoadIcons.icons["Trash.png"], new (25)))
             {
                 if (SelectedEvent != null)
@@ -1477,18 +1479,8 @@ public class EventChip : Chip
             }
         }
 
-        if (SelectedEvent?.CanReceive ?? false)
-        {
-            if (ImGui.RadioButton("Recieve", Mode == EventMode.Receive))
-            {
-                Mode = EventMode.Receive;
-                ConfigurePorts();
-            }
-        }
-
         if (SelectedEvent?.CanSend ?? false)
         {
-            ImGui.SameLine();
             if (ImGui.RadioButton("Send", Mode == EventMode.Send))
             {
                 Mode = EventMode.Send;
@@ -1496,10 +1488,129 @@ public class EventChip : Chip
             }
         }
         
+        if (SelectedEvent?.CanReceive ?? false)
+        {
+            ImGui.SameLine();
+            if (ImGui.RadioButton("Recieve", Mode == EventMode.Receive))
+            {
+                Mode = EventMode.Receive;
+                ConfigurePorts();
+            }
+        }
+        
         if (SelectedEvent != null && SelectedEvent.CanConfig)
         {
+            List<string> ports = new List<string>();
+            List<Type> portTypes = new List<Type>();
+
+            BaseEventValues baseValues = SelectedEvent.baseValues;
+            List<List<string>> allPortTypes = new List<List<string>>() {baseValues.bools, baseValues.floats, baseValues.ints, baseValues.strings, baseValues.Vector2s, baseValues.GameObjects};
             
+            foreach (var port in baseValues.bools)
+            {
+                ports.Add(port); 
+                portTypes.Add(typeof(bool));
+            }
+
+            foreach (var port in baseValues.floats)
+            {
+                ports.Add(port);
+                portTypes.Add(typeof(float));
+            }
+
+            foreach (var port in baseValues.ints)
+            {
+                ports.Add(port);
+                portTypes.Add(typeof(int));
+            }
+            
+            foreach (var port in baseValues.strings)
+            {
+                ports.Add(port);
+                portTypes.Add(typeof(string));
+            }
+
+            foreach (var port in baseValues.Vector2s)
+            {
+                ports.Add(port);
+                portTypes.Add(typeof(Vector2));
+            }
+
+            foreach (var port in baseValues.GameObjects)
+            {
+                ports.Add(port);
+                portTypes.Add(typeof(GameObject));
+            }
+            
+            //Ports Menu
+            if (ImGui.ImageButton("InputPortAddButton", (IntPtr)LoadIcons.icons["Plus.png"], new Vector2(25)))
+            {
+                baseValues.bools.Add("New Port");
+                ConfigurePorts();
+            }
+
+            if (ports.Count > 0)
+            {
+                ImGui.SameLine();
+                
+                if (portSelectedIndex > ports.Count - 1 || portSelectedIndex == -1)
+                {
+                    portSelectedIndex = ports.Count - 1;
+                }
+
+                if (ImGui.ImageButton("InputPortRemoveButton", (IntPtr)LoadIcons.icons["Trash.png"], new Vector2(25)))
+                {
+                    int portTypeIndex = GetPortTypeIndex(portTypes[portSelectedIndex]);
+                    int selectedIndex = portSelectedIndex;
+
+                    for (int i = portTypeIndex; i > 0; i--)
+                    {
+                        selectedIndex -= allPortTypes[i].Count;
+                    }
+
+                    allPortTypes[portTypeIndex].RemoveAt(selectedIndex);
+                    ConfigurePorts();
+                }
+
+                ImGui.SameLine();
+
+                if (ImGui.ImageButton("InputPortConfigButton", (IntPtr)LoadIcons.icons["Cog.png"], new Vector2(25)))
+                {
+                    
+                }
+            }
+            ImGui.ListBox("Input Ports", ref portSelectedIndex, ports.ToArray(), ports.Count);
         }
+    }
+
+    public int GetPortTypeIndex(Type type)
+    {
+        if (type == typeof(bool))
+        {
+            return 0;
+        }
+        else if (type == typeof(float))
+        {
+            return 1;
+        }
+        else if (type == typeof(int))
+        {
+            return 2;
+        }
+        else if (type == typeof(string))
+        {
+            return 3;
+        }
+        else if (type == typeof(Vector2))
+        {
+            return 4;
+        }
+        else if (type == typeof(GameObject))
+        {
+            return 5;
+        }
+
+        return 0;
     }
     
     public void ResetToUnconfigured()
