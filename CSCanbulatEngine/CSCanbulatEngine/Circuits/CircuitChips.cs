@@ -1579,7 +1579,29 @@ public class EventChip : Chip
                     
                 }
             }
-            ImGui.ListBox("Input Ports", ref portSelectedIndex, ports.ToArray(), ports.Count);
+
+            ImGui.BeginChild("CustomPortList", new Vector2(0, 150), ImGuiChildFlags.Borders);
+
+            for (int i = 0; i < ports.Count; i++)
+            {
+                string portName = ports[i];
+                string typeName = TypeHelper.GetName(portTypes[i]);
+
+                string selectableLabel = $"{portName}##{i}";
+
+                if (ImGui.Selectable(selectableLabel, i == portSelectedIndex, ImGuiSelectableFlags.AllowDoubleClick))
+                {
+                    portSelectedIndex = i;
+                }
+
+                float typeNameWidth = ImGui.CalcTextSize(typeName).X;
+                float columnWidth = ImGui.GetContentRegionAvail().X - 5;
+                
+                ImGui.SameLine(ImGui.GetCursorPos().X + (columnWidth - typeNameWidth));
+                
+                ImGui.TextDisabled(typeName);
+            }
+            ImGui.EndChild();
         }
     }
 
