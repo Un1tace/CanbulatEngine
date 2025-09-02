@@ -1399,6 +1399,8 @@ public class EventChip : Chip
             foreach (var key in SelectedEvent.baseValues.GameObjects)
                 AddPort(key, true, [typeof(GameObject)], true);
         }
+
+        Size = new Vector2(Size.X, (CircuitEditor.portSpacing * SelectedEvent.baseValues.bools.Count() + SelectedEvent.baseValues.floats.Count() + SelectedEvent.baseValues.ints.Count() + SelectedEvent.baseValues.strings.Count() + SelectedEvent.baseValues.Vector2s.Count() + SelectedEvent.baseValues.GameObjects.Count()) + 75);
     }
 
     public override void OnExecute()

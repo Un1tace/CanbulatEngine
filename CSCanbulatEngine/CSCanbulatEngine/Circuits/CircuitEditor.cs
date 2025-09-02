@@ -553,6 +553,8 @@ public static class CircuitEditor
     public static float Zoom = 1f;
     public const float MinZoom = 0.3f;
     public const float MaxZoom = 2f;
+    
+    public static float portSpacing = 25f * Zoom;
 
     public static void Render()
     {
@@ -666,7 +668,7 @@ public static class CircuitEditor
         }
 
         float portRadius = 5f * Zoom;
-        float portSpacing = 25f * Zoom;
+        portSpacing = 25f * Zoom;
         
         List<ChipPort> inputChipPorts = new List<ChipPort>();
         inputChipPorts.AddRange(chip.InputExecPorts);
