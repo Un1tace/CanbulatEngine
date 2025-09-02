@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Data.SqlTypes;
 using System.Numerics;
 using CSCanbulatEngine.GameObjectScripts;
+using ImGuiNET;
 
 namespace CSCanbulatEngine.Circuits;
 
@@ -143,5 +144,50 @@ public static class VariableManager
     public static void Clear()
     {
         Variables.Clear();
+    }
+}
+
+public static class ConfigWindows
+{
+    public static int? portIndexToConfig = null;
+    public static EventChip MainChip = null;
+    public static void ShowEventPortConfigWindow(Vector2? pos, Vector2? size)
+    {
+        if (size is null)
+        {
+            size = new Vector2(200, 250);
+        }
+        
+        if (pos is null)
+        {
+            pos = ImGui.GetWindowSize()/2 - size/2;
+        }
+        
+        ImGui.SetWindowPos(pos?? Vector2.Zero);
+        ImGui.SetNextWindowSize(size ?? Vector2.Zero);
+        ImGui.Begin("Port Configuration", ref Engine.portConfigWindowOpen, ImGuiWindowFlags.NoResize);
+        if (ImGui.BeginCombo("Port Types", MainChip.portTypes[MainChip.portSelectedIndex].GetType().FullName))
+        {
+            for (int i = 0; i < 6; i++)
+            {
+                List<Type> avaliableTypes =
+                    [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject)];
+                if (ImGui.Selectable(avaliableTypes[i].FullName,
+                        avaliableTypes[i] == MainChip.portTypes[MainChip.portSelectedIndex]))
+                {
+                    MainChip.ChangePortType(MainChip.portSelectedIndex, avaliableTypes[i]);
+                }
+            }
+            ImGui.EndCombo();
+        }
+        ImGui.End();
+    }
+
+    public static void EnableEventPortConfigWindow(int portIndex, EventChip theChip)
+    {
+        MainChip = theChip;
+        portIndexToConfig = portIndex;
+        Engine.portConfigWindowPosition = ImGui.GetMousePos();
+        Engine.portConfigWindowOpen = true;
     }
 }

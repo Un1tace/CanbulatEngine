@@ -1312,7 +1312,7 @@ public class EventChip : Chip
     private Action<EventValues>? ListenerAction;
     private EventValues LastRecievedPayload = new();
     
-    int portSelectedIndex = 0;
+    public int portSelectedIndex = 0;
     
     private enum EventMode {Receive, Send}
 
@@ -1422,6 +1422,10 @@ public class EventChip : Chip
         }
     }
 
+    public List<List<string>> allPortTypes;
+    public List<string> ports;
+    public List<Type> portTypes;
+
     public override void ChipInspectorProperties()
     {
         string preview = SelectedEvent?.EventName ?? "Select an Event...";
@@ -1502,11 +1506,11 @@ public class EventChip : Chip
         
         if (SelectedEvent != null && SelectedEvent.CanConfig)
         {
-            List<string> ports = new List<string>();
-            List<Type> portTypes = new List<Type>();
+            ports = new List<string>();
+            portTypes = new List<Type>();
 
             BaseEventValues baseValues = SelectedEvent.baseValues;
-            List<List<string>> allPortTypes = new List<List<string>>() {baseValues.bools, baseValues.floats, baseValues.ints, baseValues.strings, baseValues.Vector2s, baseValues.GameObjects};
+            allPortTypes = new List<List<string>>() {baseValues.bools, baseValues.floats, baseValues.ints, baseValues.strings, baseValues.Vector2s, baseValues.GameObjects};
             
             foreach (var port in baseValues.bools)
             {
@@ -1578,7 +1582,7 @@ public class EventChip : Chip
 
                 if (ImGui.ImageButton("InputPortConfigButton", (IntPtr)LoadIcons.icons["Cog.png"], new Vector2(25)))
                 {
-                    
+                    ConfigWindows.EnableEventPortConfigWindow(portSelectedIndex, this);
                 }
             }
 
@@ -1605,6 +1609,23 @@ public class EventChip : Chip
             }
             ImGui.EndChild();
         }
+    }
+    
+    public void ChangePortType(int portIndex, Type type)
+    {
+        int portTypeIndex = GetPortTypeIndex(portTypes[portSelectedIndex]);
+        int selectedIndex = portSelectedIndex;
+
+        for (int i = portTypeIndex; i > 0; i--)
+        {
+            selectedIndex -= allPortTypes[i].Count;
+        }
+
+        string portToChange = allPortTypes[portTypeIndex][selectedIndex];
+        allPortTypes[portTypeIndex].RemoveAt(selectedIndex);
+        allPortTypes[GetPortTypeIndex(type)].Add(portToChange);
+        portTypes[portSelectedIndex] = type;
+        ConfigurePorts();
     }
 
     public int GetPortTypeIndex(Type type)

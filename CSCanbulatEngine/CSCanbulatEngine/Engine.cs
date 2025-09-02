@@ -94,6 +94,11 @@ public class Engine
     //Ciruit editor popups
     public static bool renameCircuitFileAsPopup = false;
     
+    // Circuit Editor Port Config
+    public static bool portConfigWindowOpen = false;
+    public static Vector2? portConfigWindowPosition = null;
+    public static Vector2? portConfigWindowSize = null;
+    
     //Project Manager
     public static string projectFilePath = "";
     
@@ -669,6 +674,12 @@ public class Engine
             ImGui.Text($"FPS: {ImGui.GetIO().Framerate:F1}");
 
             ImGui.End();
+        }
+        
+        //Port Config Window
+        if (portConfigWindowOpen)
+        {
+            ConfigWindows.ShowEventPortConfigWindow(portConfigWindowPosition, portConfigWindowSize);
         }
 
         // Render the editor UI
