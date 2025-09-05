@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Data.SqlTypes;
 using System.Numerics;
+using System.Text;
 using CSCanbulatEngine.GameObjectScripts;
 using ImGuiNET;
 
@@ -151,6 +152,7 @@ public static class ConfigWindows
 {
     public static int? portIndexToConfig = null;
     public static EventChip MainChip = null;
+    public static byte[] portNameChangeBuffer = new byte[128];
     public static void ShowEventPortConfigWindow(Vector2? pos, Vector2? size)
     {
         if (size is null)
@@ -166,17 +168,45 @@ public static class ConfigWindows
         ImGui.SetWindowPos(pos?? Vector2.Zero);
         ImGui.SetNextWindowSize(size ?? Vector2.Zero);
         ImGui.Begin("Port Configuration", ref Engine.portConfigWindowOpen, ImGuiWindowFlags.NoResize);
+        
+        //Change port name
+        if (ImGui.InputText("Port Name", portNameChangeBuffer, 128))
+        {
+            
+        }
+
+        if (ImGui.Button("Set"))
+        {
+            string newName = Encoding.UTF8.GetString(portNameChangeBuffer).TrimEnd('\0');
+            string oldName = MainChip.ports[portIndexToConfig.Value];
+
+            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+            {
+                int portTypeIndex = MainChip.GetPortTypeIndex(MainChip.portTypes[portIndexToConfig.Value]);
+                int selectedIndex = portIndexToConfig.Value;
+
+                for (int i = 0; i < portTypeIndex; i++)
+                {
+                    selectedIndex -= MainChip.allPortTypes[i].Count;
+                }
+
+                MainChip.allPortTypes[portTypeIndex][selectedIndex] = newName;
+                MainChip.ConfigurePorts();
+            }
+        }
+        
+        // Change port type
         if (portIndexToConfig.HasValue && portIndexToConfig.Value < MainChip.portTypes.Count)
         {
             int index = portIndexToConfig.Value;
-            if (ImGui.BeginCombo("Port Types", MainChip.portTypes[index].GetType().FullName))
+            if (ImGui.BeginCombo("Port Types", MainChip.portTypes[index].GetType().FullName.Split('.').Last()))
             {
                 List<Type> avaliableTypes =
                     [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject)];
 
                 foreach (var type in avaliableTypes)
                 {
-                    if (ImGui.Selectable(type.FullName, type == MainChip.portTypes[index]))
+                    if (ImGui.Selectable(type.FullName.Split('.').Last(), type == MainChip.portTypes[index]))
                     {
                         MainChip.ChangePortType(index, type);
                     }
@@ -197,5 +227,6 @@ public static class ConfigWindows
         portIndexToConfig = portIndex;
         Engine.portConfigWindowPosition = ImGui.GetMousePos();
         Engine.portConfigWindowOpen = true;
+        portNameChangeBuffer = UTF8Encoding.UTF8.GetBytes(MainChip.ports[portIndexToConfig.Value].ToString());
     }
 }

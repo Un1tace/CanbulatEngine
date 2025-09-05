@@ -1321,7 +1321,7 @@ public class EventChip : Chip
         ConfigurePorts();
     }
 
-    private void ConfigurePorts()
+    public void ConfigurePorts()
     {
         if (Mode == EventMode.Receive && (!SelectedEvent?.CanReceive ?? false) && SelectedEvent.CanSend)
         {

@@ -156,6 +156,8 @@ public class ChipPort
     
     public List<ChipPort> outputConnectedPorts;
 
+    private byte[] portNameBuffer;
+
     public ChipPort(int id, string name, Chip parent, bool isInput, List<Type> acceptedValueTypes,
         bool showName = false)
     {
