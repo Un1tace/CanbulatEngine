@@ -166,19 +166,27 @@ public static class ConfigWindows
         ImGui.SetWindowPos(pos?? Vector2.Zero);
         ImGui.SetNextWindowSize(size ?? Vector2.Zero);
         ImGui.Begin("Port Configuration", ref Engine.portConfigWindowOpen, ImGuiWindowFlags.NoResize);
-        if (ImGui.BeginCombo("Port Types", MainChip.portTypes[MainChip.portSelectedIndex].GetType().FullName))
+        if (portIndexToConfig.HasValue && portIndexToConfig.Value < MainChip.portTypes.Count)
         {
-            for (int i = 0; i < 6; i++)
+            int index = portIndexToConfig.Value;
+            if (ImGui.BeginCombo("Port Types", MainChip.portTypes[index].GetType().FullName))
             {
                 List<Type> avaliableTypes =
                     [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject)];
-                if (ImGui.Selectable(avaliableTypes[i].FullName,
-                        avaliableTypes[i] == MainChip.portTypes[MainChip.portSelectedIndex]))
+
+                foreach (var type in avaliableTypes)
                 {
-                    MainChip.ChangePortType(MainChip.portSelectedIndex, avaliableTypes[i]);
+                    if (ImGui.Selectable(type.FullName, type == MainChip.portTypes[index]))
+                    {
+                        MainChip.ChangePortType(index, type);
+                    }
                 }
+                ImGui.EndCombo();
             }
-            ImGui.EndCombo();
+        }
+        else
+        {
+            ImGui.Text("Invalid port selected.");
         }
         ImGui.End();
     }

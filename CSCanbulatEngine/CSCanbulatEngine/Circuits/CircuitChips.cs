@@ -1400,7 +1400,7 @@ public class EventChip : Chip
                 AddPort(key, true, [typeof(GameObject)], true);
         }
 
-        Size = new Vector2(Size.X, (CircuitEditor.portSpacing * SelectedEvent.baseValues.bools.Count() + SelectedEvent.baseValues.floats.Count() + SelectedEvent.baseValues.ints.Count() + SelectedEvent.baseValues.strings.Count() + SelectedEvent.baseValues.Vector2s.Count() + SelectedEvent.baseValues.GameObjects.Count()) + 75);
+        Size = new Vector2(Size.X, (CircuitEditor.portSpacing * (SelectedEvent.baseValues.bools.Count() + SelectedEvent.baseValues.floats.Count() + SelectedEvent.baseValues.ints.Count() + SelectedEvent.baseValues.strings.Count() + SelectedEvent.baseValues.Vector2s.Count() + SelectedEvent.baseValues.GameObjects.Count())) + 75);
     }
 
     public override void OnExecute()
@@ -1613,10 +1613,10 @@ public class EventChip : Chip
     
     public void ChangePortType(int portIndex, Type type)
     {
-        int portTypeIndex = GetPortTypeIndex(portTypes[portSelectedIndex]);
-        int selectedIndex = portSelectedIndex;
+        int portTypeIndex = GetPortTypeIndex(portTypes[portIndex]);
+        int selectedIndex = portIndex;
 
-        for (int i = portTypeIndex; i > 0; i--)
+        for (int i = 0; i < portTypeIndex; i++)
         {
             selectedIndex -= allPortTypes[i].Count;
         }
