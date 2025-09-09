@@ -9,12 +9,15 @@ namespace CSCanbulatEngine.GameObjectScripts;
 public class GameObject
 {
     public string Name { get; set; }
-    public List<Component> components { get; }
+    public List<Component> Components { get; }
+    
+    public List<string> Tags { get; set; }
 
     public GameObject(Mesh mesh, string name = "GameObject")
     {
         Name = name;
-        components = new List<Component>();
+        Components = new List<Component>();
+        Tags = new List<string>();
         
         //Add Core Components
         AddComponent(new Transform());
@@ -41,7 +44,7 @@ public class GameObject
 
     public T? GetComponent<T>() where T : Component
     {
-        foreach (var component in components)
+        foreach (var component in Components)
         {
             if (component is T typedComponent)
             {
@@ -54,9 +57,9 @@ public class GameObject
     
     public int GetComponentIndex<T>() where T : Component
     {
-        for (int i = 0; i < components.Count; i++)
+        for (int i = 0; i < Components.Count; i++)
         {
-            if (components[i] is T typedComponent)
+            if (Components[i] is T typedComponent)
             {
                 return i;
             }
@@ -67,7 +70,7 @@ public class GameObject
 
     public void AddComponent(Component component) {
         
-        components.Add(component);
+        Components.Add(component);
         component.AttachedGameObject = this;
     }
     
@@ -76,7 +79,7 @@ public class GameObject
         if (component.canBeRemoved)
         {
             component.DestroyComponent();
-            components.Remove(component);
+            Components.Remove(component);
         }
 
         Console.WriteLine($"Component ({component.name}) cannot be removed");
@@ -85,10 +88,10 @@ public class GameObject
 
     public void DeleteObject()
     {
-        while (components.Count > 0)
+        while (Components.Count > 0)
         {
-            components[0].DestroyComponent();
-            components.RemoveAt(0);
+            Components[0].DestroyComponent();
+            Components.RemoveAt(0);
         }
 
         Engine.currentScene.GameObjects.Remove(this);

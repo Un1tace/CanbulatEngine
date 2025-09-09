@@ -1476,7 +1476,7 @@ public class EventChip : Chip
                 string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
                 string oldName = Name;
             
-                if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+                if (!string.IsNullOrWhiteSpace(newName) && oldName != newName && EventManager.RegisteredEvents.All(e => newName != e.EventName))
                 {
                     var theEvent = EventManager.RegisteredEvents.Find(e => e == SelectedEvent);
                     theEvent.EventName = newName;
@@ -1551,8 +1551,8 @@ public class EventChip : Chip
             //Ports Menu
             if (ImGui.ImageButton("InputPortAddButton", (IntPtr)LoadIcons.icons["Plus.png"], new Vector2(25)))
             {
-                baseValues.bools.Add("New Port");
-                ConfigurePorts();
+                baseValues.bools.Add("New Port " + ports.FindAll(e => e.Split(" ")[0] + " " + e.Split(" ")[1] == "New Port").Count());
+                ConfigureAllChipsToEvent();
             }
 
             if (ports.Count > 0)
@@ -1575,7 +1575,7 @@ public class EventChip : Chip
                     }
 
                     allPortTypes[portTypeIndex].RemoveAt(selectedIndex);
-                    ConfigurePorts();
+                    ConfigureAllChipsToEvent();
                 }
 
                 ImGui.SameLine();
@@ -1610,6 +1610,34 @@ public class EventChip : Chip
             ImGui.EndChild();
         }
     }
+
+    public void ConfigureAllChipsToEvent()
+    {
+        List<EventChip>? allEventChips = CircuitEditor.chips.FindAll(e => e is EventChip).ConvertAll(e => e as EventChip);
+        if (allEventChips is null && allEventChips.Count == 0)
+        {
+            return;
+        }
+
+        foreach (EventChip chip in allEventChips)
+        {
+            if (chip.SelectedEvent == SelectedEvent) chip.ConfigurePorts();
+        }
+    }
+    
+    public void ConfigureAllChipsToEvent(Event theEvent)
+    {
+        List<EventChip>? allEventChips = CircuitEditor.chips.FindAll(e => e is EventChip).ConvertAll(e => e as EventChip);
+        if (allEventChips is null && allEventChips.Count == 0)
+        {
+            return;
+        }
+
+        foreach (EventChip chip in allEventChips)
+        {
+            if (chip.SelectedEvent == theEvent) chip.ConfigurePorts();
+        }
+    }
     
     public void ChangePortType(int portIndex, Type type)
     {
@@ -1624,8 +1652,10 @@ public class EventChip : Chip
         string portToChange = allPortTypes[portTypeIndex][selectedIndex];
         allPortTypes[portTypeIndex].RemoveAt(selectedIndex);
         allPortTypes[GetPortTypeIndex(type)].Add(portToChange);
+        portSelectedIndex = ports.Count() - 1;
+        ConfigWindows.portIndexToConfig = ports.Count() - 1;
         portTypes[portSelectedIndex] = type;
-        ConfigurePorts();
+        ConfigureAllChipsToEvent();
     }
 
     public int GetPortTypeIndex(Type type)

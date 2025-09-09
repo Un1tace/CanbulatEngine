@@ -771,7 +771,7 @@ public class Engine
                 ImGui.Text($"Editing {_selectedGameObject.gameObject.Name}");
                 ImGui.Separator();
 
-                foreach (Component component in _selectedGameObject.gameObject.components)
+                foreach (Component component in _selectedGameObject.gameObject.Components)
                 {
                     if (ImGui.CollapsingHeader(component.name, ImGuiTreeNodeFlags.DefaultOpen))
                     {

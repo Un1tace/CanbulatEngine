@@ -57,7 +57,7 @@ public class SceneSerialiser
         {
             SceneData.TransformData transformData = null;
             SceneData.MeshRendererData meshRendererData = null;
-            foreach(var component in obj.components)
+            foreach(var component in obj.Components)
             {
                 switch (component)
                 {
@@ -129,7 +129,7 @@ public class SceneSerialiser
                 transform.AttachedGameObject = obj;
                 if (obj.GetComponentIndex<Transform>() != -1)
                 {
-                    obj.components[obj.GetComponentIndex<Transform>()] = transform;
+                    obj.Components[obj.GetComponentIndex<Transform>()] = transform;
                 }
             }
 
@@ -147,7 +147,7 @@ public class SceneSerialiser
 
                 if (obj.GetComponentIndex<MeshRenderer>() != -1)
                 {
-                    obj.components[obj.GetComponentIndex<MeshRenderer>()] = meshRenderer;
+                    obj.Components[obj.GetComponentIndex<MeshRenderer>()] = meshRenderer;
                 }
             }
         }

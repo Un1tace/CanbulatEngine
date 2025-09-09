@@ -866,7 +866,7 @@ public static class CircuitEditor
                 float nameTextWidth = ImGui.CalcTextSize(port.Name).X;
                 float nameTextHeight = ImGui.CalcTextSize(port.Name).Y;
                 ImGui.SetCursorScreenPos(portPos +
-                                         new Vector2(nameTextWidth > 50 ? -nameTextWidth - 10 : -50,
+                                         new Vector2(nameTextWidth > 100 ? -nameTextWidth - 10 : -100,
                                              -nameTextHeight / 2));
                 ImGui.LabelText($"##{port.Id}", port.Name);
             }

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Data.SqlTypes;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using CSCanbulatEngine.GameObjectScripts;
 using ImGuiNET;
@@ -180,7 +181,7 @@ public static class ConfigWindows
             string newName = Encoding.UTF8.GetString(portNameChangeBuffer).TrimEnd('\0');
             string oldName = MainChip.ports[portIndexToConfig.Value];
 
-            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName && MainChip.ports.All(e => e != newName))
             {
                 int portTypeIndex = MainChip.GetPortTypeIndex(MainChip.portTypes[portIndexToConfig.Value]);
                 int selectedIndex = portIndexToConfig.Value;
@@ -191,7 +192,7 @@ public static class ConfigWindows
                 }
 
                 MainChip.allPortTypes[portTypeIndex][selectedIndex] = newName;
-                MainChip.ConfigurePorts();
+                MainChip.ConfigureAllChipsToEvent();
             }
         }
         
@@ -199,14 +200,14 @@ public static class ConfigWindows
         if (portIndexToConfig.HasValue && portIndexToConfig.Value < MainChip.portTypes.Count)
         {
             int index = portIndexToConfig.Value;
-            if (ImGui.BeginCombo("Port Types", MainChip.portTypes[index].GetType().FullName.Split('.').Last()))
+            if (ImGui.BeginCombo("Port Types", MainChip.portTypes[index].FullName?.Split('.').Last()))
             {
                 List<Type> avaliableTypes =
                     [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject)];
 
                 foreach (var type in avaliableTypes)
                 {
-                    if (ImGui.Selectable(type.FullName.Split('.').Last(), type == MainChip.portTypes[index]))
+                    if (ImGui.Selectable(type.FullName?.Split('.').Last(), type == MainChip.portTypes[index]))
                     {
                         MainChip.ChangePortType(index, type);
                     }
