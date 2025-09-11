@@ -72,7 +72,7 @@ public class Engine
     private static Silk.NET.Maths.Vector2D<int> ViewportSize;
     
     // Font
-    private static ImFontPtr _customFont;
+    public static ImFontPtr _customFont;
     public static ImFontPtr _extraThickFont;
 
     private bool showInfoWindow = false;
@@ -736,6 +736,7 @@ public class Engine
                 circuitEditorIsOpen = true;
                 CircuitEditor.Render(); 
                 ImGui.EndTabItem();
+                ImGui.SetWindowFontScale(1f);
             }
             ImGui.EndTabBar();
         }
@@ -769,6 +770,7 @@ public class Engine
             if (_selectedGameObject != null)
             {
                 ImGui.Text($"Editing {_selectedGameObject.gameObject.Name}");
+                ImGui.Text($"ID: {_selectedGameObject.gameObject.ID}");
                 ImGui.Separator();
 
                 foreach (Component component in _selectedGameObject.gameObject.Components)

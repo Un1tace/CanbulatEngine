@@ -10,8 +10,8 @@ public class GameObject
 {
     public string Name { get; set; }
     public List<Component> Components { get; }
-    
     public List<string> Tags { get; set; }
+    public int ID { get; set; }
 
     public GameObject(Mesh mesh, string name = "GameObject")
     {
@@ -37,6 +37,12 @@ public class GameObject
         {
             Engine.currentScene.GameObjects.Add(this);
         }
+
+        for (int i = 0; i <= Engine.currentScene.GameObjects.Count; i++)
+        {
+            if (FindGameObject(i) is null) ID = i;
+        }
+        
 #if EDITOR
         Engine._selectedGameObject = new (this);
 #endif
@@ -130,5 +136,15 @@ public class GameObject
         }
     }
 #endif
+
+    public static GameObject? FindGameObject(int id)
+    {
+        foreach (var gameObject in Engine.currentScene.GameObjects)
+        {
+            if (gameObject.ID == id) return gameObject;
+        }
+
+        return null;
+    }
 
 }

@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Numerics;
+using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Windows.Markup;
 using CSCanbulatEngine.GameObjectScripts;
@@ -257,6 +258,18 @@ public class CircuitChips
                         {
                             CircuitEditor.chips.Add(new LogErrorChip(CircuitEditor.GetNextAvaliableChipID(),
                                 "Log Error Chip", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+
+                        if (ImGui.MenuItem("Create Find Object By ID"))
+                        {
+                            CircuitEditor.chips.Add(new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID Chip", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+
+                        if (ImGui.MenuItem("Create Find First Object By Tag"))
+                        {
+                            CircuitEditor.chips.Add(new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", spawnPos)); 
                             CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
                         }
                         ImGui.EndMenu();
@@ -1400,7 +1413,7 @@ public class EventChip : Chip
                 AddPort(key, true, [typeof(GameObject)], true);
         }
 
-        Size = new Vector2(Size.X, (CircuitEditor.portSpacing * (SelectedEvent.baseValues.bools.Count() + SelectedEvent.baseValues.floats.Count() + SelectedEvent.baseValues.ints.Count() + SelectedEvent.baseValues.strings.Count() + SelectedEvent.baseValues.Vector2s.Count() + SelectedEvent.baseValues.GameObjects.Count())) + 75);
+        Size = new Vector2(Size.X, ((CircuitEditor.portSpacing/CircuitEditor.Zoom) * (SelectedEvent.baseValues.bools.Count() + SelectedEvent.baseValues.floats.Count() + SelectedEvent.baseValues.ints.Count() + SelectedEvent.baseValues.strings.Count() + SelectedEvent.baseValues.Vector2s.Count() + SelectedEvent.baseValues.GameObjects.Count())) + 75);
     }
 
     public override void OnExecute()
@@ -1771,5 +1784,37 @@ public class LogErrorChip : Chip
     public override void OnExecute()
     {
         GameConsole.Log(InputPorts[0].Value.GetValue().s, LogType.Error);
+    }
+}
+
+public class FindObjectByID : Chip
+{
+    public FindObjectByID(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("ID", true, [typeof(int)], true);
+        AddPort("GameObject", false, [typeof(GameObject)], true);
+        OutputPorts[0].Value.ValueFunction = Function;
+    }
+
+    public Values Function(ChipPort? chipPort)
+    {
+        return new Values { gObj = GameObject.FindGameObject(InputPorts[0].Value.GetValue().i) };
+    }
+}
+
+public class FindFirstObjectWithTag : Chip
+{
+    public FindFirstObjectWithTag(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("Tag", true, [typeof(string)], true);
+        AddPort("GameObject", false, [typeof(GameObject)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        return new Values()
+            { gObj = Engine.currentScene.GameObjects.Find(e => e.Tags.Contains(InputPorts[0].Value.GetValue().s)) };
+        
     }
 }

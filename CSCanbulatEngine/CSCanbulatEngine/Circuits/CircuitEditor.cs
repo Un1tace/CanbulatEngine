@@ -560,7 +560,9 @@ public static class CircuitEditor
 
     public static void Render()
     {
-        ImGui.BeginChild("NodeEditorCanvas", Vector2.Zero);
+        ImGui.SetWindowFontScale(CircuitEditor.Zoom);
+        
+        ImGui.BeginChild("NodeEditorCanvas", Vector2.Zero, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar);
         
         var drawList = ImGui.GetWindowDrawList();
         var canvasPos = ImGui.GetCursorScreenPos();
@@ -647,12 +649,15 @@ public static class CircuitEditor
         }
         
         ImGui.EndChild();
+        ImGui.SetWindowFontScale(1f);
+        
+        RenderStatusBar();
     }
 
     private static void RenderChip(Chip chip, Vector2 canvasPos, ImDrawListPtr drawList)
     {
         ImGui.PushID(chip.Id);
-
+        
         var chipPos = canvasPos + (chip.Position * Zoom) + panning;
         var chipSize = chip.Size * Zoom;
         var titleBarHeight = 30f * Zoom;
@@ -706,7 +711,7 @@ public static class CircuitEditor
                 float nameTextWidth = ImGui.CalcTextSize(port.Name).X;
                 float nameTextHeight = ImGui.CalcTextSize(port.Name).Y;
                 ImGui.SetCursorScreenPos(portPos +
-                                         new Vector2(nameTextWidth > 50 ? nameTextWidth + 10 : 50, nameTextHeight / 2));
+                                         (new Vector2(nameTextWidth > 50 ? nameTextWidth + 10 : 50, nameTextHeight / 2) * Zoom));
                 ImGui.LabelText($"##{port.Id}", port.Name);
             }
             
@@ -866,8 +871,8 @@ public static class CircuitEditor
                 float nameTextWidth = ImGui.CalcTextSize(port.Name).X;
                 float nameTextHeight = ImGui.CalcTextSize(port.Name).Y;
                 ImGui.SetCursorScreenPos(portPos +
-                                         new Vector2(nameTextWidth > 100 ? -nameTextWidth - 10 : -100,
-                                             -nameTextHeight / 2));
+                                         (new Vector2(nameTextWidth > 100 ? -nameTextWidth - 10 : -100,
+                                             -nameTextHeight / 2) * Zoom));
                 ImGui.LabelText($"##{port.Id}", port.Name);
             }
             
@@ -952,6 +957,39 @@ public static class CircuitEditor
         }
         
         ImGui.PopID();
+    }
+    
+    private static void RenderStatusBar()
+    {
+        float statusBarHeight = ImGui.GetFrameHeight();
+        var contentRegionAvail = ImGui.GetContentRegionAvail();
+        
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + contentRegionAvail.Y - statusBarHeight);
+
+        ImGui.BeginChild("StatusBarChild", new Vector2(0, statusBarHeight), ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar);
+        ImGui.Separator();
+        
+        if (_portDragSource != null)
+        {
+            ImGui.Text("Click on a compatible port to connect, or release in empty space to cancel.");
+        }
+        else if (HoveredPort != null)
+        {
+            string portInfo = $"Hovering: {HoveredPort.Name}";
+            if (HoveredPort.PortType != null)
+            {
+                portInfo += $" ({TypeHelper.GetName(HoveredPort.PortType)})";
+            }
+            ImGui.Text(portInfo);
+        }
+        else
+        {
+           // Default text
+            string superKey = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "CMD" : "CTRL";
+            ImGui.Text($"Middle Mouse or {superKey}+Right Click: Pan | Scroll: Zoom | Right Click on canvas: Open Menu");
+        }
+
+        ImGui.EndChild();
     }
 
     public static void MainMenuBar()
