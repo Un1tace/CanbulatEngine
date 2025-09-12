@@ -1398,6 +1398,7 @@ public class EventChip : Chip
         else
         {
             AddExecPort("Execute", true);
+            AddExecPort("Then", false);
             
             foreach (var key in SelectedEvent.baseValues.bools)
                 AddPort(key, true, [typeof(bool)], true);
@@ -1432,6 +1433,7 @@ public class EventChip : Chip
             }
             
             EventManager.Trigger(SelectedEvent, payload);
+            OutputExecPorts[0].Execute();
         }
     }
 
@@ -1595,6 +1597,7 @@ public class EventChip : Chip
 
                 if (ImGui.ImageButton("InputPortConfigButton", (IntPtr)LoadIcons.icons["Cog.png"], new Vector2(25)))
                 {
+                    Engine.portConfigWindowOpen = false;
                     ConfigWindows.EnableEventPortConfigWindow(portSelectedIndex, this);
                 }
             }
