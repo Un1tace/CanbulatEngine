@@ -676,12 +676,6 @@ public class Engine
             ImGui.End();
         }
         
-        //Port Config Window
-        if (portConfigWindowOpen)
-        {
-            ConfigWindows.ShowEventPortConfigWindow(portConfigWindowPosition, portConfigWindowSize);
-        }
-
         // Render the editor UI
         // -- Viewport --
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[0]);

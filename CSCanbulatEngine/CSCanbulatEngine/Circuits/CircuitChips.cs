@@ -1327,6 +1327,9 @@ public class EventChip : Chip
     
     public int portSelectedIndex = 0;
     
+    private int? portIndexToConfig = null;
+    private byte[] portNameChangeBuffer = new byte[128];
+    
     private enum EventMode {Receive, Send}
 
     public EventChip(int id, string name, Vector2 position) : base(id, name, position)
@@ -1597,9 +1600,67 @@ public class EventChip : Chip
 
                 if (ImGui.ImageButton("InputPortConfigButton", (IntPtr)LoadIcons.icons["Cog.png"], new Vector2(25)))
                 {
-                    Engine.portConfigWindowOpen = false;
-                    ConfigWindows.EnableEventPortConfigWindow(portSelectedIndex, this);
+                    // Engine.portConfigWindowOpen = false;
+                    // ConfigWindows.EnableEventPortConfigWindow(portSelectedIndex, this);
+
+                    portIndexToConfig = portSelectedIndex;
+                    
+                    var nameBytes = Encoding.UTF8.GetBytes(ports[portIndexToConfig.Value]);
+                    Array.Clear(portNameChangeBuffer, 0, portNameChangeBuffer.Length);
+                    Array.Copy(nameBytes, portNameChangeBuffer, nameBytes.Length);
+                    
+                    ImGui.OpenPopup("PortContextMenu");
                 }
+            }
+
+            if (ImGui.BeginPopup("PortContextMenu"))
+            {
+                int index = portSelectedIndex;
+                
+                ImGui.Text("Configure Port");
+                ImGui.Separator();
+
+                ImGui.PushItemWidth(200);
+                ImGui.InputText("Name", portNameChangeBuffer,128);
+                ImGui.PopItemWidth();
+                ImGui.SameLine();
+
+                if (ImGui.Button("Set"))
+                {
+                    string newName = Encoding.UTF8.GetString(portNameChangeBuffer).TrimEnd('\0');
+                    string oldName = ports[portIndexToConfig.Value];
+
+                    // Check if the name is valid and actually changed
+                    if (!string.IsNullOrWhiteSpace(newName) && oldName != newName && ports.All(e => e != newName))
+                    {
+                        int portTypeIndex = GetPortTypeIndex(portTypes[portIndexToConfig.Value]);
+                        int selectedIndex = portIndexToConfig.Value;
+
+                        for (int i = 0; i < portTypeIndex; i++)
+                        {
+                            selectedIndex -= allPortTypes[i].Count;
+                        }
+
+                        allPortTypes[portTypeIndex][selectedIndex] = newName;
+                        ConfigureAllChipsToEvent();
+                    }
+                }
+
+                if (ImGui.BeginCombo("Type", TypeHelper.GetName(portTypes[index])))
+                {
+                    List<Type> availableTypes = [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject)];
+
+                    foreach (var type in availableTypes)
+                    {
+                        if (ImGui.Selectable(TypeHelper.GetName(type), type == portTypes[index]))
+                        {
+                            ChangePortType(index, type);
+                        }
+                    }
+                    ImGui.EndCombo();
+                }
+
+                ImGui.EndPopup();
             }
 
             ImGui.BeginChild("CustomPortList", new Vector2(0, 150), ImGuiChildFlags.Borders);

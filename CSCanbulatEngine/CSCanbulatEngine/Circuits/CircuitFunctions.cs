@@ -154,33 +154,40 @@ public static class ConfigWindows
     public static int? portIndexToConfig = null;
     public static EventChip MainChip = null;
     public static byte[] portNameChangeBuffer = new byte[128];
-    public static void ShowEventPortConfigWindow(Vector2? pos, Vector2? size)
+    
+    //Event port config window isn't used - Pending removal
+public static void ShowEventPortConfigWindow() // Removed unused parameters
+{
+    // Use the mouse position that was captured when the window was enabled
+    ImGui.SetNextWindowPos(Engine.portConfigWindowPosition.Value);
+
+    // Combine flags for a clean, non-interactive popup that sizes to its content
+    ImGuiWindowFlags windowFlags = ImGuiWindowFlags.NoResize |
+                                   ImGuiWindowFlags.NoDecoration |
+                                   ImGuiWindowFlags.AlwaysAutoResize |
+                                   ImGuiWindowFlags.NoMove |
+                                   ImGuiWindowFlags.NoSavedSettings | // Good practice for temporary windows
+                                   ImGuiWindowFlags.NoFocusOnAppearing |
+                                   ImGuiWindowFlags.NoNav;
+
+    // Begin the window. We don't use SetNextWindowSize because AlwaysAutoResize handles it.
+    if (ImGui.Begin("Port Configuration", ref Engine.portConfigWindowOpen, windowFlags))
     {
-        if (size is null)
-        {
-            size = new Vector2(200, 250);
-        }
-        
-        if (pos is null)
-        {
-            pos = ImGui.GetWindowSize()/2 - size/2;
-        }
-        
-        ImGui.SetWindowPos(pos?? Vector2.Zero);
-        ImGui.SetNextWindowSize(size ?? Vector2.Zero);
-        ImGui.Begin("Port Configuration", ref Engine.portConfigWindowOpen, ImGuiWindowFlags.NoResize);
-        
-        //Change port name
+        // --- Change port name ---
+        ImGui.PushItemWidth(150); // Give the input text a reasonable width
         if (ImGui.InputText("Port Name", portNameChangeBuffer, 128))
         {
-            
+            // Logic for when text changes can go here if needed
         }
+        ImGui.PopItemWidth();
 
+        ImGui.SameLine();
         if (ImGui.Button("Set"))
         {
             string newName = Encoding.UTF8.GetString(portNameChangeBuffer).TrimEnd('\0');
             string oldName = MainChip.ports[portIndexToConfig.Value];
 
+            // Check if the name is valid and actually changed
             if (!string.IsNullOrWhiteSpace(newName) && oldName != newName && MainChip.ports.All(e => e != newName))
             {
                 int portTypeIndex = MainChip.GetPortTypeIndex(MainChip.portTypes[portIndexToConfig.Value]);
@@ -196,18 +203,20 @@ public static class ConfigWindows
             }
         }
         
-        // Change port type
+        ImGui.Separator();
+
+        // --- Change port type ---
         if (portIndexToConfig.HasValue && portIndexToConfig.Value < MainChip.portTypes.Count)
         {
             int index = portIndexToConfig.Value;
-            if (ImGui.BeginCombo("Port Types", MainChip.portTypes[index].FullName?.Split('.').Last()))
+            if (ImGui.BeginCombo("Port Type", TypeHelper.GetName(MainChip.portTypes[index])))
             {
-                List<Type> avaliableTypes =
+                List<Type> availableTypes =
                     [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject)];
 
-                foreach (var type in avaliableTypes)
+                foreach (var type in availableTypes)
                 {
-                    if (ImGui.Selectable(type.FullName?.Split('.').Last(), type == MainChip.portTypes[index]))
+                    if (ImGui.Selectable(TypeHelper.GetName(type), type == MainChip.portTypes[index]))
                     {
                         MainChip.ChangePortType(index, type);
                     }
@@ -219,8 +228,10 @@ public static class ConfigWindows
         {
             ImGui.Text("Invalid port selected.");
         }
+        
         ImGui.End();
     }
+}
 
     public static void EnableEventPortConfigWindow(int portIndex, EventChip theChip)
     {
