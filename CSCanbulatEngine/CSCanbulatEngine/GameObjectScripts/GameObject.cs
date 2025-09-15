@@ -1,6 +1,8 @@
 using System.ComponentModel;
+using System.Numerics;
 using System.Text;
 using CSCanbulatEngine.InfoHolders;
+using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
 
 namespace CSCanbulatEngine.GameObjectScripts;
@@ -137,12 +139,40 @@ public class GameObject
         }
     }
 
+    public int selectedTag = 0;
     public static void RenderGameObjectInspector()
     {
         if (Engine._selectedGameObject != null)
         {
             ImGui.Text($"Editing {Engine._selectedGameObject.gameObject.Name}");
             ImGui.Text($"ID: {Engine._selectedGameObject.gameObject.ID}");
+
+            ImGui.Separator();
+            
+            ImGui.BeginChild("CustomTagList", new Vector2(0, 150), ImGuiChildFlags.Borders);
+            
+            GameObject selectedGameObject = Engine._selectedGameObject.gameObject;
+            
+            ImGui.Text("Tags for GameObject:");
+            ImGui.SameLine();
+            ImGui.ImageButton("RewriteName", (IntPtr)LoadIcons.icons["Rewrite.png"], new(25));
+
+            for (int i = 0; i < selectedGameObject.Tags.Count; i++)
+            {
+                string tag = selectedGameObject.Tags[i];
+
+                string selectableLabel = $"{tag}##{i}";
+
+                if (ImGui.Selectable(selectableLabel, i == selectedGameObject.selectedTag, ImGuiSelectableFlags.AllowDoubleClick))
+                {
+                    selectedGameObject.selectedTag = i;
+                }
+
+                float typeNameWidth = ImGui.CalcTextSize(selectedGameObject.Tags[i]).X;
+                float columnWidth = ImGui.GetContentRegionAvail().X - 5;
+            }
+            ImGui.EndChild();
+            
             ImGui.Separator();
 
             foreach (Component component in Engine._selectedGameObject.gameObject.Components)
@@ -153,6 +183,8 @@ public class GameObject
                 }
             }
         }
+        
+        
     }
 #endif
 
