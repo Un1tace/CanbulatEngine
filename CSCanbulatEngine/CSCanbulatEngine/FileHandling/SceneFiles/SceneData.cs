@@ -60,6 +60,7 @@ public class SceneData
         public TransformData transformData { get; set; }
         public MeshRendererData meshRendererData { get; set; }
         public int? ObjectID  { get; set; }
+        public List<string>? Tags { get; set; }
     }
 
     public class EventData

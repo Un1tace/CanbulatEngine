@@ -18,6 +18,7 @@ public class GameObject
         Name = name;
         Components = new List<Component>();
         Tags = new List<string>();
+        Tags.Add("GameObject");
         
         //Add Core Components
         AddComponent(new Transform());
