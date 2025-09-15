@@ -761,20 +761,7 @@ public class Engine
         if (!circuitEditorIsOpen)
         {
             //Puts all the properties in the inspector visible and rendered
-            if (_selectedGameObject != null)
-            {
-                ImGui.Text($"Editing {_selectedGameObject.gameObject.Name}");
-                ImGui.Text($"ID: {_selectedGameObject.gameObject.ID}");
-                ImGui.Separator();
-
-                foreach (Component component in _selectedGameObject.gameObject.Components)
-                {
-                    if (ImGui.CollapsingHeader(component.name, ImGuiTreeNodeFlags.DefaultOpen))
-                    {
-                        component.RenderInspector();
-                    }
-                }
-            }
+            GameObject.RenderGameObjectInspector();
         }
         else
         {

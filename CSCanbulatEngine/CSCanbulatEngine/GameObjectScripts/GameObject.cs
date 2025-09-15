@@ -136,6 +136,24 @@ public class GameObject
             ImGui.EndMenu();
         }
     }
+
+    public static void RenderGameObjectInspector()
+    {
+        if (Engine._selectedGameObject != null)
+        {
+            ImGui.Text($"Editing {Engine._selectedGameObject.gameObject.Name}");
+            ImGui.Text($"ID: {Engine._selectedGameObject.gameObject.ID}");
+            ImGui.Separator();
+
+            foreach (Component component in Engine._selectedGameObject.gameObject.Components)
+            {
+                if (ImGui.CollapsingHeader(component.name, ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    component.RenderInspector();
+                }
+            }
+        }
+    }
 #endif
 
     public static GameObject? FindGameObject(int id)
