@@ -80,7 +80,7 @@ public class SceneSerialiser
                         break;
                 }
             }
-            sceneData.GameObjects.Add(new SceneData.GameObjectData(){Name = obj.Name, transformData = transformData, meshRendererData = meshRendererData});
+            sceneData.GameObjects.Add(new SceneData.GameObjectData(){Name = obj.Name, transformData = transformData, meshRendererData = meshRendererData, ObjectID = obj.ID});
         }
 
         return sceneData;
@@ -117,6 +117,10 @@ public class SceneSerialiser
         foreach (var objData in sceneData.GameObjects)
         {
             GameObject obj = new GameObject(Engine._squareMesh, objData.Name);
+            if (objData.ObjectID is not null && GameObject.FindGameObject(objData.ObjectID.Value) is null)
+            {
+                obj.ID = objData.ObjectID.Value;
+            }
             if (objData.transformData != null)
             {
                 SceneData.TransformData transformData = objData.transformData;

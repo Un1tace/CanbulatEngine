@@ -59,6 +59,7 @@ public class SceneData
         public string Name { get; set; }
         public TransformData transformData { get; set; }
         public MeshRendererData meshRendererData { get; set; }
+        public int? ObjectID  { get; set; }
     }
 
     public class EventData
