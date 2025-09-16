@@ -140,6 +140,7 @@ public class GameObject
     }
 
     public int selectedTag = 0;
+    private static byte[] _nameBuffer;
     public static void RenderGameObjectInspector()
     {
         if (Engine._selectedGameObject != null)
@@ -155,7 +156,22 @@ public class GameObject
             
             ImGui.Text("Tags for GameObject:");
             ImGui.SameLine();
-            ImGui.ImageButton("RewriteName", (IntPtr)LoadIcons.icons["Rewrite.png"], new(25));
+            if (ImGui.ImageButton("RewriteName", (IntPtr)LoadIcons.icons["Rewrite.png"], new(25)))
+            {
+                _nameBuffer = new byte[128];
+                UTF8Encoding.UTF8.GetBytes("RewriteName").AsSpan().CopyTo(_nameBuffer);
+                
+            }
+            ImGui.SameLine();
+            if (ImGui.ImageButton("AddTag", (IntPtr)LoadIcons.icons["Plus.png"], new(25)))
+            {
+                
+            }
+            ImGui.SameLine();
+            if (ImGui.ImageButton("RemoveTag", (IntPtr)LoadIcons.icons["Trash.png"], new(25)))
+            {
+                
+            }
 
             for (int i = 0; i < selectedGameObject.Tags.Count; i++)
             {
