@@ -141,6 +141,8 @@ public class GameObject
 
     public int selectedTag = 0;
     private static byte[] _nameBuffer;
+    private static byte[] _tagNameBuffer;
+    private static bool makingNewTag = false;
     public static void RenderGameObjectInspector()
     {
         if (Engine._selectedGameObject != null)
@@ -158,19 +160,21 @@ public class GameObject
             ImGui.SameLine();
             if (ImGui.ImageButton("RewriteName", (IntPtr)LoadIcons.icons["Rewrite.png"], new(25)))
             {
-                _nameBuffer = new byte[128];
-                UTF8Encoding.UTF8.GetBytes("RewriteName").AsSpan().CopyTo(_nameBuffer);
-                
+                makingNewTag = false;
+                _tagNameBuffer = UTF8Encoding.UTF8.GetBytes(Engine._selectedGameObject.gameObject.Tags[Engine._selectedGameObject.gameObject.selectedTag]);
+                ImGui.OpenPopup("NameNewTag");
             }
             ImGui.SameLine();
             if (ImGui.ImageButton("AddTag", (IntPtr)LoadIcons.icons["Plus.png"], new(25)))
             {
-                
+                _tagNameBuffer = new byte[128];
+                makingNewTag = true;
+                ImGui.OpenPopup("NameNewTag");
             }
             ImGui.SameLine();
             if (ImGui.ImageButton("RemoveTag", (IntPtr)LoadIcons.icons["Trash.png"], new(25)))
             {
-                
+                Engine._selectedGameObject.gameObject.RemoveTag();
             }
 
             for (int i = 0; i < selectedGameObject.Tags.Count; i++)
@@ -187,6 +191,35 @@ public class GameObject
                 float typeNameWidth = ImGui.CalcTextSize(selectedGameObject.Tags[i]).X;
                 float columnWidth = ImGui.GetContentRegionAvail().X - 5;
             }
+            
+            if (ImGui.BeginPopup("NameNewTag"))
+            {
+                ImGui.Text(makingNewTag ?  "New tag name" : "Configure tag name");
+                ImGui.Separator();
+                
+                ImGui.InputText("##TagNameInput", _tagNameBuffer, (uint)_tagNameBuffer.Length);
+
+                ImGui.SameLine();
+
+                if (ImGui.Button("Set"))
+                {
+                    string newName = Encoding.UTF8.GetString(_tagNameBuffer).TrimEnd('\0');
+                    if (!string.IsNullOrEmpty(newName))
+                    {
+                        if (makingNewTag)
+                        {
+                            Engine._selectedGameObject.gameObject.AddTag(newName);
+                        }
+                        else
+                        {
+                            Engine._selectedGameObject.gameObject.Tags[Engine._selectedGameObject.gameObject.selectedTag] = newName;
+                        }
+                    }
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.EndPopup();
+            }
+            
             ImGui.EndChild();
             
             ImGui.Separator();
@@ -198,9 +231,19 @@ public class GameObject
                     component.RenderInspector();
                 }
             }
+            
         }
         
-        
+    }
+
+    public void AddTag(string tag)
+    {
+        Engine._selectedGameObject.gameObject.Tags.Add(tag);
+    }
+
+    public void RemoveTag()
+    {
+        Engine._selectedGameObject.gameObject.Tags.RemoveAt(selectedTag);
     }
 #endif
 
