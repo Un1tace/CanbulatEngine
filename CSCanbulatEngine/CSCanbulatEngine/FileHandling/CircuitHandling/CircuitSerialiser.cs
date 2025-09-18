@@ -55,11 +55,11 @@ public static class CircuitSerialiser
                 {
                     var portValue = inputPort.Value;
                     string valueStr = "";
-                    if (inputPort.PortType == typeof(bool)) valueStr = portValue.b.Value.ToString();
-                    else if (inputPort.PortType == typeof(int)) valueStr = portValue.i.Value.ToString();
-                    else if (inputPort.PortType == typeof(float)) valueStr = portValue.f.Value.ToString(CultureInfo.InvariantCulture);
-                    else if (inputPort.PortType == typeof(string)) valueStr = portValue.s;
-                    else if (inputPort.PortType == typeof(Vector2)) valueStr = $"{portValue.v2.Value.X},{portValue.v2.Value.Y}";
+                    if (inputPort.PortType == typeof(bool)) valueStr = portValue.Bool.Value.ToString();
+                    else if (inputPort.PortType == typeof(int)) valueStr = portValue.Int.Value.ToString();
+                    else if (inputPort.PortType == typeof(float)) valueStr = portValue.Float.Value.ToString(CultureInfo.InvariantCulture);
+                    else if (inputPort.PortType == typeof(string)) valueStr = portValue.String;
+                    else if (inputPort.PortType == typeof(Vector2)) valueStr = $"{portValue.Vector2.Value.X},{portValue.Vector2.Value.Y}";
                     
                     circuitInfo.UnconnectedPortValues.Add(new CircuitData.UnconnectedPortValueData
                     {

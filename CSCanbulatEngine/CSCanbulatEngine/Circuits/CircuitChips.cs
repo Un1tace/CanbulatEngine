@@ -261,15 +261,27 @@ public class CircuitChips
                             CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
                         }
 
-                        if (ImGui.MenuItem("Create Find Object By ID"))
+                        if (ImGui.MenuItem("Create Find Object By ID Chip"))
                         {
                             CircuitEditor.chips.Add(new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID Chip", spawnPos));
                             CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
                         }
 
-                        if (ImGui.MenuItem("Create Find First Object By Tag"))
+                        if (ImGui.MenuItem("Create Find First Object By Tag Chip"))
                         {
                             CircuitEditor.chips.Add(new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", spawnPos)); 
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+
+                        if (ImGui.MenuItem("Create Find All Objects By Tag Chip"))
+                        {
+                            CircuitEditor.chips.Add(new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+
+                        if (ImGui.MenuItem("Create Get Element At Chip"))
+                        {
+                            CircuitEditor.chips.Add(new GetElementAt(CircuitEditor.GetNextAvaliableChipID(), "Get Element At", spawnPos));
                             CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
                         }
                         ImGui.EndMenu();
@@ -389,11 +401,11 @@ public class AddChip : Chip
         Values value = new Values();
         if (InputPorts[0].PortType == typeof(float))
         {
-            value.f = InputPorts[0].Value.GetValue().f + InputPorts[1].Value.GetValue().f;
+            value.Float = InputPorts[0].Value.GetValue().Float + InputPorts[1].Value.GetValue().Float;
         }
         else if (InputPorts[0].PortType == typeof(int))
         {
-            value.i = InputPorts[0].Value.GetValue().i + InputPorts[1].Value.GetValue().i;
+            value.Int = InputPorts[0].Value.GetValue().Int + InputPorts[1].Value.GetValue().Int;
         }
 
         return value;
@@ -474,7 +486,7 @@ public class BoolVariable : Chip
             return value;
         }
         
-        return new Values { b = false };
+        return new Values { Bool = false };
     }
 
     public override void OnExecute()
@@ -546,7 +558,7 @@ public class FloatVariable : Chip
             return value;
         }
         
-        return new Values { f = 0 };
+        return new Values { Float = 0 };
     }
 
     public override void OnExecute()
@@ -618,7 +630,7 @@ public class IntVariable : Chip
             return value;
         }
         
-        return new Values { i = 0 };
+        return new Values { Int = 0 };
     }
 
     public override void OnExecute()
@@ -690,7 +702,7 @@ public class StringVariable : Chip
             return value;
         }
         
-        return new Values { s = "" };
+        return new Values { String = "" };
     }
 
     public override void OnExecute()
@@ -762,7 +774,7 @@ public class Vector2Variable : Chip
             return value;
         }
         
-        return new Values { v2 = Vector2.Zero };
+        return new Values { Vector2 = Vector2.Zero };
     }
 
     public override void OnExecute()
@@ -834,12 +846,12 @@ public class GameObjectVariable : Chip
             return value;
         }
         
-        return new Values { gObj = null };
+        return new Values { GameObject = null };
     }
 
     public override void OnExecute()
     {
-        if (InputPorts[0].Value.GetValue().gObj == null)
+        if (InputPorts[0].Value.GetValue().GameObject == null)
         {
             GameConsole.Log("Game Object Variable doesn't have a acceptable value", LogType.Error);
             return;
@@ -905,7 +917,7 @@ public class AndChip : Chip
     {
         Values values = new Values
         {
-            b = InputPorts[0].Value.GetValue().b &&  InputPorts[1].Value.GetValue().b
+            Bool = InputPorts[0].Value.GetValue().Bool &&  InputPorts[1].Value.GetValue().Bool
         };
         return values;
     }
@@ -925,7 +937,7 @@ public class OrChip : Chip
     {
         Values values = new Values
         {
-            b = InputPorts[0].Value.GetValue().b ||  InputPorts[1].Value.GetValue().b
+            Bool = InputPorts[0].Value.GetValue().Bool ||  InputPorts[1].Value.GetValue().Bool
         };
         return values;
     }
@@ -944,7 +956,7 @@ public class NotChip : Chip
     {
         Values values = new Values
         {
-            b = !InputPorts[0].Value.GetValue().b
+            Bool = !InputPorts[0].Value.GetValue().Bool
         };
         return values;
     }
@@ -964,7 +976,7 @@ public class NorChip : Chip
     {
         Values values = new Values
         {
-            b = !(InputPorts[0].Value.GetValue().b ||  InputPorts[1].Value.GetValue().b)
+            Bool = !(InputPorts[0].Value.GetValue().Bool ||  InputPorts[1].Value.GetValue().Bool)
         };
         return values;
     }
@@ -984,7 +996,7 @@ public class NandChip : Chip
     {
         Values values = new Values
         {
-            b = !(InputPorts[0].Value.GetValue().b &&  InputPorts[1].Value.GetValue().b)
+            Bool = !(InputPorts[0].Value.GetValue().Bool &&  InputPorts[1].Value.GetValue().Bool)
         };
         return values;
     }
@@ -1004,7 +1016,7 @@ public class XorChip : Chip
     {
         Values values = new Values
         {
-            b = InputPorts[0].Value.GetValue().b ^ InputPorts[1].Value.GetValue().b
+            Bool = InputPorts[0].Value.GetValue().Bool ^ InputPorts[1].Value.GetValue().Bool
         };
         return values;
     }
@@ -1026,11 +1038,11 @@ public class GreaterThanChip : Chip
         Values value = new Values();
         if (InputPorts[0].PortType == typeof(float))
         {
-            value.b = InputPorts[0].Value.GetValue().f > InputPorts[1].Value.GetValue().f;
+            value.Bool = InputPorts[0].Value.GetValue().Float > InputPorts[1].Value.GetValue().Float;
         }
         else if (InputPorts[0].PortType == typeof(int))
         {
-            value.b = InputPorts[0].Value.GetValue().i > InputPorts[1].Value.GetValue().i;
+            value.Bool = InputPorts[0].Value.GetValue().Int > InputPorts[1].Value.GetValue().Int;
         }
 
         return value;
@@ -1084,11 +1096,11 @@ public class GreaterThanOrEqualsChip : Chip
         Values value = new Values();
         if (InputPorts[0].PortType == typeof(float))
         {
-            value.b = InputPorts[0].Value.GetValue().f >= InputPorts[1].Value.GetValue().f;
+            value.Bool = InputPorts[0].Value.GetValue().Float >= InputPorts[1].Value.GetValue().Float;
         }
         else if (InputPorts[0].PortType == typeof(int))
         {
-            value.b = InputPorts[0].Value.GetValue().i >= InputPorts[1].Value.GetValue().i;
+            value.Bool = InputPorts[0].Value.GetValue().Int >= InputPorts[1].Value.GetValue().Int;
         }
 
         return value;
@@ -1142,11 +1154,11 @@ public class LessThanChip : Chip
         Values value = new Values();
         if (InputPorts[0].PortType == typeof(float))
         {
-            value.b = InputPorts[0].Value.GetValue().f < InputPorts[1].Value.GetValue().f;
+            value.Bool = InputPorts[0].Value.GetValue().Float < InputPorts[1].Value.GetValue().Float;
         }
         else if (InputPorts[0].PortType == typeof(int))
         {
-            value.b = InputPorts[0].Value.GetValue().i < InputPorts[1].Value.GetValue().i;
+            value.Bool = InputPorts[0].Value.GetValue().Int < InputPorts[1].Value.GetValue().Int;
         }
 
         return value;
@@ -1200,11 +1212,11 @@ public class LessThanOrEqualsChip : Chip
         Values value = new Values();
         if (InputPorts[0].PortType == typeof(float))
         {
-            value.b = InputPorts[0].Value.GetValue().f <= InputPorts[1].Value.GetValue().f;
+            value.Bool = InputPorts[0].Value.GetValue().Float <= InputPorts[1].Value.GetValue().Float;
         }
         else if (InputPorts[0].PortType == typeof(int))
         {
-            value.b = InputPorts[0].Value.GetValue().i <= InputPorts[1].Value.GetValue().i;
+            value.Bool = InputPorts[0].Value.GetValue().Int <= InputPorts[1].Value.GetValue().Int;
         }
 
         return value;
@@ -1258,27 +1270,27 @@ public class EqualsChip : Chip
         Values value = new Values();
         if (InputPorts[0].PortType == typeof(float))
         {
-            value.b = InputPorts[0].Value.GetValue().f == InputPorts[1].Value.GetValue().f;
+            value.Bool = InputPorts[0].Value.GetValue().Float == InputPorts[1].Value.GetValue().Float;
         }
         else if (InputPorts[0].PortType == typeof(int))
         {
-            value.b = InputPorts[0].Value.GetValue().i == InputPorts[1].Value.GetValue().i;
+            value.Bool = InputPorts[0].Value.GetValue().Int == InputPorts[1].Value.GetValue().Int;
         }
         else if (InputPorts[0].PortType == typeof(string))
         {
-            value.b = InputPorts[0].Value.GetValue().s == InputPorts[1].Value.GetValue().s;
+            value.Bool = InputPorts[0].Value.GetValue().String == InputPorts[1].Value.GetValue().String;
         }
         else if (InputPorts[0].PortType == typeof(bool))
         {
-            value.b = InputPorts[0].Value.GetValue().b == InputPorts[1].Value.GetValue().b;
+            value.Bool = InputPorts[0].Value.GetValue().Bool == InputPorts[1].Value.GetValue().Bool;
         }
         else if (InputPorts[0].PortType == typeof(Vector2))
         {
-            value.b = InputPorts[0].Value.GetValue().v2 == InputPorts[1].Value.GetValue().v2;
+            value.Bool = InputPorts[0].Value.GetValue().Vector2 == InputPorts[1].Value.GetValue().Vector2;
         }
         else if (InputPorts[0].PortType == typeof(GameObject))
         {
-            value.b = InputPorts[0].Value.GetValue().gObj == InputPorts[1].Value.GetValue().gObj;
+            value.Bool = InputPorts[0].Value.GetValue().GameObject == InputPorts[1].Value.GetValue().GameObject;
         }
 
         return value;
@@ -1373,22 +1385,22 @@ public class EventChip : Chip
             
             foreach (var key in SelectedEvent.baseValues.bools)
                 AddPort(key, false, [typeof(bool)], true).Value.ValueFunction = (p) => new Values
-                    { b = LastRecievedPayload.bools.GetValueOrDefault(p.Name) };
+                    { Bool = LastRecievedPayload.bools.GetValueOrDefault(p.Name) };
             foreach (var key in SelectedEvent.baseValues.ints)
                 AddPort(key, false, [typeof(int)], true).Value.ValueFunction = (p) => new Values
-                    { i = LastRecievedPayload.ints.GetValueOrDefault(p.Name) };
+                    { Int = LastRecievedPayload.ints.GetValueOrDefault(p.Name) };
             foreach (var key in SelectedEvent.baseValues.floats)
                 AddPort(key, false, [typeof(float)], true).Value.ValueFunction = (p) => new Values
-                    { f = LastRecievedPayload.floats.GetValueOrDefault(p.Name) };
+                    { Float = LastRecievedPayload.floats.GetValueOrDefault(p.Name) };
             foreach (var key in SelectedEvent.baseValues.Vector2s)
                 AddPort(key, false, [typeof(Vector2)], true).Value.ValueFunction = (p) => new Values
-                    { v2 = LastRecievedPayload.Vector2s.GetValueOrDefault(p.Name) };
+                    { Vector2 = LastRecievedPayload.Vector2s.GetValueOrDefault(p.Name) };
             foreach (var key in SelectedEvent.baseValues.strings)
                 AddPort(key, false, [typeof(string)], true).Value.ValueFunction = (p) => new Values
-                    { s = LastRecievedPayload.strings.GetValueOrDefault(p.Name) };
+                    { String = LastRecievedPayload.strings.GetValueOrDefault(p.Name) };
             foreach (var key in SelectedEvent.baseValues.GameObjects)
                 AddPort(key, false, [typeof(GameObject)], true).Value.ValueFunction = (p) => new Values
-                    { gObj = LastRecievedPayload.GameObjects.GetValueOrDefault(p.Name) };
+                    { GameObject = LastRecievedPayload.GameObjects.GetValueOrDefault(p.Name) };
 
             ListenerAction = (payload) =>
             {
@@ -1427,12 +1439,12 @@ public class EventChip : Chip
             var payload = new EventValues();
             foreach (var port in InputPorts)
             {
-                if (port.PortType == typeof(bool)) payload.bools[port.Name] = port.Value.GetValue().b;
-                else if (port.PortType == typeof(int)) payload.ints[port.Name] = port.Value.GetValue().i;
-                else if (port.PortType == typeof(float)) payload.floats[port.Name] = port.Value.GetValue().f;
-                else if (port.PortType == typeof(string)) payload.strings[port.Name] = port.Value.GetValue().s;
-                else if (port.PortType == typeof(Vector2)) payload.Vector2s[port.Name] = port.Value.GetValue().v2;
-                else if (port.PortType == typeof(GameObject)) payload.GameObjects[port.Name] = port.Value.GetValue().gObj;
+                if (port.PortType == typeof(bool)) payload.bools[port.Name] = port.Value.GetValue().Bool;
+                else if (port.PortType == typeof(int)) payload.ints[port.Name] = port.Value.GetValue().Int;
+                else if (port.PortType == typeof(float)) payload.floats[port.Name] = port.Value.GetValue().Float;
+                else if (port.PortType == typeof(string)) payload.strings[port.Name] = port.Value.GetValue().String;
+                else if (port.PortType == typeof(Vector2)) payload.Vector2s[port.Name] = port.Value.GetValue().Vector2;
+                else if (port.PortType == typeof(GameObject)) payload.GameObjects[port.Name] = port.Value.GetValue().GameObject;
             }
             
             EventManager.Trigger(SelectedEvent, payload);
@@ -1821,7 +1833,7 @@ public class LogChip : Chip
 
     public override void OnExecute()
     {
-        GameConsole.Log(InputPorts[0].Value.GetValue().s);
+        GameConsole.Log(InputPorts[0].Value.GetValue().String);
     }
 }
 
@@ -1834,7 +1846,7 @@ public class LogWarningChip : Chip
 
     public override void OnExecute()
     {
-        GameConsole.Log(InputPorts[0].Value.GetValue().s, LogType.Warning);
+        GameConsole.Log(InputPorts[0].Value.GetValue().String, LogType.Warning);
     }
 }
 
@@ -1847,7 +1859,7 @@ public class LogErrorChip : Chip
 
     public override void OnExecute()
     {
-        GameConsole.Log(InputPorts[0].Value.GetValue().s, LogType.Error);
+        GameConsole.Log(InputPorts[0].Value.GetValue().String, LogType.Error);
     }
 }
 
@@ -1862,7 +1874,7 @@ public class FindObjectByID : Chip
 
     public Values Function(ChipPort? chipPort)
     {
-        return new Values { gObj = GameObject.FindGameObject(InputPorts[0].Value.GetValue().i) };
+        return new Values { GameObject = GameObject.FindGameObject(InputPorts[0].Value.GetValue().Int) };
     }
 }
 
@@ -1878,7 +1890,56 @@ public class FindFirstObjectWithTag : Chip
     public Values OutputFunction(ChipPort? chipPort)
     {
         return new Values()
-            { gObj = Engine.currentScene.GameObjects.Find(e => e.Tags.Contains(InputPorts[0].Value.GetValue().s)) };
+            { GameObject = Engine.currentScene.GameObjects.Find(e => e.Tags.Contains(InputPorts[0].Value.GetValue().String)) };
         
+    }
+}
+
+public class FindAllObjectsWithTag : Chip
+{
+    public FindAllObjectsWithTag(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        Size = new Vector2(250, 100);
+        AddPort("Tag", true, [typeof(string)], true);
+        AddPort("List<GameObject>", false, [typeof(List<GameObject>)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        return new Values()
+        {
+            GameObjectList = Engine.currentScene.GameObjects.FindAll(e => e.Tags.Contains(InputPorts[0].Value.GetValue().String))
+        };
+    }
+}
+
+public class CreateList : Chip
+{
+    public CreateList(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+    }
+}
+
+public class GetElementAt : Chip
+{
+    public GetElementAt(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("List", true, [typeof(List<bool>), typeof(List<int>), typeof(List<float>), typeof(List<string>), typeof(List<Vector2>), typeof(List<GameObject>)], true);
+        AddPort("Index", true, [typeof(int)], true);
+        AddPort("Element", false,
+            [typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2), typeof(GameObject)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public override void PortTypeChanged(ChipPort? port)
+    {
+        if (port == InputPorts[0]) OutputPorts[0].PortType = TypeHelper.GetNonListType(InputPorts[0].PortType);
+        base.PortTypeChanged(port);
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        return new Values();
     }
 }

@@ -10,35 +10,59 @@ using Silk.NET.Input;
 
 namespace CSCanbulatEngine.Circuits;
 
+public class Values()
+{
+    public bool Bool = false;
+    public List<bool>? BoolList { get; set; }
+    public float Float = 0f;
+    public List<float>? FloatList { get; set; }
+    public int Int = 0;
+    public List<int>? IntList { get; set; }
+    public string String = "";
+    public List<string>? StringList { get; set; }
+    public Vector2 Vector2 = Vector2.Zero;
+    public List<Vector2>? Vector2List { get; set; }
+    public GameObject? GameObject = null;
+    public List<GameObject>? GameObjectList { get; set; }
+    
+    public Type? ActiveType { get; set; }
+}
+
 // Rules
 public class ChipPortValue
 {
     public ChipPort AssignedChipPort;
     public Func<ChipPort?, Values> ValueFunction;
-    public bool? b { get; set;  }
-    public int? i { get; set; }
-    public float? f { get; set; }
-    public string? s { get; set; }
-    public Vector2? v2 { get; set; }
-    public GameObject? gObj { get; set; }
+    public bool? Bool { get; set; }
+    public List<bool>? BoolList { get; set; }
+    public int? Int { get; set; }
+    public List<int>? IntList { get; set; }
+    public float? Float { get; set; }
+    public List<float>? FloatList { get; set; }
+    public string? String { get; set; }
+    public List<string>? StringList { get; set; }
+    public Vector2? Vector2 { get; set; }
+    public List<Vector2>? Vector2List { get; set; }
+    public GameObject? GameObject { get; set; }
+    public List<GameObject>? GameObjectList { get; set; }
 
     public byte[] S_bufer = new byte[100];
 
     public ChipPortValue(ChipPort assignedChipPort)
     {
         // Setting default values
-        b = false;
-        i = 0;
-        f = 0;
-        s = "";
-        v2 = Vector2.Zero;
-        gObj = null;
+        Bool = false;
+        Int = 0;
+        Float = 0;
+        String = "";
+        Vector2 = System.Numerics.Vector2.Zero;
+        GameObject = null;
         AssignedChipPort = assignedChipPort;
     }
 
     public void UpdateSBuffer()
     {
-        var bytes = Encoding.UTF8.GetBytes(s ?? "");
+        var bytes = Encoding.UTF8.GetBytes(String ?? "");
         Array.Clear(S_bufer, 0, S_bufer.Length);
         
         var lengthToCopy = Math.Min(bytes.Length, S_bufer.Length - 1);
@@ -52,38 +76,75 @@ public class ChipPortValue
         {
             if (typeof(T) == typeof(bool))
             {
-                b = value as bool?;
+                Bool = value as bool?;
                 AssignedChipPort.PortType = typeof(T);
                 return true;
             }
             else if (typeof(T) == typeof(int))
             {
-                i = value as int?;
+                Int = value as int?;
                 AssignedChipPort.PortType = typeof(T);
                 return true;
             }
             else if (typeof(T) == typeof(float))
             {
-                f = value as float?;
+                Float = value as float?;
                 AssignedChipPort.PortType = typeof(T);
                 return true;
             }
             else if (typeof(T) == typeof(Vector2))
             {
-                v2 = value as Vector2?;
+                Vector2 = value as Vector2?;
                 AssignedChipPort.PortType = typeof(T);
                 return true;
             }
             else if (typeof(T) == typeof(GameObject))
             {
-                gObj = value as GameObject;
+                GameObject = value as GameObject;
                 AssignedChipPort.PortType = typeof(T);
                 return true;
             }
+            else if (typeof(T) == typeof(List<bool>))
+            {
+                BoolList = value as List<bool>;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(List<int>))
+            {
+                IntList = value as List<int>;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(List<float>))
+            {
+                FloatList = value as List<float>;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(List<string>))
+            {
+                StringList = value as List<string>;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(List<Vector2>))
+            {
+                Vector2List = value as List<Vector2>;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(List<GameObject>))
+            {
+                GameObjectList = value as List<GameObject>;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            
         }
         else if (AssignedChipPort.acceptedTypes.Contains(typeof(string)))
         {
-            s = value.ToString();
+            String = value.ToString();
             UpdateSBuffer();
             AssignedChipPort.PortType = typeof(T);
             return true;
@@ -104,12 +165,18 @@ public class ChipPortValue
             else
             {
                 Values values = new Values();
-                values.b = b ?? false;
-                values.i = i ?? 0;
-                values.f = f ?? 0;
-                values.s = s ?? "";
-                values.v2 = v2 ?? Vector2.Zero;
-                values.gObj = gObj ?? null;
+                values.Bool = Bool ?? false;
+                values.Int = Int ?? 0;
+                values.Float = Float ?? 0;
+                values.String = String ?? "";
+                values.Vector2 = Vector2 ?? System.Numerics.Vector2.Zero;
+                values.GameObject = GameObject ?? null;
+                values.BoolList = BoolList ?? null;
+                values.IntList = IntList ?? null;
+                values.FloatList = FloatList ?? null;
+                values.StringList = StringList ?? null;
+                values.Vector2List = Vector2List ?? null;
+                values.GameObjectList = GameObjectList ?? null;
                 return values;
             }
         }
@@ -725,7 +792,7 @@ public static class CircuitEditor
                 if (portType == typeof(float))
                 {
                     ImGui.PushItemWidth(60 * Zoom);
-                    float val = port.Value.f ?? 0f;
+                    float val = port.Value.Float ?? 0f;
                     if (ImGui.InputFloat($"##{port.Id}", ref val, 0, 0, "%.2f"))
                     {
                         port.Value.SetValue(val);
@@ -734,7 +801,7 @@ public static class CircuitEditor
                 else if (portType == typeof(int))
                 {
                     ImGui.PushItemWidth(90 * Zoom);
-                    int val = port.Value.i ?? 0;
+                    int val = port.Value.Int ?? 0;
                     if (ImGui.InputInt($"##{port.Id}", ref val))
                     {
                         port.Value.SetValue(val);
@@ -743,7 +810,7 @@ public static class CircuitEditor
                 else if (portType == typeof(bool))
                 {
                     ImGui.PushItemWidth(60 * Zoom);
-                    bool val = port.Value.b ?? false;
+                    bool val = port.Value.Bool ?? false;
                     if (ImGui.Checkbox($"##{port.Id}", ref val))
                     {
                         port.Value.SetValue(val);
@@ -752,7 +819,7 @@ public static class CircuitEditor
                 else if (portType == typeof(Vector2))
                 {
                     ImGui.PushItemWidth(90 * Zoom);
-                    Vector2 val = port.Value.v2 ?? Vector2.Zero;
+                    Vector2 val = port.Value.Vector2 ?? Vector2.Zero;
                     if (ImGui.InputFloat2($"##{port.Id}", ref val))
                     {
                         port.Value.SetValue(val);
@@ -763,7 +830,7 @@ public static class CircuitEditor
                     ImGui.PushItemWidth(100 * Zoom);
                     if (ImGui.InputText($"##{port.Name}{chip.Id}", port.Value.S_bufer, (uint)port.Value.S_bufer.Length))
                     {
-                        port.Value.s = Encoding.UTF8.GetString(port.Value.S_bufer).TrimEnd('\0');
+                        port.Value.String = Encoding.UTF8.GetString(port.Value.S_bufer).TrimEnd('\0');
                     }
                 }
                 else ImGui.PushItemWidth(60 * Zoom);
@@ -788,39 +855,39 @@ public static class CircuitEditor
                     ImGui.LabelText($"##{port.Id}", TypeHelper.GetName(port.PortType));
                     if (port.PortType == typeof(float))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().f.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().Float.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().f.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().Float.ToString());
                     }
                     else if (port.PortType == typeof(int))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().i.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().Int.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().i.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().Int.ToString());
                     }
                     else if (port.PortType == typeof(string))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().s).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().String).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", "\"" + port.Value.GetValue().s + "\"");
+                        ImGui.LabelText($"##{port.Id}", "\"" + port.Value.GetValue().String + "\"");
                     }
                     else if (port.PortType == typeof(bool))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().b.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().Bool.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().b.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().Bool.ToString());
                     }
                     else if (port.PortType == typeof(Vector2))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().v2.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().Vector2.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().v2.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().Vector2.ToString());
                     }
                     else if (port.PortType == typeof(GameObject))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().gObj?.Name ?? "").X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().GameObject?.Name ?? "").X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().gObj?.Name ?? "");
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().GameObject?.Name ?? "");
                     }
                 }
                 else if (port.acceptedTypes != null)
@@ -894,39 +961,39 @@ public static class CircuitEditor
                     ImGui.LabelText($"##{port.Id}", TypeHelper.GetName(port.PortType));
                     if (port.PortType == typeof(float))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().f.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().Float.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().f.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().Float.ToString());
                     }
                     else if (port.PortType == typeof(int))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().i.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().Int.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().i.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().Int.ToString());
                     }
                     else if (port.PortType == typeof(string))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().s).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().String).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", "\"" + port.Value.GetValue().s + "\"");
+                        ImGui.LabelText($"##{port.Id}", "\"" + port.Value.GetValue().String + "\"");
                     }
                     else if (port.PortType == typeof(bool))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().b.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().Bool.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().b.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().Bool.ToString());
                     }
                     else if (port.PortType == typeof(Vector2))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().v2.ToString()).X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().Vector2.ToString()).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().v2.ToString());
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().Vector2.ToString());
                     }
                     else if (port.PortType == typeof(GameObject))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().gObj?.Name ?? "").X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().GameObject?.Name ?? "").X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().gObj?.Name ?? "");
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().GameObject?.Name ?? "");
                     }
                 }
                 else if (port.acceptedTypes != null)
@@ -1141,7 +1208,7 @@ public static class CircuitEditor
 
 public enum ChipTypes
 {
-    Default, Bool, Int, Float, String, Vector2, GameObject, Exec
+    Default, Bool, Int, Float, String, Vector2, GameObject, Exec, BoolList, IntList, FloatList, StringList, Vector2List, GameObjectList
 }
 
 public static class TypeHelper
@@ -1172,6 +1239,30 @@ public static class TypeHelper
             {
                 return "GameObject";
             }
+            else if (type == typeof(List<bool>))
+            {
+                return "List<bool>";
+            }
+            else if (type == typeof(List<int>))
+            {
+                return "List<int>";
+            }
+            else if (type == typeof(List<float>))
+            {
+                return "List<float>";
+            }
+            else if (type == typeof(List<string>))
+            {
+                return "List<string>";
+            }
+            else if (type == typeof(List<Vector2>))
+            {
+                return "List<Vector2>";
+            }
+            else if (type == typeof(List<GameObject>))
+            {
+                return "List<GameObject>";
+            }
             else
             {
                 return "";
@@ -1193,11 +1284,45 @@ public static class TypeHelper
                 return typeof(string);
             case "vector2":
                 return typeof(Vector2);
-            case "gameObject":
+            case "gameobject":
                 return typeof(GameObject);
+            case "list<bool>":
+                return typeof(List<bool>);
+            case "list<int>":
+                return typeof(List<int>);
+            case "list<float>":
+                return typeof(List<float>);
+            case "list<string>":
+                return typeof(List<string>);
+            case "list<vector2>":
+                return typeof(List<Vector2>);
+            case "list<gameobject>":
+                return typeof(List<GameObject>);
         }
 
         return null;
+    }
+
+    public static Type? GetNonListType(Type listType)
+    {
+        if (listType == typeof(List<bool>)) return typeof(bool);
+        else if (listType == typeof(List<int>)) return typeof(int);
+        else if (listType == typeof(List<float>)) return typeof(float);
+        else if (listType == typeof(List<string>)) return typeof(string);
+        else if (listType == typeof(List<Vector2>)) return typeof(Vector2);
+        else if (listType == typeof(List<GameObject>)) return typeof(GameObject);
+        else return null;
+    }
+
+    public static Type? GetListType(Type type)
+    {
+        if (type == typeof(bool)) return typeof(List<bool>);
+        else if (type == typeof(int)) return typeof(List<int>);
+        else if (type == typeof(float)) return typeof(List<float>);
+        else if (type == typeof(string)) return typeof(List<string>);
+        else if (type == typeof(Vector2)) return typeof(List<Vector2>);
+        else if (type == typeof(GameObject)) return typeof(List<GameObject>);
+        else return null;
     }
     
     
@@ -1233,6 +1358,24 @@ public static class ChipColor
             case ChipTypes.Exec:
                 return new Vector4(1f, 0.29f, 0.13f, 1f);
                 break;
+            case ChipTypes.BoolList:
+                return new Vector4(0.7f, 0.2f, 0.2f, 1f);
+                break;
+            case ChipTypes.IntList:
+                return new Vector4(0.2f, 0.7f, 0.2f, 1f);
+                break;
+            case ChipTypes.FloatList:
+                return new Vector4(0.2f, 0.2f, 0.7f, 1f);
+                break;
+            case ChipTypes.StringList:
+                return new Vector4(0.76f, 0.55f, 1f, 1f);
+                break;
+            case ChipTypes.Vector2List:
+                return new Vector4(0.55f, 1f, 1f, 1f);
+                break;
+            case ChipTypes.GameObjectList:
+                return new Vector4(1f, 1f, 0.35f, 1f);
+                break;
             default:
                 return Vector4.One;
                 break;
@@ -1265,21 +1408,33 @@ public static class ChipColor
         {
             return new Vector4(1f, 0.89f, 0.15f, 1f);
         }
+        else if (type == typeof(List<bool>))
+        {
+            return new Vector4(0.7f, 0.2f, 0.2f, 1f);
+        }
+        else if (type == typeof(List<int>))
+        {
+            return new Vector4(0.2f, 0.7f, 0.2f, 1f);
+        }
+        else if (type == typeof(List<float>))
+        {
+            return new Vector4(0.2f, 0.2f, 0.7f, 1f);
+        }
+        else if (type == typeof(List<string>))
+        {
+            return new Vector4(0.76f, 0.55f, 1f, 1f);
+        }
+        else if (type == typeof(List<Vector2>))
+        {
+            return new Vector4(0.55f, 1f, 1f, 1f);
+        }
+        else if (type == typeof(List<GameObject>))
+        {
+            return new Vector4(1f, 1f, 0.35f, 1f);
+        }
         else
         {
             return Vector4.One;
         }
     }
-}
-
-public class Values()
-{
-    public bool b = false;
-    public float f = 0f;
-    public int i = 0;
-    public string s = "";
-    public Vector2 v2 = Vector2.Zero;
-    public GameObject? gObj = null;
-    
-    public Type? ActiveType { get; set; }
 }
