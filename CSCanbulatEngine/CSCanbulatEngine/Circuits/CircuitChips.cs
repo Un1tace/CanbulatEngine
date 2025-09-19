@@ -284,6 +284,12 @@ public class CircuitChips
                             CircuitEditor.chips.Add(new GetElementAt(CircuitEditor.GetNextAvaliableChipID(), "Get Element At", spawnPos));
                             CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
                         }
+
+                        if (ImGui.MenuItem("Create List Chip"))
+                        {
+                            CircuitEditor.chips.Add(new CreateList(CircuitEditor.GetNextAvaliableChipID(), "Create List", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
                         ImGui.EndMenu();
                     }
 
@@ -1916,8 +1922,83 @@ public class FindAllObjectsWithTag : Chip
 
 public class CreateList : Chip
 {
+    private Type? ChipPortsType = null;
     public CreateList(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
+        AddPort("List", false,
+        [
+            typeof(List<bool>), typeof(List<int>), typeof(List<float>), typeof(List<string>), typeof(List<Vector2>),
+            typeof(List<GameObject>)
+        ], true);
+    }
+
+    public override void PortTypeChanged(ChipPort port)
+    {
+        if (ChipPortsType == null && port != null)
+        {
+            foreach (var thePort in InputPorts)
+            {
+                    if (thePort.PortType != null)
+                    {
+                        ChipPortsType = thePort.ConnectedPort.GetType();
+                        break;
+                    }
+            }
+
+            foreach (var thePort in InputPorts)
+            {
+                thePort._PortType = ChipPortsType;
+            }
+
+            OutputPorts.First()._PortType = TypeHelper.GetListType(ChipPortsType);
+
+        }
+        else if (ChipPortsType != null && InputPorts.Any(e => e.PortType == null) && OutputPorts.First().PortType == null)
+        {
+            ChipPortsType = null;
+            foreach (var thePort in InputPorts)
+            {
+                thePort._PortType = ChipPortsType;
+            }
+
+            OutputPorts.First()._PortType = TypeHelper.GetListType(ChipPortsType);
+        }
+        base.PortTypeChanged(port);
+    }
+
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.ImageButton("Add Element Port", (IntPtr)LoadIcons.icons["Plus.png"], new Vector2(25)))
+        {
+            AddElementPort();
+        }
+
+        if (ImGui.ImageButton("Remove Element Port", (IntPtr)LoadIcons.icons["Minus.png"], new Vector2(25)))
+        {
+            RemoveElementPort();
+        }
+    }
+    public void AddElementPort()
+    {
+        AddPort("Element " + InputPorts.Count(), true, [typeof(bool), typeof(int), typeof(float),
+            typeof(string), typeof(Vector2),
+            typeof(GameObject)], false);
+        InputPorts.Last().PortType = ChipPortsType;
+        Size = new Vector2(Size.X, (CircuitEditor.portSpacing / CircuitEditor.Zoom) * InputPorts.Count() + 75);
+    }
+
+    public void RemoveElementPort()
+    {
+        if (!InputPorts.Any())
+        {
+            return;
+        }
+        if (InputPorts.Last().ConnectedPort != null)
+        {
+            InputPorts.Last().DisconnectPort();
+        }
+        InputPorts.RemoveAt(InputPorts.Count - 1);
+        Size = new Vector2(Size.X, (CircuitEditor.portSpacing / CircuitEditor.Zoom) * InputPorts.Count() + 75);
     }
 }
 
@@ -1940,6 +2021,20 @@ public class GetElementAt : Chip
 
     public Values OutputFunction(ChipPort? chipPort)
     {
-        return new Values();
+        List<bool>? boolList = InputPorts[0].Value.GetValue().BoolList;
+        List<int>? intList = InputPorts[0].Value.GetValue().IntList;
+        List<float>? floatList = InputPorts[0].Value.GetValue().FloatList;
+        List<string>? stringList = InputPorts[0].Value.GetValue().StringList;
+        List<Vector2>? vector2List = InputPorts[0].Value.GetValue().Vector2List;
+        List<GameObject>? gameObjectList = InputPorts[0].Value.GetValue().GameObjectList;
+        return new Values()
+        {
+            Bool = boolList is not null && boolList[InputPorts[1].Value.GetValue().Int],
+            Int = intList is not null ? intList[InputPorts[1].Value.GetValue().Int] : 0,
+            Float = floatList is not null ? floatList[InputPorts[1].Value.GetValue().Int] : 0,
+            String = stringList is not null ? stringList[InputPorts[1].Value.GetValue().Int] : string.Empty,
+            Vector2 = vector2List is not null ? vector2List[InputPorts[1].Value.GetValue().Int] :  Vector2.Zero,
+            GameObject = gameObjectList?[InputPorts[1].Value.GetValue().Int]
+        };
     }
 }
