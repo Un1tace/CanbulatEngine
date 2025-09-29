@@ -1930,6 +1930,8 @@ public class CreateList : Chip
             typeof(List<bool>), typeof(List<int>), typeof(List<float>), typeof(List<string>), typeof(List<Vector2>),
             typeof(List<GameObject>)
         ], true);
+        
+        OutputPorts[0].Value.ValueFunction = ListFunction;
     }
 
     public override void PortTypeChanged(ChipPort port)
@@ -1940,7 +1942,7 @@ public class CreateList : Chip
             {
                     if (thePort.PortType != null)
                     {
-                        ChipPortsType = thePort.ConnectedPort.GetType();
+                        ChipPortsType = thePort.ConnectedPort.PortType;
                         break;
                     }
             }
@@ -2000,6 +2002,27 @@ public class CreateList : Chip
         InputPorts.RemoveAt(InputPorts.Count - 1);
         Size = new Vector2(Size.X, (CircuitEditor.portSpacing / CircuitEditor.Zoom) * InputPorts.Count() + 75);
     }
+
+    public Values ListFunction(ChipPort? chipPort)
+    {
+        if (InputPorts.Any())
+        {
+            Values theValues = new Values() {BoolList = new(), FloatList = new(), IntList = new(), StringList = new(), Vector2List = new(), GameObjectList = new()};
+            foreach (var port in InputPorts)
+            {
+                var valuesHolder = port.Value.GetValue();
+                theValues.BoolList.Add(valuesHolder.Bool);
+                theValues.FloatList.Add(valuesHolder.Float);
+                theValues.IntList.Add(valuesHolder.Int);
+                theValues.StringList.Add(valuesHolder.String);
+                theValues.Vector2List.Add(valuesHolder.Vector2);
+                theValues.GameObjectList.Add(valuesHolder.GameObject);
+            }
+            return theValues;
+        }
+
+        return new();
+    }
 }
 
 public class GetElementAt : Chip
@@ -2021,12 +2044,13 @@ public class GetElementAt : Chip
 
     public Values OutputFunction(ChipPort? chipPort)
     {
-        List<bool>? boolList = InputPorts[0].Value.GetValue().BoolList;
-        List<int>? intList = InputPorts[0].Value.GetValue().IntList;
-        List<float>? floatList = InputPorts[0].Value.GetValue().FloatList;
-        List<string>? stringList = InputPorts[0].Value.GetValue().StringList;
-        List<Vector2>? vector2List = InputPorts[0].Value.GetValue().Vector2List;
-        List<GameObject>? gameObjectList = InputPorts[0].Value.GetValue().GameObjectList;
+        var values = InputPorts[0].Value;
+        List<bool>? boolList = values.BoolList;
+        List<int>? intList = values.IntList;
+        List<float>? floatList = values.FloatList;
+        List<string>? stringList = values.StringList;
+        List<Vector2>? vector2List = values.Vector2List;
+        List<GameObject>? gameObjectList = values.GameObjectList;
         return new Values()
         {
             Bool = boolList is not null && boolList[InputPorts[1].Value.GetValue().Int],

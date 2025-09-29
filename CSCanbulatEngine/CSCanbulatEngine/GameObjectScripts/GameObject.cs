@@ -160,9 +160,14 @@ public class GameObject
             ImGui.SameLine();
             if (ImGui.ImageButton("RewriteName", (IntPtr)LoadIcons.icons["Rewrite.png"], new(25)))
             {
-                makingNewTag = false;
-                _tagNameBuffer = UTF8Encoding.UTF8.GetBytes(Engine._selectedGameObject.gameObject.Tags[Engine._selectedGameObject.gameObject.selectedTag]);
-                ImGui.OpenPopup("NameNewTag");
+                if (Engine._selectedGameObject.gameObject.Tags.Count > 0)
+                {
+                    makingNewTag = false;
+                    _tagNameBuffer = new byte[128];
+                    UTF8Encoding.UTF8.GetBytes(
+                        Engine._selectedGameObject.gameObject.Tags[Engine._selectedGameObject.gameObject.selectedTag]).CopyTo(_tagNameBuffer, 0);
+                    ImGui.OpenPopup("NameNewTag");
+                }
             }
             ImGui.SameLine();
             if (ImGui.ImageButton("AddTag", (IntPtr)LoadIcons.icons["Plus.png"], new(25)))
@@ -243,7 +248,10 @@ public class GameObject
 
     public void RemoveTag()
     {
-        Engine._selectedGameObject.gameObject.Tags.RemoveAt(selectedTag);
+        if (Engine._selectedGameObject.gameObject.Tags.Count > 0)
+        {
+            Engine._selectedGameObject.gameObject.Tags.RemoveAt(selectedTag);
+        }
     }
 #endif
 
