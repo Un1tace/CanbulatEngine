@@ -1953,6 +1953,7 @@ public class CreateList : Chip
             }
 
             OutputPorts.First()._PortType = TypeHelper.GetListType(ChipPortsType);
+            OutputPorts.First().UpdateColor();
 
         }
         else if (ChipPortsType != null && InputPorts.Any(e => e.PortType == null) && OutputPorts.First().PortType == null)
@@ -1964,6 +1965,7 @@ public class CreateList : Chip
             }
 
             OutputPorts.First()._PortType = TypeHelper.GetListType(ChipPortsType);
+            OutputPorts.First().UpdateColor();
         }
         base.PortTypeChanged(port);
     }
@@ -1980,13 +1982,14 @@ public class CreateList : Chip
             RemoveElementPort();
         }
     }
-    public void AddElementPort()
+    public ChipPort AddElementPort()
     {
-        AddPort("Element " + InputPorts.Count(), true, [typeof(bool), typeof(int), typeof(float),
+        var thePort = AddPort("Element " + InputPorts.Count(), true, [typeof(bool), typeof(int), typeof(float),
             typeof(string), typeof(Vector2),
             typeof(GameObject)], false);
         InputPorts.Last().PortType = ChipPortsType;
         Size = new Vector2(Size.X, (CircuitEditor.portSpacing / CircuitEditor.Zoom) * InputPorts.Count() + 75);
+        return thePort;
     }
 
     public void RemoveElementPort()
@@ -2005,7 +2008,7 @@ public class CreateList : Chip
 
     public Values ListFunction(ChipPort? chipPort)
     {
-        if (InputPorts.Any())
+        if (InputPorts.Count > 0)
         {
             Values theValues = new Values() {BoolList = new(), FloatList = new(), IntList = new(), StringList = new(), Vector2List = new(), GameObjectList = new()};
             foreach (var port in InputPorts)
@@ -2022,6 +2025,40 @@ public class CreateList : Chip
         }
 
         return new();
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        Dictionary<string, string> ret = new Dictionary<string, string>();
+
+        foreach (var port in InputPorts)
+        {
+            if (port.ConnectedPort != null)
+            {
+                ret.Add($"port", port.Id + "," + port.ConnectedPort.Id + "," + port.ConnectedPort.Parent.Id);
+            }
+        }
+
+        return ret;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+
+        foreach (var portToAdd in properties)
+        {
+            ChipPort thePort = AddElementPort();
+            string[] theValues = portToAdd.Value.Split(',');
+            if (int.TryParse(theValues[0], out int portId))
+            {
+                thePort.Id = portId;
+            }
+
+            if (int.TryParse(theValues[1], out int connectedPortId) && int.TryParse(theValues[2], out int connectedPortChipId))
+            {
+                thePort.ConnectPort(CircuitEditor.FindChip(connectedPortChipId).FindPort(connectedPortId));
+            }
+        }
     }
 }
 

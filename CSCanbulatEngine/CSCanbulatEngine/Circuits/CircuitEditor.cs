@@ -192,7 +192,7 @@ public class ChipPortValue
 
 public class ChipPort
 {
-    public int Id { get; }
+    public int Id { get; set; }
     public string Name { get; }
     public Chip Parent { get; set; }
     public bool IsInput { get; }
@@ -565,7 +565,7 @@ public class Chip
         port.UpdateColor();
     }
 
-    private ChipPort? FindPort(int id)
+    public ChipPort? FindPort(int id)
     {
         foreach (var port in new List<ChipPort>().Concat(InputPorts).Concat(OutputPorts).Concat(InputExecPorts).Concat(OutputExecPorts))
         {
