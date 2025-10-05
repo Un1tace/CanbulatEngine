@@ -1936,38 +1936,51 @@ public class CreateList : Chip
 
     public override void PortTypeChanged(ChipPort port)
     {
-        if (ChipPortsType == null && port != null)
+    }
+
+    public override void ChildPortIsConnected(ChipPort childPort, ChipPort portConnectedTo)
+    {
+        if (ChipPortsType == null && childPort.PortType != null)
         {
+            ChipPortsType = childPort.PortType;
             foreach (var thePort in InputPorts)
             {
-                    if (thePort.PortType != null)
-                    {
-                        ChipPortsType = thePort.ConnectedPort.PortType;
-                        break;
-                    }
+                thePort.PortType = ChipPortsType;
+                thePort.UpdateColor();
             }
-
-            foreach (var thePort in InputPorts)
-            {
-                thePort._PortType = ChipPortsType;
-            }
-
-            OutputPorts.First()._PortType = TypeHelper.GetListType(ChipPortsType);
-            OutputPorts.First().UpdateColor();
-
+            
+            OutputPorts[0].PortType = TypeHelper.GetListType(ChipPortsType);
+            OutputPorts[0].UpdateColor();
         }
-        else if (ChipPortsType != null && InputPorts.Any(e => e.PortType == null) && OutputPorts.First().PortType == null)
+
+        if (ChipPortsType != null && childPort.PortType != null)
+        {
+            if (ChipPortsType != childPort.PortType)
+            {
+                childPort.DisconnectPort();
+            }
+        }
+    }
+
+    public override void ChildPortIsDisconnected(ChipPort childPort)
+    {
+        if (ChipPortsType != null && InputPorts.All(e => e.ConnectedPort == null) && !OutputPorts[0].PortIsConnected())
         {
             ChipPortsType = null;
             foreach (var thePort in InputPorts)
             {
-                thePort._PortType = ChipPortsType;
+                thePort.PortType = null;
+                thePort.UpdateColor();
             }
 
-            OutputPorts.First()._PortType = TypeHelper.GetListType(ChipPortsType);
-            OutputPorts.First().UpdateColor();
+            Console.WriteLine("Changing all portTypes to null");
+            OutputPorts[0].PortType = null;
+            OutputPorts[0].UpdateColor();
         }
-        base.PortTypeChanged(port);
+        else
+        {
+            childPort.PortType = childPort.IsInput? ChipPortsType : TypeHelper.GetListType(ChipPortsType);
+        }
     }
 
     public override void ChipInspectorProperties()
@@ -2008,58 +2021,127 @@ public class CreateList : Chip
 
     public Values ListFunction(ChipPort? chipPort)
     {
-        if (InputPorts.Count > 0)
+        Values theValues = new Values();
+        if (InputPorts.Count > 0 && ChipPortsType != null)
         {
-            Values theValues = new Values() {BoolList = new(), FloatList = new(), IntList = new(), StringList = new(), Vector2List = new(), GameObjectList = new()};
-            foreach (var port in InputPorts)
+            if (ChipPortsType == typeof(bool))
             {
-                var valuesHolder = port.Value.GetValue();
-                theValues.BoolList.Add(valuesHolder.Bool);
-                theValues.FloatList.Add(valuesHolder.Float);
-                theValues.IntList.Add(valuesHolder.Int);
-                theValues.StringList.Add(valuesHolder.String);
-                theValues.Vector2List.Add(valuesHolder.Vector2);
-                theValues.GameObjectList.Add(valuesHolder.GameObject);
+                theValues.BoolList = InputPorts.Select(p => p.Value.GetValue().Bool).ToList();
             }
-            return theValues;
+            else if (ChipPortsType == typeof(int))
+            {
+                theValues.IntList = InputPorts.Select(p => p.Value.GetValue().Int).ToList();
+            }
+            else if (ChipPortsType == typeof(float))
+            {
+                theValues.FloatList = InputPorts.Select(p => p.Value.GetValue().Float).ToList();
+            }
+            else if (ChipPortsType == typeof(string))
+            {
+                theValues.StringList = InputPorts.Select(p => p.Value.GetValue().String).ToList();
+            }
+            else if (ChipPortsType == typeof(Vector2))
+            {
+                theValues.Vector2List = InputPorts.Select(p => p.Value.GetValue().Vector2).ToList();
+            }
+            else if (ChipPortsType == typeof(GameObject))
+            {
+                theValues.GameObjectList = InputPorts.Select(p => p.Value.GetValue().GameObject).ToList();
+            }
         }
-
-        return new();
+        return theValues;
     }
 
     public override Dictionary<string, string> GetCustomProperties()
     {
-        Dictionary<string, string> ret = new Dictionary<string, string>();
-
-        foreach (var port in InputPorts)
+        Dictionary<string, string> properties = new Dictionary<string, string>();
+        
+        if (ChipPortsType != null)
         {
+            properties["ChipPortsType"] = ChipPortsType.AssemblyQualifiedName;
+        }
+
+        for (int i = 0; i < InputPorts.Count; i++)
+        {
+            var port = InputPorts[i];
+            string portData;
+
             if (port.ConnectedPort != null)
             {
-                ret.Add($"port", port.Id + "," + port.ConnectedPort.Id + "," + port.ConnectedPort.Parent.Id);
+                portData = $"{port.Id},connected,{port.ConnectedPort.Parent.Id},{port.ConnectedPort.Id}";
             }
+            else
+            {
+                var value = port.Value.GetValue();
+                string valueAsString = value.ToString();
+                
+                portData = $"{port.Id},unconnected,{port.PortType?.AssemblyQualifiedName},{valueAsString}";
+            }
+            
+            properties[$"Port{i}"] = portData;
         }
 
-        return ret;
-    }
-
-    public override void SetCustomProperties(Dictionary<string, string> properties)
-    {
-
-        foreach (var portToAdd in properties)
+        if (OutputPorts[0].PortType != null)
         {
-            ChipPort thePort = AddElementPort();
-            string[] theValues = portToAdd.Value.Split(',');
-            if (int.TryParse(theValues[0], out int portId))
-            {
-                thePort.Id = portId;
-            }
+            properties["OutputPortsType"] = TypeHelper.GetName(OutputPorts[0].PortType).ToLower();
+        }
 
-            if (int.TryParse(theValues[1], out int connectedPortId) && int.TryParse(theValues[2], out int connectedPortChipId))
+        return properties;
+    }
+
+public override void SetCustomProperties(Dictionary<string, string> properties)
+{
+    if (properties.TryGetValue("ChipPortsType", out var typeName))
+    {
+        ChipPortsType = Type.GetType(typeName);
+    }
+    
+    var savedPorts = properties
+        .Where(kv => kv.Key.StartsWith("Port"))
+        .OrderBy(kv => int.Parse(kv.Key.Substring(4))); 
+
+    foreach (var portEntry in savedPorts)
+    {
+        ChipPort newPort = AddElementPort();
+        
+        string[] data = portEntry.Value.Split(',');
+        
+        if (int.TryParse(data[0], out int portId))
+        {
+        }
+
+        string connectionState = data[1];
+
+        if (connectionState == "connected")
+        {
+            if (int.TryParse(data[2], out int targetChipId) && int.TryParse(data[3], out int targetPortId))
             {
-                thePort.ConnectPort(CircuitEditor.FindChip(connectedPortChipId).FindPort(connectedPortId));
+                var targetChip = CircuitEditor.FindChip(targetChipId);
+                var targetPort = targetChip?.FindPort(targetPortId);
+                if (targetPort != null)
+                {
+                    newPort.ConnectPort(targetPort);
+                }
+            }
+        }
+        else if (connectionState == "unconnected")
+        {
+            if (data.Length > 3)
+            {
+                Type valueType = Type.GetType(data[2]);
+                string valueString = data[3];
+                
+                if (valueType == typeof(int) && int.TryParse(valueString, out int intValue))
+                {
+                    newPort.Value.SetValue(intValue);
+                }
             }
         }
     }
+    string[] theData = savedPorts.First().Value.Split(',');
+    OutputPorts[0].PortType = TypeHelper.GetType( properties.ContainsKey("OutputPortsType")? (String.IsNullOrWhiteSpace(properties["OutputPortsType"]) ? theData[2] :  properties["OutputPortsType"]) : theData[2]);
+    
+}
 }
 
 public class GetElementAt : Chip
@@ -2081,21 +2163,45 @@ public class GetElementAt : Chip
 
     public Values OutputFunction(ChipPort? chipPort)
     {
-        var values = InputPorts[0].Value;
-        List<bool>? boolList = values.BoolList;
-        List<int>? intList = values.IntList;
-        List<float>? floatList = values.FloatList;
-        List<string>? stringList = values.StringList;
-        List<Vector2>? vector2List = values.Vector2List;
-        List<GameObject>? gameObjectList = values.GameObjectList;
-        return new Values()
+        var listValues = InputPorts[0].Value.GetValue();
+        int index = InputPorts[1].Value.GetValue().Int;
+        Type? listType = InputPorts[0].PortType;
+
+        if (listType == null) return new Values();
+
+        try
         {
-            Bool = boolList is not null && boolList[InputPorts[1].Value.GetValue().Int],
-            Int = intList is not null ? intList[InputPorts[1].Value.GetValue().Int] : 0,
-            Float = floatList is not null ? floatList[InputPorts[1].Value.GetValue().Int] : 0,
-            String = stringList is not null ? stringList[InputPorts[1].Value.GetValue().Int] : string.Empty,
-            Vector2 = vector2List is not null ? vector2List[InputPorts[1].Value.GetValue().Int] :  Vector2.Zero,
-            GameObject = gameObjectList?[InputPorts[1].Value.GetValue().Int]
-        };
+            if (listType == typeof(List<bool>) && listValues.BoolList != null && index < listValues.BoolList.Count)
+            {
+                return new Values { Bool = listValues.BoolList[index] };
+            }
+            if (listType == typeof(List<int>) && listValues.IntList != null && index < listValues.IntList.Count)
+            {
+                return new Values { Int = listValues.IntList[index] };
+            }
+            if (listType == typeof(List<float>) && listValues.FloatList != null && index < listValues.FloatList.Count)
+            {
+                return new Values { Float = listValues.FloatList[index] };
+            }
+            if (listType == typeof(List<string>) && listValues.StringList != null && index < listValues.StringList.Count)
+            {
+                return new Values { String = listValues.StringList[index] };
+            }
+            if (listType == typeof(List<Vector2>) && listValues.Vector2List != null && index < listValues.Vector2List.Count)
+            {
+                return new Values { Vector2 = listValues.Vector2List[index] };
+            }
+            if (listType == typeof(List<GameObject>) && listValues.GameObjectList != null && index < listValues.GameObjectList.Count)
+            {
+                return new Values { GameObject = listValues.GameObjectList[index] };
+            }
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            GameConsole.Log($"Index {index} is out of range for the list.", LogType.Warning);
+            return new Values();
+        }
+        
+        return new Values();
     }
 }

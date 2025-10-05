@@ -188,6 +188,7 @@ public class ChipPortValue
         return null;
 
     }
+    
 }
 
 public class ChipPort
@@ -305,7 +306,7 @@ public class ChipPort
 
         if (port == ConnectedPort)
         {
-            
+            var disconnectedPortBuffer = ConnectedPort;
             ConnectedPort = null;
             if (acceptedTypes.Count != 1)
             {
@@ -314,6 +315,8 @@ public class ChipPort
             port.outputConnectedPorts.Remove(this);
             Parent.PortTypeChanged(this);
             UpdateColor();
+            Parent.ChildPortIsDisconnected(this);
+            disconnectedPortBuffer.Parent.ChildPortIsDisconnected(disconnectedPortBuffer);
         }
         else
         {
@@ -321,9 +324,15 @@ public class ChipPort
             PortType = port.PortType;
             port.outputConnectedPorts.Add(this);
             UpdateColor();
+            Parent.ChildPortIsConnected(this, port);
         }
         Parent.UpdateChipConfig();
         return true;
+    }
+
+    public virtual bool PortIsConnected()
+    {
+        return this.ConnectedPort != null || this.outputConnectedPorts.Count() != 0;
     }
 
     public virtual void DisconnectPort()
@@ -335,12 +344,15 @@ public class ChipPort
             return;
         }
         ConnectedPort.outputConnectedPorts.Remove(this);
+        var disconnectedPortBuffer = ConnectedPort;
         ConnectedPort = null;
         if ((acceptedTypes?.Count ?? -1) != 1)
         {
             _PortType = null;
         }
         Parent.PortTypeChanged(this);
+        Parent.ChildPortIsDisconnected(this);
+        disconnectedPortBuffer.Parent.ChildPortIsDisconnected(disconnectedPortBuffer);
         UpdateColor();
     }
 
@@ -425,12 +437,14 @@ public class ExecPort : ChipPort
             ConnectedPort = null;
             port.outputConnectedPorts.Remove(this);
             UpdateColor();
+            Parent.ChildPortIsDisconnected(this);
         }
         else
         {
             ConnectedPort = port;
             port.outputConnectedPorts.Add(this);
             UpdateColor();
+            Parent.ChildPortIsConnected(this, port);
         }
 
         Parent.UpdateChipConfig();
@@ -596,15 +610,25 @@ public class Chip
     // Used for displaying custom stuff on chips, used in override on chips
     public virtual void DisplayCustomItem() {}
 
+    // Renders custom inspector options on the inspector if the chip is selected and needed
     public virtual void ChipInspectorProperties() {}
 
+    // Any clean up that is needed before the chip is deleted
     public virtual void OnDestroy() {}
-
+    
+    // Executed when any child port is connected
+    public virtual void ChildPortIsConnected(ChipPort childPort, ChipPort portConnectedTo) {}
+    
+    // Executed when any child port is disconnected
+    public virtual void ChildPortIsDisconnected(ChipPort childPort) {}
+    
+    // Used for saving custom properties on the specific chip that will be needed in the circuit editor
     public virtual Dictionary<string, string> GetCustomProperties()
     {
         return new Dictionary<string, string>();
     }
 
+    // Used for setting custom properties on the specific chip when loaded
     public virtual void SetCustomProperties(Dictionary<string, string> properties) {}
 }
 
