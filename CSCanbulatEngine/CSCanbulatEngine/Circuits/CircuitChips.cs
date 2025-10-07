@@ -6,6 +6,7 @@ using System.Windows.Markup;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
+using Microsoft.IdentityModel.Tokens;
 using SixLabors.ImageSharp;
 using RectangleF = System.Drawing.RectangleF;
 
@@ -2073,8 +2074,9 @@ public class CreateList : Chip
             else
             {
                 var value = port.Value.GetValue();
-                string valueAsString = value.ToString();
-                
+                // string valueAsString = value.ToString();
+                string valueAsString = $"{value.Bool}^{value.Int}^{value.Float}^{(value.String)}^{value.Vector2.X + "+" + value.Vector2.Y}";
+
                 portData = $"{port.Id},unconnected,{port.PortType?.AssemblyQualifiedName},{valueAsString}";
             }
             
@@ -2129,11 +2131,44 @@ public override void SetCustomProperties(Dictionary<string, string> properties)
             if (data.Length > 3)
             {
                 Type valueType = Type.GetType(data[2]);
-                string valueString = data[3];
+                string valueString = data[7];
                 
-                if (valueType == typeof(int) && int.TryParse(valueString, out int intValue))
+                // if (valueType == typeof(int) && int.TryParse(valueString, out int intValue))
+                // {
+                //     newPort.Value.SetValue(intValue);
+                // }
+
+                if (!valueString.IsNullOrEmpty() && valueString.Contains('^'))
                 {
-                    newPort.Value.SetValue(intValue);
+                    string[] values = valueString.Split('^');
+
+                    if (bool.TryParse(values[0], out bool boolValue))
+                    {
+                        newPort.Value.Bool = boolValue;
+                    }
+
+                    if (int.TryParse(values[1], out int intValue))
+                    {
+                        newPort.Value.Int = intValue;
+                    }
+
+                    if (float.TryParse(values[2], out float floatValue))
+                    {
+                        newPort.Value.Float = floatValue;
+                    }
+
+                    newPort.Value.String = values[3];
+
+                    if (values[4].Contains('+'))
+                    {
+                        string vector2Buffer = values[4];
+                        string[] vector2BufferSplit = vector2Buffer.Split('+');
+                        if (float.TryParse(vector2BufferSplit[0], out float vector2x) &&
+                            float.TryParse(vector2BufferSplit[1], out float vector2y))
+                        {
+                            newPort.Value.Vector2 = new  Vector2(vector2x, vector2y);
+                        }
+                    }
                 }
             }
         }
