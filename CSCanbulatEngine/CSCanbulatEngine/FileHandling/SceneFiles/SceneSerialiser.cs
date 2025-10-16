@@ -126,7 +126,7 @@ public class SceneSerialiser
             if (objData.transformData != null)
             {
                 SceneData.TransformData transformData = objData.transformData;
-                Transform transform = new Transform();
+                Transform transform = new Transform(obj);
                 transform.Position = transformData.Position;
                 transform.Scale = transformData.Scale;
                 transform.Rotation = transformData.Rotation;
@@ -142,7 +142,7 @@ public class SceneSerialiser
             if (objData.meshRendererData != null)
             {
                 SceneData.MeshRendererData meshRendererData = objData.meshRendererData;
-                MeshRenderer meshRenderer = new MeshRenderer(Engine._squareMesh);
+                MeshRenderer meshRenderer = new MeshRenderer(Engine._squareMesh, obj);
                 meshRenderer.name = meshRendererData.Name;
                 meshRenderer.Color = meshRendererData.Color;
                 meshRenderer.TexturePath = meshRendererData.TexturePath;

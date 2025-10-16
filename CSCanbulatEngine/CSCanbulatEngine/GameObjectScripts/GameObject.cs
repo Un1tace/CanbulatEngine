@@ -23,8 +23,8 @@ public class GameObject
         Tags.Add("GameObject");
         
         //Add Core Components
-        AddComponent(new Transform());
-        AddComponent(new MeshRenderer(mesh));
+        AddComponent(new Transform(this));
+        AddComponent(new MeshRenderer(mesh, this));
         
         //
         int nameCheck = 0;
@@ -233,8 +233,32 @@ public class GameObject
             {
                 if (ImGui.CollapsingHeader(component.name, ImGuiTreeNodeFlags.DefaultOpen))
                 {
+                    if (component.canBeDisabled)
+                    {
+                        if (ImGui.Checkbox("Enabled", ref component._isEnabled))
+                        {
+                            
+                        }
+                    }
+                    if (component.canBeRemoved)
+                    {
+                        if (ImGui.Button("Remove Component", new (ImGui.GetContentRegionAvail().X, ImGui.CalcTextSize("Add Component").Y)))
+                        {
+                            component.DestroyComponent();
+                        }
+                    }
                     component.RenderInspector();
                 }
+            }
+
+            ImGui.Separator();
+            
+            Vector2 AddComponentSize = ImGui.GetContentRegionAvail();
+            AddComponentSize.Y = ImGui.CalcTextSize("Add Component").Y * 2;
+
+            if (ImGui.Button("Add Component", AddComponentSize))
+            {
+                Console.WriteLine("Adds Components");
             }
             
         }

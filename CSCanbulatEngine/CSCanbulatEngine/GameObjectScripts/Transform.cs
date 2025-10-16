@@ -35,7 +35,7 @@ public class Transform : Component
 #endif
 
     private bool _ratioLocked = false;
-    public Transform() : base("Transform")
+    public Transform(GameObject? parentObject) : base("Transform", parentObject)
     {
         base.canBeDisabled = false;
         base.canBeRemoved = false;

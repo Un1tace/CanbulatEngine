@@ -6,9 +6,10 @@ namespace CSCanbulatEngine.GameObjectScripts;
 public class Component
 {
     
-    private bool _isEnabled = true;
+    public bool _isEnabled = true;
     public bool canBeDisabled = true;
     public bool canBeRemoved = true;
+    public GameObject? parentObject;
 
     public GameObject AttachedGameObject;
     
@@ -20,9 +21,10 @@ public class Component
     
     public string name = "";
 
-    public Component(string ComponentName)
+    public Component(string ComponentName, GameObject? parentObject)
     {
         name = ComponentName;
+        this.parentObject = parentObject?? null;
     }
 
     public virtual void RenderInspector()
@@ -32,6 +34,7 @@ public class Component
 
     public virtual void DestroyComponent()
     {
-        
+        if (canBeRemoved) parentObject.RemoveComponent(this);
     }
+    
 }
