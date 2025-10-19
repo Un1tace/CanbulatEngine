@@ -102,21 +102,25 @@ public class Transform : Component
             Engine._selectedGameObject.gameObject.GetComponent<Transform>().Scale = scale;
         }
 
-        if (AttachedGameObject.GetComponent<MeshRenderer>().TextureID != 0 && LoadIcons.icons.ContainsKey("Lock.png"))
+        if (AttachedGameObject.GetComponent<MeshRenderer>() != null)
         {
-            if (ImGui.ImageButton("Lock Scale Ratio", (IntPtr)LoadIcons.icons["Lock.png"],
-                    new Vector2(25, 25), Vector2.Zero, Vector2.One, Vector4.Zero,
-                    ratioLocked ? Vector4.One : new Vector4(1, 1, 1, 0.5f)))
+            if (AttachedGameObject.GetComponent<MeshRenderer>().TextureID != 0 &&
+                LoadIcons.icons.ContainsKey("Lock.png"))
             {
-                ratioLocked = !ratioLocked;
-            }
+                if (ImGui.ImageButton("Lock Scale Ratio", (IntPtr)LoadIcons.icons["Lock.png"],
+                        new Vector2(25, 25), Vector2.Zero, Vector2.One, Vector4.Zero,
+                        ratioLocked ? Vector4.One : new Vector4(1, 1, 1, 0.5f)))
+                {
+                    ratioLocked = !ratioLocked;
+                }
 
-            ImGui.SameLine();
-            ImGui.Text($"Image Ratio Locked: {ratioLocked}");
-        }
-        else
-        {
-            ratioLocked = false;
+                ImGui.SameLine();
+                ImGui.Text($"Image Ratio Locked: {ratioLocked}");
+            }
+            else
+            {
+                ratioLocked = false;
+            }
         }
     }
 #endif

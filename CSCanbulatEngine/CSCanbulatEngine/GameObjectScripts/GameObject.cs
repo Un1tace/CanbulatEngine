@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using CSCanbulatEngine.InfoHolders;
 using CSCanbulatEngine.UIHelperScripts;
@@ -229,6 +230,8 @@ public class GameObject
             
             ImGui.Separator();
 
+            ComponentInstruction nextInstruction = new();
+            
             foreach (Component component in Engine._selectedGameObject.gameObject.Components)
             {
                 if (ImGui.CollapsingHeader(component.name, ImGuiTreeNodeFlags.DefaultOpen))
@@ -244,11 +247,19 @@ public class GameObject
                     {
                         if (ImGui.Button("Remove Component", new (ImGui.GetContentRegionAvail().X, ImGui.CalcTextSize("Add Component").Y)))
                         {
-                            component.DestroyComponent();
+                            // Engine._selectedGameObject.gameObject.RemoveComponent(component);
+                            nextInstruction._component = component;
+                            nextInstruction._instructionType = InstructionType.Remove;
+                            continue;
                         }
                     }
                     component.RenderInspector();
                 }
+            }
+
+            if (nextInstruction._instructionType == InstructionType.Remove && nextInstruction._component != null)
+            {
+                Engine._selectedGameObject.gameObject.RemoveComponent(nextInstruction._component);
             }
 
             ImGui.Separator();
@@ -289,4 +300,15 @@ public class GameObject
         return null;
     }
 
+}
+
+public class ComponentInstruction
+{
+    public Component? _component;
+    public InstructionType? _instructionType;
+}
+
+public enum InstructionType
+{
+    Remove, Add
 }

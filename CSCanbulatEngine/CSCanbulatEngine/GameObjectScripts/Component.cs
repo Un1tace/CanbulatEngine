@@ -34,7 +34,6 @@ public class Component
 
     public virtual void DestroyComponent()
     {
-        if (canBeRemoved) parentObject.RemoveComponent(this);
     }
     
 }
