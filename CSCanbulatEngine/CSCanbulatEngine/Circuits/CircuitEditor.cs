@@ -104,6 +104,13 @@ public class ChipPortValue
                 AssignedChipPort.PortType = typeof(T);
                 return true;
             }
+            else if (typeof(T) == typeof(string))
+            {
+                String = value.ToString();
+                UpdateSBuffer();
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
             else if (typeof(T) == typeof(List<bool>))
             {
                 BoolList = value as List<bool>;
@@ -1018,6 +1025,42 @@ public static class CircuitEditor
                         textWidth = ImGui.CalcTextSize(port.Value.GetValue().GameObject?.Name ?? "").X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
                         ImGui.LabelText($"##{port.Id}", port.Value.GetValue().GameObject?.Name ?? "");
+                    }
+                    else if (port.PortType == typeof(List<bool>))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().BoolList is not null? port.Value.GetValue().BoolList.Count().ToString() : "null").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().BoolList is not null? port.Value.GetValue().BoolList.Count().ToString() : "null"));
+                    }
+                    else if (port.PortType == typeof(List<float>))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().FloatList is not null? port.Value.GetValue().FloatList.Count().ToString() : "null").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().FloatList is not null? port.Value.GetValue().FloatList.Count().ToString() : "null"));
+                    }
+                    else if (port.PortType == typeof(List<int>))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().IntList is not null? port.Value.GetValue().IntList.Count().ToString() : "null").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().IntList is not null? port.Value.GetValue().IntList.Count().ToString() : "null"));
+                    }
+                    else if (port.PortType == typeof(List<string>))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().StringList is not null? port.Value.GetValue().StringList.Count().ToString() : "null").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().StringList is not null? port.Value.GetValue().StringList.Count().ToString() : "null"));
+                    }
+                    else if (port.PortType == typeof(List<Vector2>))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().Vector2List is not null? port.Value.GetValue().Vector2List.Count().ToString() : "null").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().Vector2List is not null? port.Value.GetValue().Vector2List.Count().ToString() : "null"));
+                    }
+                    else if (port.PortType == typeof(List<GameObject>))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().GameObjectList is not null? port.Value.GetValue().GameObjectList.Count().ToString() : "null").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().GameObjectList is not null? port.Value.GetValue().GameObjectList.Count().ToString() : "null"));
                     }
                 }
                 else if (port.acceptedTypes != null)
