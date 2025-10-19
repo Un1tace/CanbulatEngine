@@ -146,6 +146,7 @@ public class SceneSerialiser
                 meshRenderer.name = meshRendererData.Name;
                 meshRenderer.Color = meshRendererData.Color;
                 meshRenderer.TexturePath = meshRendererData.TexturePath;
+                meshRenderer.AttachedGameObject = obj;
                 if (!String.IsNullOrWhiteSpace(meshRendererData.TexturePath))
                 {
                     meshRenderer.AssignTexture(meshRendererData.TexturePath);
@@ -155,6 +156,10 @@ public class SceneSerialiser
                 {
                     obj.Components[obj.GetComponentIndex<MeshRenderer>()] = meshRenderer;
                 }
+            }
+            else
+            {
+                obj.RemoveComponent(obj.GetComponent<MeshRenderer>());
             }
         }
     }
