@@ -68,6 +68,7 @@ public class SceneSerialiser
                         transformData.Position = transform.Position;
                         transformData.Scale = transform.Scale;
                         transformData.Rotation = transform.Rotation;
+                        transformData.Enabled = transform.isEnabled;
                         break;
                     case MeshRenderer meshRenderer:
                         meshRendererData = new SceneData.MeshRendererData();
@@ -75,6 +76,7 @@ public class SceneSerialiser
                         meshRendererData.Enabled = meshRenderer.isEnabled;
                         meshRendererData.Color = meshRenderer.Color;
                         meshRendererData.TexturePath = meshRenderer.TexturePath;
+                        meshRendererData.Enabled = meshRenderer.isEnabled;
                         break;
                     case null:
                         break;
@@ -131,7 +133,7 @@ public class SceneSerialiser
                 transform.Scale = transformData.Scale;
                 transform.Rotation = transformData.Rotation;
                 transform.name = transformData.Name;
-                transform.isEnabled = transformData.Enabled;
+                transform.isEnabled = true;
                 transform.AttachedGameObject = obj;
                 if (obj.GetComponentIndex<Transform>() != -1)
                 {
@@ -147,6 +149,7 @@ public class SceneSerialiser
                 meshRenderer.Color = meshRendererData.Color;
                 meshRenderer.TexturePath = meshRendererData.TexturePath;
                 meshRenderer.AttachedGameObject = obj;
+                meshRenderer.isEnabled = meshRendererData.Enabled;
                 if (!String.IsNullOrWhiteSpace(meshRendererData.TexturePath))
                 {
                     meshRenderer.AssignTexture(meshRendererData.TexturePath);
