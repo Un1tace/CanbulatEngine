@@ -9,7 +9,6 @@ public class Component
     public bool _isEnabled = true;
     public bool canBeDisabled = true;
     public bool canBeRemoved = true;
-    public GameObject? parentObject;
 
     public GameObject AttachedGameObject;
     
@@ -21,10 +20,9 @@ public class Component
     
     public string name = "";
 
-    public Component(string ComponentName, GameObject? parentObject)
+    public Component(string ComponentName)
     {
         name = ComponentName;
-        this.parentObject = parentObject?? null;
     }
 
     public virtual void RenderInspector()

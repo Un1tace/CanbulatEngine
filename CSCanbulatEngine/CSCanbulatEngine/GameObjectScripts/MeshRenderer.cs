@@ -36,7 +36,7 @@ public class MeshRenderer : Component
         set => _imageResolution = value;
     }
 
-    public MeshRenderer(Mesh mesh, GameObject? parentObject) : base("MeshRenderer", parentObject)
+    public MeshRenderer(Mesh mesh) : base("MeshRenderer")
     {
         this.Mesh = mesh;
         TextureID = 0;

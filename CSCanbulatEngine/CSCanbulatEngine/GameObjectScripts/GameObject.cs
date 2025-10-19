@@ -24,8 +24,8 @@ public class GameObject
         Tags.Add("GameObject");
         
         //Add Core Components
-        AddComponent(new Transform(this));
-        AddComponent(new MeshRenderer(mesh, this));
+        AddComponent(new Transform());
+        AddComponent(new MeshRenderer(mesh));
         
         //
         int nameCheck = 0;
@@ -63,6 +63,11 @@ public class GameObject
         }
 
         return null;
+    }
+
+    public bool HasComponent<T>() where T : Component
+    {
+        return Components.Any(component => component is T);
     }
     
     public int GetComponentIndex<T>() where T : Component
@@ -269,9 +274,25 @@ public class GameObject
 
             if (ImGui.Button("Add Component", AddComponentSize))
             {
-                Console.WriteLine("Adds Components");
+                ImGui.OpenPopup("AddComponentMenu");
             }
             
+            if (ImGui.BeginPopup("AddComponentMenu"))
+            {
+                ImGui.Text("Available Components: ");
+                ImGui.Separator();
+                    
+                if (!Engine._selectedGameObject.gameObject.HasComponent<MeshRenderer>()) 
+                { 
+                    if (ImGui.MenuItem("MeshRenderer")) 
+                    {
+                        var meshRenderer = new MeshRenderer(Engine._squareMesh);
+                        Engine._selectedGameObject.gameObject.AddComponent(meshRenderer); 
+                    }
+                }
+                    
+                ImGui.EndPopup();
+            }
         }
         
     }
