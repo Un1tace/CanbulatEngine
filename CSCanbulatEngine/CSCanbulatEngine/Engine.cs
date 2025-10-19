@@ -45,14 +45,14 @@ public class Engine
     private static uint Ebo;
 
     //Reference to Shader.cs class
-    private static Shader shader;
+    public static Shader shader;
 
     private const float GameAspectRatio = 16f / 9f;
     private static IKeyboard? primaryKeyboard;
 
     private static float _cameraZoom = 2f;
 
-    private static uint _whiteTexture;
+    public static uint _whiteTexture;
     
     //Engine state config
     public static EngineState CurrentState = EngineState.Editor;
@@ -1050,18 +1050,20 @@ public class Engine
             var renderer = gameObject.GetComponent<MeshRenderer>();
             if (renderer == null) continue;
             
-            //Set color in shader :)
-            shader.SetUniform("uColor", renderer.Color);
-
-            uint textureToBind = renderer.TextureID != 0 ? renderer.TextureID : _whiteTexture;
-            gl.BindTexture(TextureTarget.Texture2D, textureToBind);
+            renderer.Draw();
             
-            //Get the matrix from the transform
-            Matrix4x4 modelMatrix = gameObject.GetComponent<Transform>().GetModelMatrix();
-            //Set model uniform in the shader for the object
-            shader.SetUniform("model", modelMatrix);
-
-            renderer.Mesh.Draw();
+            // //Set color in shader :)
+            // shader.SetUniform("uColor", renderer.Color);
+            //
+            // uint textureToBind = renderer.TextureID != 0 ? renderer.TextureID : _whiteTexture;
+            // gl.BindTexture(TextureTarget.Texture2D, textureToBind);
+            //
+            // //Get the matrix from the transform
+            // Matrix4x4 modelMatrix = gameObject.GetComponent<Transform>().GetModelMatrix();
+            // //Set model uniform in the shader for the object
+            // shader.SetUniform("model", modelMatrix);
+            //
+            // renderer.Mesh.Draw();
         }
     }
 

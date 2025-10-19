@@ -3,6 +3,7 @@ using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
 using Silk.NET.Maths;
+using Silk.NET.OpenGL;
 
 namespace CSCanbulatEngine.GameObjectScripts;
 
@@ -55,6 +56,25 @@ public class MeshRenderer : Component
         catch (Exception e)
         {
             Console.WriteLine($"Unable to load texture: {e.Message}");
+        }
+    }
+
+    public void Draw()
+    {
+        if (isEnabled)
+        {
+            //Set color in shader :)
+            Engine.shader.SetUniform("uColor", Color);
+
+            uint textureToBind = TextureID != 0 ? TextureID : Engine._whiteTexture;
+            Engine.gl.BindTexture(TextureTarget.Texture2D, textureToBind);
+
+            //Get the matrix from the transform
+            Matrix4x4 modelMatrix = AttachedGameObject.GetComponent<Transform>().GetModelMatrix();
+            //Set model uniform in the shader for the object
+            Engine.shader.SetUniform("model", modelMatrix);
+
+            Mesh.Draw();
         }
     }
     
