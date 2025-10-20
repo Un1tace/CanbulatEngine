@@ -15,6 +15,8 @@ public class GameObject
     public List<Component> Components { get; }
     public List<string> Tags { get; set; }
     public int ID { get; set; }
+    public GameObject? ParentObject { get; set; }
+    public List<GameObject> ChildObjects { get; set; }
 
     public GameObject(Mesh mesh, string name = "GameObject")
     {
@@ -22,6 +24,8 @@ public class GameObject
         Components = new List<Component>();
         Tags = new List<string>();
         Tags.Add("GameObject");
+        
+        ChildObjects = new List<GameObject>();
         
         //Add Core Components
         AddComponent(new Transform());
@@ -50,6 +54,45 @@ public class GameObject
 #if EDITOR
         Engine._selectedGameObject = new (this);
 #endif
+    }
+
+    // Children/Parent handling
+    public void MakeParentOfObject(GameObject childObject)
+    {
+        if (this != childObject && childObject != ParentObject)
+        {
+            if (childObject.ParentObject != null) childObject.RemoveParentObject();
+            ChildObjects.Add(childObject);
+            childObject.ParentObject = this;
+        }
+    }
+
+    public void MakeChildOfObject(GameObject parentObject)
+    {
+        if (!ChildObjects.Contains(parentObject) && this != parentObject)
+        {
+            if (ParentObject != null) RemoveParentObject();
+            parentObject.ChildObjects.Add(this);
+            ParentObject = parentObject;
+        }
+    }
+
+    public void RemoveChildObject(GameObject childObject)
+    {
+        if (ChildObjects.Contains(childObject))
+        {
+            ChildObjects.Remove(childObject);
+            childObject.ParentObject = null;
+        }
+    }
+
+    public void RemoveParentObject()
+    {
+        if (ParentObject != null)
+        {
+            ParentObject.ChildObjects.Remove(this);
+            ParentObject = null;
+        }
     }
 
     public T? GetComponent<T>() where T : Component

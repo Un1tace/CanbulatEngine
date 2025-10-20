@@ -272,6 +272,10 @@ public class Engine
         gameObject1.GetComponent<Transform>().Position = new Vector2(-0.75f, 0f);
         var renderer1 = gameObject1.GetComponent<MeshRenderer>();
         if (renderer1 != null) renderer1.Color = new Vector4(1, 0, 0, 1); // <- Red
+        
+        var gameObject2 = new GameObject(_squareMesh);
+        gameObject2.GetComponent<Transform>().Position = new Vector2(-0.75f, 0.5f);
+        gameObject1.MakeParentOfObject(gameObject2);
 
     }
     
@@ -775,11 +779,10 @@ public class Engine
         ImGui.Begin($"Hierarchy - {currentScene.SceneName}", editorPanelFlags);
         foreach(var gameObject in currentScene.GameObjects)
         {
-            
-            bool isSelected = (_selectedGameObject.gameObject == gameObject);
-            if (ImGui.Selectable(gameObject.Name, isSelected))
+
+            if (gameObject.ParentObject == null)
             {
-                _selectedGameObject = new (gameObject);
+                RenderHierarchyNode(gameObject);
             }
         }
         ImGui.End();
@@ -947,6 +950,55 @@ public class Engine
         // }
         
         SetLook();
+    }
+
+    private void RenderHierarchyNode(GameObject gameObject)
+    {
+        bool isSelected = (_selectedGameObject?.gameObject == gameObject);
+
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.DefaultOpen |
+                                   ImGuiTreeNodeFlags.SpanAvailWidth;
+
+        if (isSelected)
+        {
+            flags |= ImGuiTreeNodeFlags.Selected;
+        }
+
+        if (gameObject.ChildObjects.Count == 0)
+        {
+            flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
+        }
+
+        string label = $"{gameObject.Name}##{gameObject.ID}";
+
+        bool NodeOpen = ImGui.TreeNodeEx(label, flags);
+
+        if (ImGui.IsItemClicked() && !ImGui.IsItemToggledOpen())
+        {
+            _selectedGameObject = new(gameObject);
+        }
+        
+        if (ImGui.BeginPopupContextItem())
+        {
+            if (ImGui.MenuItem("Delete"))
+            {
+                gameObject.DeleteObject();
+                ImGui.EndPopup();
+                return;
+            }
+            ImGui.EndPopup();
+        }
+        
+        //Drag drop logic but im too lazy rn
+        
+        if (NodeOpen && gameObject.ChildObjects.Count > 0)
+        {
+            foreach (var child in gameObject.ChildObjects)
+            {
+                RenderHierarchyNode(child);
+            }
+            ImGui.TreePop();
+        }
     }
 
     public static void RenderToolbar()
@@ -1238,6 +1290,7 @@ public class Engine
             GameConsole.Log("The circuit script name is empty! It has not been saved");
         }
     }
+    
 #endif
 }
 
