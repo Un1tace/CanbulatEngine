@@ -102,6 +102,9 @@ public class Engine
     //Project Manager
     public static string projectFilePath = "";
     
+    //Hierarchy stuff
+    public bool HierarchyNeedsRefresh = false;
+    
     //Gizmo
     private Gizmo _gizmo;
 
@@ -540,7 +543,7 @@ public class Engine
 #endif
     }
 #if EDITOR
-    private void RenderEditorUI()
+    private unsafe void RenderEditorUI()
     {
         ImGuiWindowFlags editorPanelFlags = ImGuiWindowFlags.None;
         editorPanelFlags |= ImGuiWindowFlags.NoMove;      // Uncomment to prevent moving
@@ -777,13 +780,44 @@ public class Engine
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[2]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[2]);
         ImGui.Begin($"Hierarchy - {currentScene.SceneName}", editorPanelFlags);
-        foreach(var gameObject in currentScene.GameObjects)
-        {
 
-            if (gameObject.ParentObject == null)
+        if (ImGui.BeginDragDropTarget())
+        {
+            var payload = ImGui.AcceptDragDropPayload("HIERARCHY_GAMEOBJECT");
+
+            if (payload.NativePtr != null && payload.Data != IntPtr.Zero)
             {
-                RenderHierarchyNode(gameObject);
+                int draggedId = *(int*)payload.Data;
+
+                GameObject draggedObject = GameObject.FindGameObject(draggedId);
+
+                if (draggedObject != null)
+                {
+                    draggedObject.RemoveParentObject();
+                }
             }
+
+            ImGui.EndDragDropTarget();
+        }
+
+        while(true)
+        {
+            HierarchyNeedsRefresh = false;
+            
+            foreach (var gameObject in currentScene.GameObjects.ToList())
+            {
+                if (gameObject is null || GameObject.FindGameObject(gameObject.ID) == null) continue;
+
+                if (gameObject.ParentObject == null)
+                {
+                    RenderHierarchyNode(gameObject);
+                }
+
+                if (HierarchyNeedsRefresh) break;
+            }
+            
+            if (!HierarchyNeedsRefresh) break;
+            
         }
         ImGui.End();
         
@@ -952,7 +986,7 @@ public class Engine
         SetLook();
     }
 
-    private void RenderHierarchyNode(GameObject gameObject)
+    private unsafe void RenderHierarchyNode(GameObject gameObject)
     {
         bool isSelected = (_selectedGameObject?.gameObject == gameObject);
 
@@ -964,7 +998,9 @@ public class Engine
             flags |= ImGuiTreeNodeFlags.Selected;
         }
 
-        if (gameObject.ChildObjects.Count == 0)
+        bool isLeaf = (gameObject.ChildObjects.Count == 0);
+
+        if (isLeaf)
         {
             flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
         }
@@ -977,27 +1013,80 @@ public class Engine
         {
             _selectedGameObject = new(gameObject);
         }
+
+        if (ImGui.BeginDragDropSource())
+        {
+            int draggedId = gameObject.ID;
+            ImGui.SetDragDropPayload("HIERARCHY_GAMEOBJECT", (IntPtr)(&draggedId), (uint)sizeof(int));
+            ImGui.Text($"Parenting: {gameObject.Name}");
+            
+            ImGui.EndDragDropSource();
+        }
+
+        if (ImGui.BeginDragDropTarget())
+        {
+            var payload = ImGui.AcceptDragDropPayload("HIERARCHY_GAMEOBJECT");
+
+            if (payload.NativePtr != null && payload.Data != IntPtr.Zero)
+            {
+                int draggedId = *(int*)payload.Data;
+
+                GameObject draggedObject = GameObject.FindGameObject(draggedId);
+
+                if (draggedObject != null)
+                {
+                    draggedObject.MakeChildOfObject(gameObject);
+                }
+            }
+            ImGui.EndDragDropTarget();
+        }
         
         if (ImGui.BeginPopupContextItem())
         {
             if (ImGui.MenuItem("Delete"))
             {
                 gameObject.DeleteObject();
+                HierarchyNeedsRefresh = true;
                 ImGui.EndPopup();
+                
+                if (NodeOpen && !isLeaf)
+                {
+                    ImGui.TreePop();
+                }
+                
                 return;
+            }
+
+            if (gameObject.ParentObject != null)
+            {
+                if (ImGui.MenuItem("Unparent Object"))
+                {
+                    gameObject.RemoveParentObject();
+                    ImGui.EndPopup();
+                    
+                    if (NodeOpen && !isLeaf)
+                    {
+                        ImGui.TreePop();
+                    }
+                    
+                    return;
+                }
             }
             ImGui.EndPopup();
         }
         
-        //Drag drop logic but im too lazy rn
-        
-        if (NodeOpen && gameObject.ChildObjects.Count > 0)
+        if (NodeOpen)
         {
-            foreach (var child in gameObject.ChildObjects)
+            foreach (var child in gameObject.ChildObjects.ToList())
             {
+                if (HierarchyNeedsRefresh) break;
                 RenderHierarchyNode(child);
             }
-            ImGui.TreePop();
+
+            if (!isLeaf)
+            {
+                ImGui.TreePop();
+            }
         }
     }
 

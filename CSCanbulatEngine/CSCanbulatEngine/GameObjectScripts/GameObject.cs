@@ -152,6 +152,19 @@ public class GameObject
             Components.RemoveAt(0);
         }
 
+        if (ParentObject != null)
+        {
+            RemoveParentObject();
+        }
+
+        if (ChildObjects.Count > 0)
+        {
+            while (ChildObjects.Count > 0)
+            {
+                RemoveChildObject(ChildObjects[0]);
+            }
+        }
+
         Engine.currentScene.GameObjects.Remove(this);
 #if EDITOR
         if (Engine._selectedGameObject.gameObject == this)
