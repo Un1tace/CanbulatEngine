@@ -54,7 +54,7 @@ public class Transform : Component
             return AttachedGameObject.ParentObject is not null
                 ? AttachedGameObject.ParentObject.GetComponent<Transform>().WorldPosition + _Position
                 : _Position;} 
-        set => _Position = (AttachedGameObject.ParentObject is not null? value - AttachedGameObject.ParentObject.GetComponent<Transform>().WorldPosition : value);
+        set => _Position = (AttachedGameObject is not null && AttachedGameObject.ParentObject is not null? value - AttachedGameObject.ParentObject.GetComponent<Transform>().WorldPosition : value);
     }
 
     private Vector2 _Position = Vector2.Zero;

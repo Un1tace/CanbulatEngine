@@ -82,7 +82,7 @@ public class SceneSerialiser
                         break;
                 }
             }
-            sceneData.GameObjects.Add(new SceneData.GameObjectData(){Name = obj.Name, transformData = transformData, meshRendererData = meshRendererData, ObjectID = obj.ID, Tags = obj.Tags});
+            sceneData.GameObjects.Add(new SceneData.GameObjectData(){Name = obj.Name, transformData = transformData, meshRendererData = meshRendererData, ObjectID = obj.ID, Tags = obj.Tags, ParentObjectID = obj.ParentObject?.ID});
         }
 
         return sceneData;
@@ -163,6 +163,16 @@ public class SceneSerialiser
             else
             {
                 obj.RemoveComponent(obj.GetComponent<MeshRenderer>());
+            }
+        }
+
+        foreach (var objData in sceneData.GameObjects)
+        {
+            if (objData.ParentObjectID is not null && objData.ObjectID is not null &&
+                GameObject.FindGameObject(objData.ParentObjectID.Value) is not null && GameObject.FindGameObject(objData.ObjectID.Value) is not null)
+            {
+                var thisObj = GameObject.FindGameObject(objData.ObjectID.Value);
+                GameObject.FindGameObject(objData.ParentObjectID.Value).MakeParentOfObject(thisObj);
             }
         }
     }

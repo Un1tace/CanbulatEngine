@@ -62,8 +62,10 @@ public class GameObject
         if (this != childObject && childObject != ParentObject)
         {
             if (childObject.ParentObject != null) childObject.RemoveParentObject();
+            Vector2 childObjPosition = childObject.GetComponent<Transform>().WorldPosition;
             ChildObjects.Add(childObject);
             childObject.ParentObject = this;
+            childObject.GetComponent<Transform>().WorldPosition = childObjPosition;
         }
     }
 
@@ -72,8 +74,10 @@ public class GameObject
         if (!ChildObjects.Contains(parentObject) && this != parentObject)
         {
             if (ParentObject != null) RemoveParentObject();
+            Vector2 childObjPosition = this.GetComponent<Transform>().WorldPosition;
             parentObject.ChildObjects.Add(this);
             ParentObject = parentObject;
+            this.GetComponent<Transform>().WorldPosition = childObjPosition;
         }
     }
 
@@ -81,8 +85,10 @@ public class GameObject
     {
         if (ChildObjects.Contains(childObject))
         {
+            Vector2 childObjPosition = childObject.GetComponent<Transform>().WorldPosition;
             ChildObjects.Remove(childObject);
             childObject.ParentObject = null;
+            childObject.GetComponent<Transform>().WorldPosition = childObjPosition;
         }
     }
 
@@ -90,8 +96,10 @@ public class GameObject
     {
         if (ParentObject != null)
         {
+            Vector2 childObjPosition = this.GetComponent<Transform>().WorldPosition;
             ParentObject.ChildObjects.Remove(this);
             ParentObject = null;
+            this.GetComponent<Transform>().WorldPosition = childObjPosition;
         }
     }
 
