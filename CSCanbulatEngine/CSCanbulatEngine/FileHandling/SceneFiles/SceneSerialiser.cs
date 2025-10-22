@@ -65,7 +65,7 @@ public class SceneSerialiser
                         transformData = new SceneData.TransformData();
                         transformData.Name = "Transform";
                         transformData.Enabled = transform.isEnabled;
-                        transformData.Position = transform.Position;
+                        transformData.Position = transform.WorldPosition;
                         transformData.Scale = transform.Scale;
                         transformData.Rotation = transform.Rotation;
                         transformData.Enabled = transform.isEnabled;
@@ -129,7 +129,7 @@ public class SceneSerialiser
             {
                 SceneData.TransformData transformData = objData.transformData;
                 Transform transform = new Transform();
-                transform.Position = transformData.Position;
+                transform.WorldPosition = transformData.Position;
                 transform.Scale = transformData.Scale;
                 transform.Rotation = transformData.Rotation;
                 transform.name = transformData.Name;

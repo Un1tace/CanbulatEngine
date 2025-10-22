@@ -41,7 +41,23 @@ public class Transform : Component
         base.canBeRemoved = false;
     }
     //Pos of object in 2D space
-    public Vector2 Position = Vector2.Zero;
+    // public Vector2 Position = Vector2.Zero;
+    public Vector2 LocalPosition
+    {
+        get { return _Position;}
+        set { _Position = value; }
+    }
+    public Vector2 WorldPosition
+    {
+        get
+        {
+            return AttachedGameObject.ParentObject is not null
+                ? AttachedGameObject.ParentObject.GetComponent<Transform>().WorldPosition + _Position
+                : _Position;} 
+        set => _Position = (AttachedGameObject.ParentObject is not null? value - AttachedGameObject.ParentObject.GetComponent<Transform>().WorldPosition : value);
+    }
+
+    private Vector2 _Position = Vector2.Zero;
     
     public float RotationInDegrees
     {
@@ -55,13 +71,15 @@ public class Transform : Component
     //Scale of an object in a 2D space
     public Vector2 Scale = Vector2.One;
 
+    private bool ShowGlobalPosition = false;
+
     //Calculates and return the model matrix for this transform.
     //Model Matrix transforms the object from its local space to world space
     public Matrix4x4 GetModelMatrix()
     {
         Matrix4x4 scaleMatrix = Matrix4x4.CreateScale(Scale.X, Scale.Y, 1f);
         Matrix4x4 rotationMatrix = Matrix4x4.CreateRotationZ(Rotation);
-        Matrix4x4 translationMatrix = Matrix4x4.CreateTranslation(Position.X, Position.Y, 0.0f);
+        Matrix4x4 translationMatrix = Matrix4x4.CreateTranslation(WorldPosition.X, WorldPosition.Y, 0.0f);
         
         return scaleMatrix * rotationMatrix * translationMatrix;
     }
@@ -69,10 +87,29 @@ public class Transform : Component
     #if EDITOR
     public override void RenderInspector()
     {
-        Vector2 position = Engine._selectedGameObject.gameObject.GetComponent<Transform>().Position;
-        if (ImGui.DragFloat2("Position", ref position, 0.05f))
+        if (ShowGlobalPosition)
         {
-            Engine._selectedGameObject.gameObject.GetComponent<Transform>().Position = position;
+            Vector2 position = Engine._selectedGameObject.gameObject.GetComponent<Transform>().WorldPosition;
+            if (ImGui.DragFloat2("Position", ref position, 0.05f))
+            {
+                Engine._selectedGameObject.gameObject.GetComponent<Transform>().WorldPosition = position;
+            }
+        }
+        else
+        {
+            Vector2 position = Engine._selectedGameObject.gameObject.GetComponent<Transform>().LocalPosition;
+            if (ImGui.DragFloat2("Position", ref position, 0.05f))
+            {
+                Engine._selectedGameObject.gameObject.GetComponent<Transform>().LocalPosition = position;
+            }
+        }
+
+        if (AttachedGameObject.ParentObject is not null)
+        {
+            if (ImGui.Checkbox("Show Global/World Space Position", ref ShowGlobalPosition))
+            {
+                
+            }
         }
                 
         float rotation = Engine._selectedGameObject.gameObject.GetComponent<Transform>().RotationInDegrees;

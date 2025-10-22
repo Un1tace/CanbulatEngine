@@ -272,12 +272,12 @@ public class Engine
         gl.BindTexture(TextureTarget.Texture2D, 0);
         
         var gameObject1 = new GameObject(_squareMesh);
-        gameObject1.GetComponent<Transform>().Position = new Vector2(-0.75f, 0f);
+        gameObject1.GetComponent<Transform>().WorldPosition = new Vector2(-0.75f, 0f);
         var renderer1 = gameObject1.GetComponent<MeshRenderer>();
         if (renderer1 != null) renderer1.Color = new Vector4(1, 0, 0, 1); // <- Red
         
         var gameObject2 = new GameObject(_squareMesh);
-        gameObject2.GetComponent<Transform>().Position = new Vector2(-0.75f, 0.5f);
+        gameObject2.GetComponent<Transform>().WorldPosition = new Vector2(-0.75f, 0.5f);
         gameObject1.MakeParentOfObject(gameObject2);
 
     }

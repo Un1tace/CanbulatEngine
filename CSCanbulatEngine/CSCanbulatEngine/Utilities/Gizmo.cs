@@ -37,7 +37,7 @@ public class Gizmo
         var io = ImGui.GetIO();
 
         //Turning the objects world position into the screen position in the viewport
-        Vector2 objectScreenPos = WorldToScreen(selectedObject.GetComponent<Transform>().Position, viewMatrix,
+        Vector2 objectScreenPos = WorldToScreen(selectedObject.GetComponent<Transform>().WorldPosition, viewMatrix,
             projectionMatrix, viewportPos, viewportSize);
         float rotation = selectedObject.GetComponent<Transform>().Rotation;
         
@@ -80,7 +80,7 @@ public class Gizmo
         {
             _draggedAxis = _hoveredAxis;
             _dragStartMousePos = io.MousePos;
-            _dragStartObjectPos = selectedObject.GetComponent<Transform>().Position;
+            _dragStartObjectPos = selectedObject.GetComponent<Transform>().WorldPosition;
             _dragStartObjectSize = selectedObject.GetComponent<Transform>().Scale;
             _dragStartObjectRotation = selectedObject.GetComponent<Transform>().Rotation;
 
@@ -106,17 +106,17 @@ public class Gizmo
             {
                 if (_draggedAxis == GizmoAxis.XY)
                 {
-                    selectedObject.GetComponent<Transform>().Position =
+                    selectedObject.GetComponent<Transform>().WorldPosition =
                         new Vector2(_dragStartObjectPos.X + worldDelta.X, _dragStartObjectPos.Y + worldDelta.Y);
                 }
                 else if (_draggedAxis == GizmoAxis.Y)
                 {
-                    selectedObject.GetComponent<Transform>().Position =
+                    selectedObject.GetComponent<Transform>().WorldPosition =
                         new Vector2(_dragStartObjectPos.X, _dragStartObjectPos.Y + worldDelta.Y);
                 }
                 else if (_draggedAxis == GizmoAxis.X)
                 {
-                    selectedObject.GetComponent<Transform>().Position =
+                    selectedObject.GetComponent<Transform>().WorldPosition =
                         new Vector2(_dragStartObjectPos.X + worldDelta.X, _dragStartObjectPos.Y);
                 }
             }
