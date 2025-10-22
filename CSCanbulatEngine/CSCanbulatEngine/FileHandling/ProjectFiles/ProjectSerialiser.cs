@@ -273,6 +273,13 @@ public class ProjectSerialiser
         return imageFiles;
     }
 
+    public static List<string> FindAllCircuitScripts()
+    {
+        imageFiles = new List<string>();
+        ScanDirectoryForFilesWithExtension(GetAssetsFolder(), [".ccs"]);
+        return imageFiles;
+    }
+
     public static void ScanDirectoryForFilesWithExtension(string path, string[] extensions)
     {
         string[] dirs = Directory.GetDirectories(path);

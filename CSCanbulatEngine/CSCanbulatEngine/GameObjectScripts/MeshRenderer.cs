@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.UIHelperScripts;
@@ -75,6 +76,37 @@ public class MeshRenderer : Component
             Engine.shader.SetUniform("model", modelMatrix);
 
             Mesh.Draw();
+        }
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        var props = new Dictionary<string, string>
+        {
+            { "Color.R", Color.X.ToString(CultureInfo.InvariantCulture) },
+            { "Color.G", Color.Y.ToString(CultureInfo.InvariantCulture) },
+            { "Color.B", Color.Z.ToString(CultureInfo.InvariantCulture) },
+            { "Color.A", Color.W.ToString(CultureInfo.InvariantCulture) }
+        };
+
+        if (!string.IsNullOrEmpty(TexturePath))
+        {
+            props["TexturePath"] = TexturePath;
+        }
+
+        return props;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        Color = new Vector4(float.Parse(properties["Color.R"], CultureInfo.InvariantCulture),
+            float.Parse(properties["Color.G"], CultureInfo.InvariantCulture),
+            float.Parse(properties["Color.B"], CultureInfo.InvariantCulture),
+            float.Parse(properties["Color.A"], CultureInfo.InvariantCulture));
+
+        if (properties.TryGetValue("TexturePath", out var path))
+        {
+            AssignTexture(path);
         }
     }
     

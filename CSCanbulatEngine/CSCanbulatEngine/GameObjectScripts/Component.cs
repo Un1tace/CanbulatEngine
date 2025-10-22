@@ -34,4 +34,13 @@ public class Component
     {
     }
     
+    // Used for saving custom properties on the specific component that will be needed in the scene
+    public virtual Dictionary<string, string> GetCustomProperties()
+    {
+        return new Dictionary<string, string>();
+    }
+
+    // Used for setting custom properties on the specific component that will be needed in the scene
+    public virtual void SetCustomProperties(Dictionary<string, string> properties) {}
+    
 }

@@ -55,34 +55,48 @@ public class SceneSerialiser
         
         foreach (var obj in Engine.currentScene.GameObjects)
         {
-            SceneData.TransformData transformData = null;
-            SceneData.MeshRendererData meshRendererData = null;
-            foreach(var component in obj.Components)
+            // SceneData.TransformData transformData = null;
+            // SceneData.MeshRendererData meshRendererData = null;
+            // foreach(var component in obj.Components)
+            // {
+            //     switch (component)
+            //     {
+            //         case Transform transform:
+            //             transformData = new SceneData.TransformData();
+            //             transformData.Name = "Transform";
+            //             transformData.Enabled = transform.isEnabled;
+            //             transformData.Position = transform.WorldPosition;
+            //             transformData.Scale = transform.Scale;
+            //             transformData.Rotation = transform.Rotation;
+            //             transformData.Enabled = transform.isEnabled;
+            //             break;
+            //         case MeshRenderer meshRenderer:
+            //             meshRendererData = new SceneData.MeshRendererData();
+            //             meshRendererData.Name = "MeshRenderer";
+            //             meshRendererData.Enabled = meshRenderer.isEnabled;
+            //             meshRendererData.Color = meshRenderer.Color;
+            //             meshRendererData.TexturePath = meshRenderer.TexturePath;
+            //             meshRendererData.Enabled = meshRenderer.isEnabled;
+            //             break;
+            //         case null:
+            //             break;
+            //     }
+            // }
+            // sceneData.GameObjects.Add(new SceneData.GameObjectData(){Name = obj.Name, transformData = transformData, meshRendererData = meshRendererData, ObjectID = obj.ID, Tags = obj.Tags, ParentObjectID = obj.ParentObject?.ID});
+
+            List<SceneData.ComponentData> componentData = new();
+            foreach (var component in obj.Components)
             {
-                switch (component)
+                SceneData.ComponentData toAdd = new()
                 {
-                    case Transform transform:
-                        transformData = new SceneData.TransformData();
-                        transformData.Name = "Transform";
-                        transformData.Enabled = transform.isEnabled;
-                        transformData.Position = transform.WorldPosition;
-                        transformData.Scale = transform.Scale;
-                        transformData.Rotation = transform.Rotation;
-                        transformData.Enabled = transform.isEnabled;
-                        break;
-                    case MeshRenderer meshRenderer:
-                        meshRendererData = new SceneData.MeshRendererData();
-                        meshRendererData.Name = "MeshRenderer";
-                        meshRendererData.Enabled = meshRenderer.isEnabled;
-                        meshRendererData.Color = meshRenderer.Color;
-                        meshRendererData.TexturePath = meshRenderer.TexturePath;
-                        meshRendererData.Enabled = meshRenderer.isEnabled;
-                        break;
-                    case null:
-                        break;
-                }
+                    Name = component.name,
+                    Enabled = component.isEnabled,
+                    ComponentType = component.GetType().FullName,
+                    CustomProperties = component.GetCustomProperties()
+                };
+                componentData.Add(toAdd);
             }
-            sceneData.GameObjects.Add(new SceneData.GameObjectData(){Name = obj.Name, transformData = transformData, meshRendererData = meshRendererData, ObjectID = obj.ID, Tags = obj.Tags, ParentObjectID = obj.ParentObject?.ID});
+            sceneData.GameObjects.Add(new SceneData.GameObjectData(){Name = obj.Name, ObjectID = obj.ID, Tags = obj.Tags, ParentObjectID = obj.ParentObject?.ID, ComponentData = componentData});
         }
 
         return sceneData;
@@ -95,6 +109,7 @@ public class SceneSerialiser
         //Reset managers
         VariableManager.Clear();
         EventManager.Clear();
+        Engine.currentScene.GameObjects.Clear();
 
         Engine.currentScene = new Scene(sceneData.SceneName);
         Engine.currentScene.SceneName = sceneData.SceneName;
@@ -118,52 +133,74 @@ public class SceneSerialiser
         
         foreach (var objData in sceneData.GameObjects)
         {
-            GameObject obj = new GameObject(Engine._squareMesh, objData.Name);
-            if (objData.ObjectID is not null && GameObject.FindGameObject(objData.ObjectID.Value) is null)
-            {
-                obj.ID = objData.ObjectID.Value;
-            }
+            GameObject obj = new GameObject(objData.Name, objData.ObjectID.Value);
 
             obj.Tags = objData.Tags ?? new List<string>();
-            if (objData.transformData != null)
-            {
-                SceneData.TransformData transformData = objData.transformData;
-                Transform transform = new Transform();
-                transform.WorldPosition = transformData.Position;
-                transform.Scale = transformData.Scale;
-                transform.Rotation = transformData.Rotation;
-                transform.name = transformData.Name;
-                transform.isEnabled = true;
-                transform.AttachedGameObject = obj;
-                if (obj.GetComponentIndex<Transform>() != -1)
-                {
-                    obj.Components[obj.GetComponentIndex<Transform>()] = transform;
-                }
-            }
 
-            if (objData.meshRendererData != null)
+            foreach (var componentData in objData.ComponentData)
             {
-                SceneData.MeshRendererData meshRendererData = objData.meshRendererData;
-                MeshRenderer meshRenderer = new MeshRenderer(Engine._squareMesh);
-                meshRenderer.name = meshRendererData.Name;
-                meshRenderer.Color = meshRendererData.Color;
-                meshRenderer.TexturePath = meshRendererData.TexturePath;
-                meshRenderer.AttachedGameObject = obj;
-                meshRenderer.isEnabled = meshRendererData.Enabled;
-                if (!String.IsNullOrWhiteSpace(meshRendererData.TexturePath))
+                var componentType = Type.GetType(componentData.ComponentType);
+                if (componentType is null)
                 {
-                    meshRenderer.AssignTexture(meshRendererData.TexturePath);
+                    Console.WriteLine($"[SceneSerialiser] Couldn't find component of type {componentData.ComponentType}");
+                    continue;
                 }
 
-                if (obj.GetComponentIndex<MeshRenderer>() != -1)
+                Component newComponent;
+
+                if (componentType == typeof(MeshRenderer))
                 {
-                    obj.Components[obj.GetComponentIndex<MeshRenderer>()] = meshRenderer;
+                    newComponent = new MeshRenderer(Engine._squareMesh);
                 }
+                else
+                {
+                    newComponent = (Component)Activator.CreateInstance(componentType);
+                }
+                
+                obj.AddComponent(newComponent);
+                newComponent.isEnabled = componentData.Enabled;
+                newComponent.SetCustomProperties(componentData.CustomProperties);
             }
-            else
-            {
-                obj.RemoveComponent(obj.GetComponent<MeshRenderer>());
-            }
+            
+            // if (objData.transformData != null)
+            // {
+            //     SceneData.TransformData transformData = objData.transformData;
+            //     Transform transform = new Transform();
+            //     transform.WorldPosition = transformData.Position;
+            //     transform.Scale = transformData.Scale;
+            //     transform.Rotation = transformData.Rotation;
+            //     transform.name = transformData.Name;
+            //     transform.isEnabled = true;
+            //     transform.AttachedGameObject = obj;
+            //     if (obj.GetComponentIndex<Transform>() != -1)
+            //     {
+            //         obj.Components[obj.GetComponentIndex<Transform>()] = transform;
+            //     }
+            // }
+            //
+            // if (objData.meshRendererData != null)
+            // {
+            //     SceneData.MeshRendererData meshRendererData = objData.meshRendererData;
+            //     MeshRenderer meshRenderer = new MeshRenderer(Engine._squareMesh);
+            //     meshRenderer.name = meshRendererData.Name;
+            //     meshRenderer.Color = meshRendererData.Color;
+            //     meshRenderer.TexturePath = meshRendererData.TexturePath;
+            //     meshRenderer.AttachedGameObject = obj;
+            //     meshRenderer.isEnabled = meshRendererData.Enabled;
+            //     if (!String.IsNullOrWhiteSpace(meshRendererData.TexturePath))
+            //     {
+            //         meshRenderer.AssignTexture(meshRendererData.TexturePath);
+            //     }
+            //
+            //     if (obj.GetComponentIndex<MeshRenderer>() != -1)
+            //     {
+            //         obj.Components[obj.GetComponentIndex<MeshRenderer>()] = meshRenderer;
+            //     }
+            // }
+            // else
+            // {
+            //     obj.RemoveComponent(obj.GetComponent<MeshRenderer>());
+            // }
         }
 
         foreach (var objData in sceneData.GameObjects)

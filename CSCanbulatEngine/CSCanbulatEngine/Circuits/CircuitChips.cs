@@ -291,6 +291,25 @@ public class CircuitChips
                             CircuitEditor.chips.Add(new CreateList(CircuitEditor.GetNextAvaliableChipID(), "Create List", spawnPos));
                             CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
                         }
+
+                        if (ImGui.MenuItem("Create Vector2 Create Chip"))
+                        {
+                            CircuitEditor.chips.Add(new Vector2Create(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Create", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+
+                        if (ImGui.MenuItem("Create This Chip"))
+                        {
+                            CircuitEditor.chips.Add(new thisChip(CircuitEditor.GetNextAvaliableChipID(), "This", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+
+                        if (ImGui.MenuItem("Create Set World Position Chip"))
+                        {
+                            CircuitEditor.chips.Add(new SetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Set World Position", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+                        
                         ImGui.EndMenu();
                     }
 
@@ -1411,8 +1430,11 @@ public class EventChip : Chip
 
             ListenerAction = (payload) =>
             {
-                LastRecievedPayload = payload;
-                OutputExecPorts[0].Execute();
+                if ((SelectedEvent.EventName != "OnStart" && SelectedEvent.EventName != "OnUpdate") || LoadedInBackground)
+                {
+                    LastRecievedPayload = payload;
+                    OutputExecPorts[0].Execute();
+                }
             };
             EventManager.Subscribe(SelectedEvent, ListenerAction);
         }
@@ -2238,5 +2260,67 @@ public class GetElementAt : Chip
         }
         
         return new Values();
+    }
+}
+
+public class Vector2Create : Chip
+{
+    public Vector2Create(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("X", true, [typeof(float)], true);
+        AddPort("Y", true, [typeof(float)], true);
+        AddPort("Vector2", false, [typeof(Vector2)], true);
+        OutputPorts[0].Value.ValueFunction = OutputVector;
+    }
+
+    public Values OutputVector(ChipPort? chipPort)
+    {
+        Vector2 vector = new Vector2(InputPorts[0].Value.Float.Value, InputPorts[1].Value.Float.Value);
+        Values theValues = new Values();
+        theValues.Vector2 = vector;
+
+        return theValues;
+    }
+}
+
+public class thisChip : Chip
+{
+    public GameObject? theThisGameObject;
+    public thisChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("Attached GameObject", false, [typeof(GameObject)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values theValues = new Values();
+        if (theThisGameObject is not null)
+        {
+            theValues.GameObject = theThisGameObject;
+        }
+        return theValues;
+    }
+}
+
+public class SetWorldPositionChip : Chip
+{
+    public SetWorldPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("Position", true, [typeof(Vector2)], true);
+    }
+
+    public override void OnExecute()
+    {
+        if (InputPorts[0].Value.GetValue().GameObject is not null)
+        {
+            InputPorts[0].Value.GetValue().GameObject.GetComponent<Transform>().WorldPosition =
+                InputPorts[1].Value.GetValue().Vector2;
+        }
+        else
+        {
+            GameConsole.Log("GameObject is null or invalid", LogType.Error);
+        }
     }
 }

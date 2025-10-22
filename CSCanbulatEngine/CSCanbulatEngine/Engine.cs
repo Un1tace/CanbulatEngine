@@ -1381,6 +1381,20 @@ public class Engine
     }
     
 #endif
+
+    public static void ReloadAllCircuitScripts()
+    {
+        foreach (var gameObject in Engine.currentScene.GameObjects)
+        {
+            foreach (var component in gameObject.Components)
+            {
+                if (component is CircuitScript circuitScript)
+                {
+                    circuitScript.LoadCircuit(Path.Combine(circuitScript.CircuitScriptDirPath, circuitScript.CircuitScriptName) + ".ccs");
+                }
+            }
+        }
+    }
 }
 
 public class StoreObject

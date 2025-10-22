@@ -494,6 +494,7 @@ public class ExecPort : ChipPort
 
 public class Chip
 {
+    public bool LoadedInBackground = false;
     public int Id { get; }
     public string Name { get; set; }
     public Vector2 Position { get; set; }
@@ -1022,9 +1023,9 @@ public static class CircuitEditor
                     }
                     else if (port.PortType == typeof(GameObject))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().GameObject?.Name ?? "").X;
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().GameObject is not null? port.Value.GetValue().GameObject.Name : "null").X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().GameObject?.Name ?? "");
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().GameObject is not null? port.Value.GetValue().GameObject.Name : "null");
                     }
                     else if (port.PortType == typeof(List<bool>))
                     {

@@ -55,14 +55,29 @@ public class GameObject
         Engine._selectedGameObject = new (this);
 #endif
     }
+    
+    public GameObject(string name, int id)
+    {
+        Name = name;
+        ID = id;
+        Components = new List<Component>();
+        Tags = new List<string>();
+        ChildObjects = new List<GameObject>();
+    
+        // Add this new object to the scene
+        if (!Engine.currentScene.GameObjects.Contains(this))
+        {
+            Engine.currentScene.GameObjects.Add(this);
+        }
+    }
 
     // Children/Parent handling
     public void MakeParentOfObject(GameObject childObject)
     {
         if (this != childObject && childObject != ParentObject)
         {
-            if (childObject.ParentObject != null) childObject.RemoveParentObject();
             Vector2 childObjPosition = childObject.GetComponent<Transform>().WorldPosition;
+            if (childObject.ParentObject != null) childObject.RemoveParentObject();
             ChildObjects.Add(childObject);
             childObject.ParentObject = this;
             childObject.GetComponent<Transform>().WorldPosition = childObjPosition;
@@ -73,8 +88,8 @@ public class GameObject
     {
         if (!ChildObjects.Contains(parentObject) && this != parentObject)
         {
-            if (ParentObject != null) RemoveParentObject();
             Vector2 childObjPosition = this.GetComponent<Transform>().WorldPosition;
+            if (ParentObject != null) RemoveParentObject();
             parentObject.ChildObjects.Add(this);
             ParentObject = parentObject;
             this.GetComponent<Transform>().WorldPosition = childObjPosition;
@@ -301,19 +316,24 @@ public class GameObject
 
             ComponentInstruction nextInstruction = new();
             
-            foreach (Component component in Engine._selectedGameObject.gameObject.Components)
+            for (int i = 0; i < Engine._selectedGameObject.gameObject.Components.Count(); i++)
             {
+                var component = Engine._selectedGameObject.gameObject.Components[i];
                 if (ImGui.CollapsingHeader(component.name, ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     if (component.canBeDisabled)
                     {
-                        if (ImGui.Checkbox("Enabled", ref component._isEnabled))
+                        ImGui.PushID(Engine._selectedGameObject.gameObject.Components.FindIndex(theComponent => theComponent == component));
+                        if (ImGui.Checkbox($"Is Enabled", ref component._isEnabled))
                         {
                             
                         }
+
+                        ImGui.PopID();
                     }
                     if (component.canBeRemoved)
                     {
+                        ImGui.PushID(Engine._selectedGameObject.gameObject.Components.FindIndex(theComponent => theComponent == component));
                         if (ImGui.Button("Remove Component", new (ImGui.GetContentRegionAvail().X, ImGui.CalcTextSize("Add Component").Y)))
                         {
                             // Engine._selectedGameObject.gameObject.RemoveComponent(component);
@@ -321,6 +341,8 @@ public class GameObject
                             nextInstruction._instructionType = InstructionType.Remove;
                             continue;
                         }
+
+                        ImGui.PopID();
                     }
                     component.RenderInspector();
                 }
@@ -353,6 +375,12 @@ public class GameObject
                         var meshRenderer = new MeshRenderer(Engine._squareMesh);
                         Engine._selectedGameObject.gameObject.AddComponent(meshRenderer); 
                     }
+                }
+
+                if (ImGui.MenuItem("CircuitScript"))
+                {
+                    var circuitScript = new CircuitScript();
+                    Engine._selectedGameObject.gameObject.AddComponent(circuitScript);
                 }
                     
                 ImGui.EndPopup();

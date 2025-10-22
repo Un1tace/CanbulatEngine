@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
@@ -82,6 +83,25 @@ public class Transform : Component
         Matrix4x4 translationMatrix = Matrix4x4.CreateTranslation(WorldPosition.X, WorldPosition.Y, 0.0f);
         
         return scaleMatrix * rotationMatrix * translationMatrix;
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        return new Dictionary<string, string>
+        {
+            { "Position.X", WorldPosition.X.ToString(CultureInfo.InvariantCulture) },
+            { "Position.Y", WorldPosition.Y.ToString(CultureInfo.InvariantCulture) },
+            { "Rotation", Rotation.ToString(CultureInfo.InvariantCulture) },
+            { "Scale.X", Scale.X.ToString(CultureInfo.InvariantCulture) },
+            { "Scale.Y", Scale.Y.ToString(CultureInfo.InvariantCulture) }
+        };
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        WorldPosition = new Vector2(float.Parse(properties["Position.X"], CultureInfo.InvariantCulture), float.Parse(properties["Position.Y"], CultureInfo.InvariantCulture));
+        Rotation = float.Parse(properties["Rotation"], CultureInfo.InvariantCulture);
+        Scale = new Vector2(float.Parse(properties["Scale.X"], CultureInfo.InvariantCulture), float.Parse(properties["Scale.Y"], CultureInfo.InvariantCulture));
     }
 
     #if EDITOR
