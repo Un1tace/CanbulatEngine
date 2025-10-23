@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text;
+using CSCanbulatEngine.Audio;
 using CSCanbulatEngine.Circuits;
 using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.FileHandling.CircuitHandling;
@@ -57,6 +58,9 @@ public class Engine
     //Engine state config
     public static EngineState CurrentState = EngineState.Editor;
     private static string _sceneSnapshotBeforePlay;
+    
+    //Audio Engine
+    public static AudioEngine Audio;
 
 #if EDITOR
     //--- Editor Only Resources ---
@@ -163,6 +167,26 @@ public class Engine
         ImGui.CreateContext();
         var io = ImGui.GetIO();
         // io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+
+        try
+        {
+            Audio = new AudioEngine();
+            
+            string soundPath = Path.Combine(AppContext.BaseDirectory, "Assets/Sounds/roblox-sword.wav");
+            if (File.Exists(soundPath))
+            {
+                Audio.LoadSound("testSound", soundPath);
+            }
+            else
+            {
+                Console.WriteLine($"[Engine] Could not find sound to load at: {soundPath}");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"[Engine] Failed to initialize AudioEngine: {e.Message}");
+            throw;
+        }
 
 #if EDITOR
         
@@ -356,6 +380,8 @@ public class Engine
                 EventManager.Trigger(updateEvent, payload);
             }
         }
+
+        Audio?.Update();
         
         // ! ! ! Keep at last update ! ! !
         InputManager.LateUpdate();
@@ -1217,6 +1243,7 @@ public class Engine
         gl.DeleteRenderbuffer(Rbo);
         gl.DeleteTexture(_logoTextureID);
 #endif
+        Audio?.Dispose();
         _squareMesh.Dispose();
         shader.Dispose();
         gl.DeleteTexture(_whiteTexture);

@@ -49,6 +49,10 @@
               "target": "Package",
               "version": "[1.91.6.1, )"
             },
+            "JAJ.Packages.MiniAudioEx": {
+              "target": "Package",
+              "version": "[2.6.5, )"
+            },
             "Microsoft.Data.SqlClient": {
               "target": "Package",
               "version": "[6.1.0-preview2.25178.5, )"

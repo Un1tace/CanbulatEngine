@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "YCNDdTIlQsg=",
+  "dgSpecHash": "5LzxtjkPdKs=",
   "success": true,
   "projectFilePath": "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/CSCanbulatEngine.csproj",
   "expectedPackageFiles": [
     "/Users/kaiafful/.nuget/packages/azure.core/1.44.1/azure.core.1.44.1.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/azure.identity/1.13.2/azure.identity.1.13.2.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/imgui.net/1.91.6.1/imgui.net.1.91.6.1.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/jaj.packages.miniaudioex/2.6.5/jaj.packages.miniaudioex.2.6.5.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/microsoft.bcl.asyncinterfaces/6.0.0/microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/microsoft.bcl.cryptography/9.0.4/microsoft.bcl.cryptography.9.0.4.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/microsoft.csharp/4.7.0/microsoft.csharp.4.7.0.nupkg.sha512",
