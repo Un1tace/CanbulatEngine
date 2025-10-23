@@ -1863,6 +1863,7 @@ public class LogChip : Chip
     public override void OnExecute()
     {
         GameConsole.Log(InputPorts[0].Value.GetValue().String);
+        base.OnExecute();
     }
 }
 
@@ -1876,6 +1877,7 @@ public class LogWarningChip : Chip
     public override void OnExecute()
     {
         GameConsole.Log(InputPorts[0].Value.GetValue().String, LogType.Warning);
+        base.OnExecute();
     }
 }
 
@@ -1889,6 +1891,7 @@ public class LogErrorChip : Chip
     public override void OnExecute()
     {
         GameConsole.Log(InputPorts[0].Value.GetValue().String, LogType.Error);
+        base.OnExecute();
     }
 }
 
