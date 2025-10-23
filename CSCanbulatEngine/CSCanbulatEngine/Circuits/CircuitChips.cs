@@ -42,6 +42,27 @@ public class CircuitChips
         {
             if (ImGui.BeginPopupContextWindow("SpawnChipMenu"))
             {
+                CreateContextMenu();
+                ImGui.EndPopup();
+            }
+        }
+        else
+        {
+            if (ImGui.BeginPopupContextWindow("Chip Menu"))
+            {
+                if (ImGui.MenuItem("Delete Chip"))
+                {
+                    CircuitEditor.DeleteChip(hoveredChip);
+                    hoveredChip = null;
+                }
+                ImGui.EndPopup();
+            }
+        }
+    }
+
+    public static void CreateContextMenu()
+    {
+        
                 if (ImGui.BeginMenu("Create Chips"))
                 {
                     if (ImGui.MenuItem("Event Chip"))
@@ -315,22 +336,6 @@ public class CircuitChips
 
                     ImGui.EndMenu();
                 }
-
-                ImGui.EndPopup();
-            }
-        }
-        else
-        {
-            if (ImGui.BeginPopupContextWindow("Chip Menu"))
-            {
-                if (ImGui.MenuItem("Delete Chip"))
-                {
-                    CircuitEditor.DeleteChip(hoveredChip);
-                    hoveredChip = null;
-                }
-                ImGui.EndPopup();
-            }
-        }
     }
 }
 
@@ -879,7 +884,7 @@ public class GameObjectVariable : Chip
     {
         if (InputPorts[0].Value.GetValue().GameObject == null)
         {
-            GameConsole.Log("Game Object Variable doesn't have a acceptable value", LogType.Error);
+            GameConsole.Log("[GameObject Variable] GameObject is null", LogType.Error);
             return;
         }
         VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();

@@ -1152,7 +1152,9 @@ public static class CircuitEditor
                 
             ImGui.EndMenu();
         }
-        
+
+        CircuitChips.CreateContextMenu();
+
     }
 
     public static void DeleteChip(Chip chipToDelete)
