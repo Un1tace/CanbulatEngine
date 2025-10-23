@@ -2313,14 +2313,82 @@ public class SetWorldPositionChip : Chip
 
     public override void OnExecute()
     {
-        if (InputPorts[0].Value.GetValue().GameObject is not null)
+        try
         {
-            InputPorts[0].Value.GetValue().GameObject.GetComponent<Transform>().WorldPosition =
-                InputPorts[1].Value.GetValue().Vector2;
+            GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
+            Vector2? targetPosition = InputPorts[1].Value.GetValue().Vector2;
+
+            if (targetObject == null)
+            {
+                GameConsole.Log("[Set World Position Chip] GameObject is null or invalid", LogType.Error);
+            }
+            else if (targetPosition == null)
+            {
+                GameConsole.Log("[Set World Position Chip] Position is null", LogType.Error);
+            }
+            else
+            {
+                Transform? targetTransform = targetObject.GetComponent<Transform>();
+                if (targetTransform == null)
+                {
+                    GameConsole.Log("[Set World Position Chip] Target Transform is null", LogType.Error);
+                }
+                else
+                {
+                    targetTransform.WorldPosition = targetPosition.Value;
+                }
+            }
         }
-        else
+        catch (Exception ex)
         {
-            GameConsole.Log("GameObject is null or invalid", LogType.Error);
+            GameConsole.Log($"[Set World Position Chip] Error: {ex.Message}", LogType.Error);
         }
+
+        base.OnExecute();
+    }
+}
+
+public class SetLocalPositionChip : Chip
+{
+    public SetLocalPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("Position", true, [typeof(Vector2)], true);
+    }
+    
+    public override void OnExecute()
+    {
+        try
+        {
+            GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
+            Vector2? targetPosition = InputPorts[1].Value.GetValue().Vector2;
+
+            if (targetObject == null)
+            {
+                GameConsole.Log("[Set Local Position Chip] GameObject is null or invalid", LogType.Error);
+            }
+            else if (targetPosition == null)
+            {
+                GameConsole.Log("[Set Local Position Chip] Position is null", LogType.Error);
+            }
+            else
+            {
+                Transform? targetTransform = targetObject.GetComponent<Transform>();
+                if (targetTransform == null)
+                {
+                    GameConsole.Log("[Set Local Position Chip] Target Transform is null", LogType.Error);
+                }
+                else
+                {
+                    targetTransform.LocalPosition = targetPosition.Value;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            GameConsole.Log($"[Set Local Position Chip] Error: {ex.Message}", LogType.Error);
+        }
+
+        base.OnExecute();
     }
 }
