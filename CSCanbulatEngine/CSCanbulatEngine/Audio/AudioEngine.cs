@@ -103,3 +103,10 @@ public class AudioEngine : IDisposable
         Console.WriteLine("[AudioEngine] MiniAudioExNET Deinitialized.");
     }
 }
+
+public class AudioInfo
+{
+    public string Name;
+    public bool isLoaded;
+    public string pathToAudio;
+}

@@ -3,8 +3,10 @@ using System.Data.SqlTypes;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using CSCanbulatEngine.Audio;
 using CSCanbulatEngine.GameObjectScripts;
 using ImGuiNET;
+using MiniAudioEx.Core.StandardAPI;
 
 namespace CSCanbulatEngine.Circuits;
 
@@ -118,6 +120,8 @@ public class EventValues
     public Dictionary<string, string> strings = new Dictionary<string, string>();
     public Dictionary<string, Vector2> Vector2s = new Dictionary<string, Vector2>();
     public Dictionary<string, GameObject> GameObjects = new Dictionary<string, GameObject>();
+    public Dictionary<string, AudioInfo> AudioInfos = new Dictionary<string, AudioInfo>();
+    public Dictionary<string, ComponentHolder> ComponentHolders = new();
 }
 
 public class BaseEventValues
@@ -128,6 +132,8 @@ public class BaseEventValues
     public List<string> strings = new List<string>();
     public List<string> Vector2s = new List<string>();
     public List<string> GameObjects = new List<string>();
+    public List<string> AudioInfos = new();
+    public List<string> ComponentHolders = new();
 }
 
 public class Event(string eventName, bool canSend = true, bool canReceive = true, bool canConfig = true)

@@ -3,10 +3,12 @@ using System.Net.Sockets;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using CSCanbulatEngine.Audio;
 using CSCanbulatEngine.EngineComponents;
 using CSCanbulatEngine.GameObjectScripts;
 using ImGuiNET;
 using Silk.NET.Input;
+using SixLabors.ImageSharp.ColorSpaces.Companding;
 
 namespace CSCanbulatEngine.Circuits;
 
@@ -24,6 +26,12 @@ public class Values()
     public List<Vector2>? Vector2List { get; set; }
     public GameObject? GameObject = null;
     public List<GameObject>? GameObjectList { get; set; }
+
+    public Audio.AudioInfo?  AudioInfo = new();
+    public List<AudioInfo>? AudioInfoList = new();
+
+    public ComponentHolder?  ComponentHolder = new();
+    public List<ComponentHolder>? ComponentHolderList = new();
     
     public Type? ActiveType { get; set; }
 }
@@ -45,6 +53,14 @@ public class ChipPortValue
     public List<Vector2>? Vector2List { get; set; }
     public GameObject? GameObject { get; set; }
     public List<GameObject>? GameObjectList { get; set; }
+    
+    public Audio.AudioInfo? AudioInfo { get; set; }
+    
+    public List<AudioInfo>? AudioInfoList { get; set; }
+
+    public ComponentHolder? ComponentHolder { get; set; }
+    
+    public List<ComponentHolder>? ComponentHolderList { get; set; }
 
     public byte[] S_bufer = new byte[100];
 
@@ -147,6 +163,30 @@ public class ChipPortValue
                 AssignedChipPort.PortType = typeof(T);
                 return true;
             }
+            else if (typeof(T) == typeof(Audio.AudioInfo))
+            {
+                AudioInfo = value as Audio.AudioInfo;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(List<AudioInfo>))
+            {
+                AudioInfoList = value as List<AudioInfo>;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(ComponentHolder))
+            {
+                ComponentHolder = value as ComponentHolder;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(List<ComponentHolder>))
+            {
+                ComponentHolderList = value as List<ComponentHolder>;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
             
         }
         else if (AssignedChipPort.acceptedTypes.Contains(typeof(string)))
@@ -184,6 +224,10 @@ public class ChipPortValue
                 values.StringList = StringList ?? null;
                 values.Vector2List = Vector2List ?? null;
                 values.GameObjectList = GameObjectList ?? null;
+                values.AudioInfo = AudioInfo ?? null;
+                values.AudioInfoList = AudioInfoList ?? null;
+                values.ComponentHolder = ComponentHolder ?? null;
+                values.ComponentHolderList = ComponentHolderList ?? null;
                 return values;
             }
         }
@@ -523,6 +567,8 @@ public class Chip
             InputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Input", this, true));
             OutputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Output", this, false));
         }
+
+        OnInstantiation();
     }
 
     public ChipPort AddPort(string name, bool isInput, List<Type> acceptedValueTypes, bool showName = false)
@@ -638,6 +684,8 @@ public class Chip
 
     // Used for setting custom properties on the specific chip when loaded
     public virtual void SetCustomProperties(Dictionary<string, string> properties) {}
+
+    public virtual void OnInstantiation() {}
 }
 
 public static class CircuitEditor
@@ -657,7 +705,7 @@ public static class CircuitEditor
     
     public static float portSpacing = 25f * Zoom;
 
-    public static void Render()
+    public unsafe static void Render()
     {
         ImGui.SetWindowFontScale(CircuitEditor.Zoom);
         
@@ -753,7 +801,7 @@ public static class CircuitEditor
         RenderStatusBar();
     }
 
-    private static void RenderChip(Chip chip, Vector2 canvasPos, ImDrawListPtr drawList)
+    private static unsafe void RenderChip(Chip chip, Vector2 canvasPos, ImDrawListPtr drawList)
     {
         ImGui.PushID(chip.Id);
         
@@ -921,6 +969,18 @@ public static class CircuitEditor
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
                         ImGui.LabelText($"##{port.Id}", port.Value.GetValue().GameObject?.Name ?? "");
                     }
+                    else if (port.PortType == typeof(AudioInfo))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().AudioInfo?.Name ?? "").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().AudioInfo?.Name ?? "");
+                    }
+                    else if (port.PortType == typeof(ComponentHolder))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().ComponentHolder is not null && port.Value.GetValue().ComponentHolder.Component is not null? port.Value.GetValue().ComponentHolder.Component.name : "").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().ComponentHolder is not null && port.Value.GetValue().ComponentHolder.Component is not null? port.Value.GetValue().ComponentHolder.Component.name : "");
+                    }
                 }
                 else if (port.acceptedTypes != null)
                 {
@@ -1062,6 +1122,43 @@ public static class CircuitEditor
                         textWidth = ImGui.CalcTextSize(port.Value.GetValue().GameObjectList is not null? port.Value.GetValue().GameObjectList.Count().ToString() : "null").X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
                         ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().GameObjectList is not null? port.Value.GetValue().GameObjectList.Count().ToString() : "null"));
+                    }
+                    else if (port.PortType == typeof(AudioInfo))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().AudioInfo is not null? port.Value.GetValue().AudioInfo.Name : "null").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().AudioInfo is not null? port.Value.GetValue().AudioInfo.Name : "null");
+                    }
+                    else if (port.PortType == typeof(List<AudioInfo>))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().AudioInfoList is not null? port.Value.GetValue().AudioInfoList.Count().ToString() : "null").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().AudioInfoList is not null? port.Value.GetValue().AudioInfoList.Count().ToString() : "null"));
+                    }
+                    else if (port.PortType == typeof(ComponentHolder))
+                    {
+                        ComponentHolder? holder = port.Value.GetValue().ComponentHolder;
+
+                        string componentName = "null";
+
+                        if (holder != null)
+                        {
+                            Component theComponent = holder.Component;
+                            if (theComponent is not null)
+                            {
+                                componentName = theComponent.name;
+                            }
+                        }
+                        
+                        textWidth = ImGui.CalcTextSize(componentName).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", componentName);
+                    }
+                    else if (port.PortType == typeof(List<ComponentHolder>))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().ComponentHolderList is not null? port.Value.GetValue().ComponentHolderList.Count().ToString() : "null").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().ComponentHolderList is not null? port.Value.GetValue().ComponentHolderList.Count().ToString() : "null"));
                     }
                 }
                 else if (port.acceptedTypes != null)
@@ -1278,7 +1375,7 @@ public static class CircuitEditor
 
 public enum ChipTypes
 {
-    Default, Bool, Int, Float, String, Vector2, GameObject, Exec, BoolList, IntList, FloatList, StringList, Vector2List, GameObjectList
+    Default, Bool, Int, Float, String, Vector2, GameObject, Exec, BoolList, IntList, FloatList, StringList, Vector2List, GameObjectList, AudioInfo, AudioInfoList, ComponentHolder, ComponentHolderList
 }
 
 public static class TypeHelper
@@ -1333,6 +1430,22 @@ public static class TypeHelper
             {
                 return "List<GameObject>";
             }
+            else if (type == typeof(AudioInfo))
+            {
+                return "AudioInfo";
+            }
+            else if (type == typeof(List<AudioInfo>))
+            {
+                return "List<AudioInfo>";
+            }
+            else if (type == typeof(ComponentHolder))
+            {
+                return "ComponentHolder";
+            }
+            else if (type == typeof(List<ComponentHolder>))
+            {
+                return "List<ComponentHolder>";
+            }
             else
             {
                 return "";
@@ -1368,6 +1481,14 @@ public static class TypeHelper
                 return typeof(List<Vector2>);
             case "list<gameobject>":
                 return typeof(List<GameObject>);
+            case "audioinfo":
+                return typeof(AudioInfo);
+            case "list<audioinfo>":
+                return typeof(List<AudioInfo>);
+            case "componentholder":
+                return typeof(ComponentHolder);
+            case "list<componentholder>":
+                return typeof(List<ComponentHolder>);
         }
 
         return null;
@@ -1381,6 +1502,8 @@ public static class TypeHelper
         else if (listType == typeof(List<string>)) return typeof(string);
         else if (listType == typeof(List<Vector2>)) return typeof(Vector2);
         else if (listType == typeof(List<GameObject>)) return typeof(GameObject);
+        else if (listType == typeof(List<AudioInfo>)) return typeof(AudioInfo);
+        else if (listType == typeof(List<ComponentHolder>)) return typeof(ComponentHolder);
         else return null;
     }
 
@@ -1392,6 +1515,8 @@ public static class TypeHelper
         else if (type == typeof(string)) return typeof(List<string>);
         else if (type == typeof(Vector2)) return typeof(List<Vector2>);
         else if (type == typeof(GameObject)) return typeof(List<GameObject>);
+        else if (type == typeof(AudioInfo)) return typeof(List<AudioInfo>);
+        else if (type == typeof(ComponentHolder)) return typeof(List<ComponentHolder>);
         else return null;
     }
     
@@ -1444,6 +1569,18 @@ public static class ChipColor
                 return new Vector4(0.55f, 1f, 1f, 1f);
                 break;
             case ChipTypes.GameObjectList:
+                return new Vector4(1f, 1f, 0.35f, 1f);
+                break;
+            case ChipTypes.AudioInfo:
+                return new Vector4(1f, 0.89f, 0.15f, 1f);
+                break;
+            case ChipTypes.AudioInfoList:
+                return new Vector4(1f, 1f, 0.35f, 1f);
+                break;
+            case ChipTypes.ComponentHolder:
+                return new Vector4(1f, 0.89f, 0.15f, 1f);
+                break;
+            case ChipTypes.ComponentHolderList:
                 return new Vector4(1f, 1f, 0.35f, 1f);
                 break;
             default:
@@ -1499,6 +1636,22 @@ public static class ChipColor
             return new Vector4(0.55f, 1f, 1f, 1f);
         }
         else if (type == typeof(List<GameObject>))
+        {
+            return new Vector4(1f, 1f, 0.35f, 1f);
+        }
+        else if (type == typeof(AudioInfo))
+        {
+            return new Vector4(1f, 0.89f, 0.15f, 1f);
+        }
+        else if (type == typeof(List<AudioInfo>))
+        {
+            return new Vector4(1f, 1f, 0.35f, 1f);
+        }
+        else if (type == typeof(ComponentHolder))
+        {
+            return new Vector4(1f, 0.89f, 0.15f, 1f);
+        }
+        else if (type == typeof(List<ComponentHolder>))
         {
             return new Vector4(1f, 1f, 0.35f, 1f);
         }

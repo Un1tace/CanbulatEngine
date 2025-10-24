@@ -131,9 +131,19 @@ public class GameObject
         return null;
     }
 
+    public Component? GetComponent(Type type)
+    {
+        return this.Components.Find(component => component.GetType() == type);
+    }
+
     public bool HasComponent<T>() where T : Component
     {
         return Components.Any(component => component is T);
+    }
+
+    public bool HasComponent(Type type)
+    {
+        return this.Components.Any(component => component.GetType() == type);
     }
     
     public int GetComponentIndex<T>() where T : Component

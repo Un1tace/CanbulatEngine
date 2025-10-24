@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Windows.Markup;
+using CSCanbulatEngine.Audio;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
@@ -132,6 +133,12 @@ public class CircuitChips
 
                     if (ImGui.BeginMenu("Logic & Comparison Chips"))
                     {
+                        if (ImGui.MenuItem("Create If Chip"))
+                        {
+                            CircuitEditor.chips.Add(new IfChip(CircuitEditor.GetNextAvaliableChipID(), "If", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+                        
                         if (ImGui.MenuItem("Create Not Chip"))
                         {
                             CircuitEditor.chips.Add(new NotChip(CircuitEditor.GetNextAvaliableChipID(), "Not Chip",
@@ -260,6 +267,47 @@ public class CircuitChips
                         ImGui.EndMenu();
                     }
 
+                    if (ImGui.BeginMenu("Object Chips"))
+                    {
+                        if (ImGui.MenuItem("Create This Chip"))
+                        {
+                            CircuitEditor.chips.Add(new thisChip(CircuitEditor.GetNextAvaliableChipID(), "This", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Find Object By ID Chip"))
+                        {
+                            CircuitEditor.chips.Add(new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID Chip", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+
+                        if (ImGui.MenuItem("Create Find First Object By Tag Chip"))
+                        {
+                            CircuitEditor.chips.Add(new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", spawnPos)); 
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+
+                        if (ImGui.MenuItem("Create Find All Objects By Tag Chip"))
+                        {
+                            CircuitEditor.chips.Add(new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Get Component Chip"))
+                        {
+                            CircuitEditor.chips.Add(new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Get Component", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+
+                        if (ImGui.MenuItem("Create Has Component Chip"))
+                        {
+                            CircuitEditor.chips.Add(new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Has Component", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+                        
+                        ImGui.EndMenu();
+                    }
+
                     if (ImGui.BeginMenu("Miscellaneous Chips"))
                     {
                         if (ImGui.MenuItem("Create Log Chip"))
@@ -283,24 +331,6 @@ public class CircuitChips
                             CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
                         }
 
-                        if (ImGui.MenuItem("Create Find Object By ID Chip"))
-                        {
-                            CircuitEditor.chips.Add(new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID Chip", spawnPos));
-                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
-                        }
-
-                        if (ImGui.MenuItem("Create Find First Object By Tag Chip"))
-                        {
-                            CircuitEditor.chips.Add(new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", spawnPos)); 
-                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
-                        }
-
-                        if (ImGui.MenuItem("Create Find All Objects By Tag Chip"))
-                        {
-                            CircuitEditor.chips.Add(new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", spawnPos));
-                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
-                        }
-
                         if (ImGui.MenuItem("Create Get Element At Chip"))
                         {
                             CircuitEditor.chips.Add(new GetElementAt(CircuitEditor.GetNextAvaliableChipID(), "Get Element At", spawnPos));
@@ -316,12 +346,6 @@ public class CircuitChips
                         if (ImGui.MenuItem("Create Vector2 Create Chip"))
                         {
                             CircuitEditor.chips.Add(new Vector2Create(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Create", spawnPos));
-                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
-                        }
-
-                        if (ImGui.MenuItem("Create This Chip"))
-                        {
-                            CircuitEditor.chips.Add(new thisChip(CircuitEditor.GetNextAvaliableChipID(), "This", spawnPos));
                             CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
                         }
 
@@ -1574,7 +1598,7 @@ public class EventChip : Chip
             portTypes = new List<Type>();
 
             BaseEventValues baseValues = SelectedEvent.baseValues;
-            allPortTypes = new List<List<string>>() {baseValues.bools, baseValues.floats, baseValues.ints, baseValues.strings, baseValues.Vector2s, baseValues.GameObjects};
+            allPortTypes = new List<List<string>>() {baseValues.bools, baseValues.floats, baseValues.ints, baseValues.strings, baseValues.Vector2s, baseValues.GameObjects, baseValues.AudioInfos, baseValues.ComponentHolders};
             
             foreach (var port in baseValues.bools)
             {
@@ -1610,6 +1634,18 @@ public class EventChip : Chip
             {
                 ports.Add(port);
                 portTypes.Add(typeof(GameObject));
+            }
+
+            foreach (var port in baseValues.AudioInfos)
+            {
+                ports.Add(port);
+                portTypes.Add(typeof(AudioInfo));
+            }
+
+            foreach (var port in baseValues.ComponentHolders)
+            {
+                ports.Add(port);
+                portTypes.Add(typeof(ComponentHolder));
             }
             
             //Ports Menu
@@ -1694,7 +1730,7 @@ public class EventChip : Chip
 
                 if (ImGui.BeginCombo("Type", TypeHelper.GetName(portTypes[index])))
                 {
-                    List<Type> availableTypes = [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject)];
+                    List<Type> availableTypes = [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder)];
 
                     foreach (var type in availableTypes)
                     {
@@ -1806,6 +1842,14 @@ public class EventChip : Chip
         else if (type == typeof(GameObject))
         {
             return 5;
+        }
+        else if (type == typeof(AudioInfo))
+        {
+            return 6;
+        }
+        else if (type == typeof(ComponentHolder))
+        {
+            return 7;
         }
 
         return 0;
@@ -1959,7 +2003,7 @@ public class CreateList : Chip
         AddPort("List", false,
         [
             typeof(List<bool>), typeof(List<int>), typeof(List<float>), typeof(List<string>), typeof(List<Vector2>),
-            typeof(List<GameObject>)
+            typeof(List<GameObject>), typeof(List<AudioInfo>), typeof(List<ComponentHolder>)
         ], true);
         
         OutputPorts[0].Value.ValueFunction = ListFunction;
@@ -2030,7 +2074,7 @@ public class CreateList : Chip
     {
         var thePort = AddPort("Element " + InputPorts.Count(), true, [typeof(bool), typeof(int), typeof(float),
             typeof(string), typeof(Vector2),
-            typeof(GameObject)], false);
+            typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder)], false);
         InputPorts.Last().PortType = ChipPortsType;
         Size = new Vector2(Size.X, (CircuitEditor.portSpacing / CircuitEditor.Zoom) * InputPorts.Count() + 75);
         return thePort;
@@ -2398,5 +2442,181 @@ public class SetLocalPositionChip : Chip
         }
 
         base.OnExecute();
+    }
+}
+
+public class GetComponentChip : Chip
+{
+    private int selectedIndex = 0;
+
+    private string previewValue;
+    public GetComponentChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("Component", false, [typeof(ComponentHolder)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+        Size = new Vector2(250, 100);
+        ShowCustomItemOnChip = true;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
+        var typeOfComponent = Component.AllComponents[selectedIndex].Item2;
+        bool isValid = targetObject is not null &&
+                       targetObject.HasComponent(typeOfComponent);
+
+        if (isValid)
+        {
+            ComponentHolder componentHolder = new ComponentHolder(targetObject.GetComponent(typeOfComponent));
+            Values theValues = new Values();
+            theValues.ComponentHolder = componentHolder;
+            return theValues;
+        }
+        else
+        {
+            return new Values();
+        }
+    }
+
+    public override void DisplayCustomItem()
+    {
+        ImGui.PushItemWidth(200);
+        if (ImGui.BeginCombo("ComponentDropdown", previewValue))
+        {
+            for (int i = 0; i < Component.AllComponents.Count(); i++)
+            {
+                bool isSelected = (i == selectedIndex);
+
+                if (ImGui.Selectable(Component.AllComponents[i].Item1, isSelected))
+                {
+                    selectedIndex = i;
+                    previewValue = (selectedIndex >= 0 && selectedIndex < Component.AllComponents.Count())
+                        ? Component.AllComponents[selectedIndex].Item1
+                        : "Select...";
+                }
+
+                if (isSelected)
+                {
+                    ImGui.SetItemDefaultFocus();
+                }
+            }
+
+            ImGui.EndCombo();
+        }
+
+        ImGui.PopItemWidth();
+    }
+
+    public override void OnInstantiation()
+    {
+        selectedIndex = 0;
+        previewValue = (selectedIndex >= 0 && selectedIndex < Component.AllComponents.Count())
+            ? Component.AllComponents[selectedIndex].Item1
+            : "Select...";
+    }
+}
+
+public class HasComponentChip : Chip
+{
+    private int selectedIndex = 0;
+
+    private string previewValue;
+    public HasComponentChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("Component", false, [typeof(bool)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+        Size = new Vector2(250, 100);
+        ShowCustomItemOnChip = true;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
+        var typeOfComponent = Component.AllComponents[selectedIndex].Item2;
+        bool isValid = targetObject is not null &&
+                       targetObject.HasComponent(typeOfComponent);
+
+        if (isValid)
+        {
+            bool hasComponent = targetObject.HasComponent(typeOfComponent);
+            Values theValues = new Values();
+            theValues.Bool = hasComponent;
+            return theValues;
+        }
+        else
+        {
+            return new Values();
+        }
+    }
+
+    public override void DisplayCustomItem()
+    {
+        ImGui.PushItemWidth(200);
+        if (ImGui.BeginCombo("ComponentDropdown", previewValue))
+        {
+            for (int i = 0; i < Component.AllComponents.Count(); i++)
+            {
+                bool isSelected = (i == selectedIndex);
+
+                if (ImGui.Selectable(Component.AllComponents[i].Item1, isSelected))
+                {
+                    selectedIndex = i;
+                    previewValue = (selectedIndex >= 0 && selectedIndex < Component.AllComponents.Count())
+                        ? Component.AllComponents[selectedIndex].Item1
+                        : "Select...";
+                }
+
+                if (isSelected)
+                {
+                    ImGui.SetItemDefaultFocus();
+                }
+            }
+
+            ImGui.EndCombo();
+        }
+
+        ImGui.PopItemWidth();
+    }
+
+    public override void OnInstantiation()
+    {
+        selectedIndex = 0;
+        previewValue = (selectedIndex >= 0 && selectedIndex < Component.AllComponents.Count())
+            ? Component.AllComponents[selectedIndex].Item1
+            : "Select...";
+    }
+}
+
+public class IfChip : Chip
+{
+    public IfChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddExecPort("If", true);
+        AddPort("Condition", true, [typeof(bool)], false);
+        AddExecPort("Then", false);
+        AddExecPort("Else", false);
+    }
+
+    public override void OnExecute()
+    {
+        try
+        {
+            if (InputPorts[0].Value.GetValue().Bool)
+            {
+                OutputExecPorts.Find(port => port.Name == "Then").Execute();
+            }
+            else
+            {
+                OutputExecPorts.Find(port => port.Name == "Else").Execute();
+            }
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log($"[If] Error executing condition: {e.Message}");
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }
