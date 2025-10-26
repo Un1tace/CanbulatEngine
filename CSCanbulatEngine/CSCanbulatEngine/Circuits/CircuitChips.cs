@@ -4,6 +4,7 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Windows.Markup;
 using CSCanbulatEngine.Audio;
+using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
@@ -113,6 +114,12 @@ public class CircuitChips
                         {
                             CircuitEditor.chips.Add(new Vector2ConstantChip(CircuitEditor.GetNextAvaliableChipID(),
                                 "Vector2 Constant", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+
+                        if (ImGui.MenuItem("Create Audio Info Constant"))
+                        {
+                            CircuitEditor.chips.Add(new AudioConstant(CircuitEditor.GetNextAvaliableChipID(), "Audio Constant", spawnPos));
                             CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
                         }
 
@@ -2617,6 +2624,67 @@ public class IfChip : Chip
             GameConsole.Log($"[If] Error executing condition: {e.Message}");
             Console.WriteLine(e);
             throw;
+        }
+    }
+}
+
+public class AudioConstant : Chip
+{
+    private bool searchButtonClicked = false;
+    AudioInfo audioInfo = new AudioInfo();
+    public AudioConstant(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("Audio", false, [typeof(AudioInfo)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    private Values OutputFunction(ChipPort? chipPort)
+    {
+        Values theValue = new Values();
+        if (!String.IsNullOrWhiteSpace(audioInfo.Name) && !String.IsNullOrWhiteSpace(audioInfo.pathToAudio))
+        {
+            theValue.AudioInfo = audioInfo;
+        }
+
+        return theValue;
+    }
+
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.ImageButton("SearchImage", (IntPtr)LoadIcons.icons["MagnifyingGlass.png"], new Vector2(20, 20)))
+        {
+            searchButtonClicked = true;
+        }
+
+        Vector2 buttonPos = ImGui.GetItemRectMin();
+        
+        if (searchButtonClicked)
+        {
+            ImGui.SetNextWindowPos(buttonPos, ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
+            ImGui.SetNextWindowSize(new Vector2(240, 300), ImGuiCond.Appearing);
+            ImGui.Begin("Search", ref searchButtonClicked, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize);
+            ImGui.Columns(3, "Image Column", false);
+            var imageFiles = ProjectSerialiser.ScanAssetsForFilesWithExtension([".wav", ".mp3", ".flac", ".ogg"]);
+            foreach (var path in imageFiles)
+            {
+                ImGui.BeginGroup();
+                if (ImGui.ImageButton(path, (IntPtr)LoadIcons.icons["Waveform.png"], new Vector2(60, 60)))
+                {
+                    audioInfo.pathToAudio = path;
+                    audioInfo.Name = Path.GetFileNameWithoutExtension(path);
+                    searchButtonClicked = false;
+                }
+                float textWidth = ImGui.CalcTextSize(Path.GetFileNameWithoutExtension(audioInfo.Name)).X;
+                float currentIconWidth = ImGui.GetItemRectSize().X;
+                float textPadding = (currentIconWidth - textWidth) * 0.5f;
+                if (textPadding > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + textPadding);
+                ImGui.Text(Path.GetFileNameWithoutExtension(path));
+                ImGui.EndGroup();
+                
+                ImGui.NextColumn();
+            }
+            ImGui.Columns(1);
+            ImGui.End();
         }
     }
 }

@@ -1125,9 +1125,18 @@ public static class CircuitEditor
                     }
                     else if (port.PortType == typeof(AudioInfo))
                     {
-                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().AudioInfo is not null? port.Value.GetValue().AudioInfo.Name : "null").X;
+                        AudioInfo? theAudio = port.Value.GetValue().AudioInfo;
+
+                        string theDisplay = "null";
+
+                        if (theAudio != null && !String.IsNullOrWhiteSpace(theAudio.Name) && !String.IsNullOrWhiteSpace(theAudio.pathToAudio))
+                        {
+                            theDisplay = theAudio.Name;
+                        }
+                        
+                        textWidth = ImGui.CalcTextSize(theDisplay).X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
-                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().AudioInfo is not null? port.Value.GetValue().AudioInfo.Name : "null");
+                        ImGui.LabelText($"##{port.Id}", theDisplay);
                     }
                     else if (port.PortType == typeof(List<AudioInfo>))
                     {

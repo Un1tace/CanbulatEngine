@@ -17,7 +17,8 @@ class Program
         try
         {
             // 1. Get the path to your app's private data folder. This requires no permissions.
-            // On macOS, this is usually ~/.config or ~/Library/Application Support
+            // On macOS, ~/.config or ~/Library/Application Support
+            // On Windows, %AppData%
             string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string logDirectory = Path.Combine(appDataPath, "YourAppName"); // Create a folder for your app
 

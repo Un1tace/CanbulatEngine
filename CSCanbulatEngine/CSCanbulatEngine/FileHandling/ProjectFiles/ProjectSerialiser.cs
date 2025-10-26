@@ -268,22 +268,24 @@ public class ProjectSerialiser
     
     public static List<string> FindAllImageFiles()
     {
-        imageFiles = new List<string>();
-        ScanDirectoryForFilesWithExtension(GetAssetsFolder(), [".png", ".jpg", ".jpeg"]);
-        return imageFiles;
+        return ScanDirectoryForFilesWithExtension(GetAssetsFolder(), [".png", ".jpg", ".jpeg"]);
+    }
+
+    public static List<string> ScanAssetsForFilesWithExtension(string[] extensions)
+    {
+        return ScanDirectoryForFilesWithExtension(GetAssetsFolder(), extensions);
     }
 
     public static List<string> FindAllCircuitScripts()
     {
-        imageFiles = new List<string>();
-        ScanDirectoryForFilesWithExtension(GetAssetsFolder(), [".ccs"]);
-        return imageFiles;
+        return ScanDirectoryForFilesWithExtension(GetAssetsFolder(), [".ccs"]);
     }
 
-    public static void ScanDirectoryForFilesWithExtension(string path, string[] extensions)
+    public static List<string> ScanDirectoryForFilesWithExtension(string path, string[] extensions)
     {
         string[] dirs = Directory.GetDirectories(path);
         string[] files = Directory.GetFiles(path);
+        List<string> filesFound = new List<string>();
 
         foreach (string file in files)
         {
@@ -291,7 +293,7 @@ public class ProjectSerialiser
             {
                 if (file.ToLower().EndsWith(extension))
                 {
-                    imageFiles.Add(file);
+                    filesFound.Add(file);
                     continue;
                 }
             }
@@ -299,8 +301,10 @@ public class ProjectSerialiser
 
         foreach (string dir in dirs)
         {
-            ScanDirectoryForFilesWithExtension(dir, extensions);
+            filesFound.AddRange(ScanDirectoryForFilesWithExtension(dir, extensions));
         }
+
+        return filesFound;
     }
 #endif
 }
