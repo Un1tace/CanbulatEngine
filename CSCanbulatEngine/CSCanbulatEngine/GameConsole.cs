@@ -11,6 +11,7 @@ public static class GameConsole
     public static void Log(string log, LogType type = LogType.Normal)
     {
         logs.Add(new LogInfo(log, type));
+        Engine._forceSetConsoleTab = true;
     }
 
     public static void ClearLog()
@@ -26,10 +27,9 @@ public static class GameConsole
 
         var uv0 = new Vector2(1, 0);
         var uv1 = new Vector2(0, 1);
-        var reversedLogs = logs;
-        reversedLogs.Reverse();
-        foreach (LogInfo log in reversedLogs)
+        for (int i = logs.Count - 1; i >= 0; i--)
         {
+            LogInfo log = logs[i];
             ImGui.BeginGroup();
             {
                 Vector4 tintColor = new Vector4(1, 1, 1, 1);

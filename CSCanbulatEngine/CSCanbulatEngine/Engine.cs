@@ -106,8 +106,7 @@ public class Engine
     //Project Manager
     public static string projectFilePath = "";
     
-    //Console
-    public bool _forceSetConsoleTab = false;
+    
     
     //Hierarchy stuff
     public bool HierarchyNeedsRefresh = false;
@@ -117,7 +116,11 @@ public class Engine
 
     private RectangleF _projectManagerBounds;
     private string[]? _pendingDroppedFiles = null;
+    
+    //Console
+    public static bool _forceSetConsoleTab = false;
 
+    //Console/ProjectManager stuff
     private bool circuitEditorIsOpen = false;
     private bool _consoleTabActive = true;
     private bool _projectTabActive = true;
@@ -912,12 +915,6 @@ public class Engine
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[3]);
         ImGui.Begin("Project File Manager", editorPanelFlags |  ImGuiWindowFlags.NoTitleBar);
         
-        if (_forceSetConsoleTab)
-        {
-            ImGui.SetTabItemClosed("Console");
-            _forceSetConsoleTab = false;
-        }
-        
         if (ImGui.BeginTabBar("Bottom Window"))
         {
             ImGuiTabItemFlags projectTabFlags = ImGuiTabItemFlags.NoCloseWithMiddleMouseButton;
@@ -1020,6 +1017,13 @@ public class Engine
             
             ImGuiTabItemFlags consoleFlags = ImGuiTabItemFlags.NoCloseWithMiddleMouseButton;
 
+            if (_forceSetConsoleTab)
+            {
+                _consoleTabActive = true;
+                consoleFlags |= ImGuiTabItemFlags.SetSelected;
+                _forceSetConsoleTab = false; // Reset the flag
+            }
+            
             //Game Console
             if (ImGui.BeginTabItem("Console", ref _consoleTabActive, consoleFlags))
             {
