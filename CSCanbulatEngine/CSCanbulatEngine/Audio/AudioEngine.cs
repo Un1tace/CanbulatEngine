@@ -10,7 +10,7 @@ namespace CSCanbulatEngine.Audio;
 public class AudioEngine : IDisposable
 {
     
-    private readonly Dictionary<string, AudioClip> _loadedClips;
+    public readonly Dictionary<string, AudioClip> _loadedClips;
     private readonly List<AudioSource> _playingSources;
 
     public AudioEngine()

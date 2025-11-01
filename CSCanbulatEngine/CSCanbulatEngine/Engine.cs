@@ -106,6 +106,9 @@ public class Engine
     //Project Manager
     public static string projectFilePath = "";
     
+    //Console
+    public bool _forceSetConsoleTab = false;
+    
     //Hierarchy stuff
     public bool HierarchyNeedsRefresh = false;
     
@@ -116,7 +119,8 @@ public class Engine
     private string[]? _pendingDroppedFiles = null;
 
     private bool circuitEditorIsOpen = false;
-    private bool consoleIsOpen = false;
+    private bool _consoleTabActive = true;
+    private bool _projectTabActive = true;
 #endif
 
     public void Run()
@@ -662,6 +666,19 @@ public class Engine
                 }
             }
 
+            if (ImGui.BeginMenu("Windows"))
+            {
+                if (ImGui.MenuItem("Project Manager Open", "", ref _projectTabActive))
+                {
+                }
+                
+                if (ImGui.MenuItem("Console Open", "", ref _consoleTabActive))
+                {
+                }
+                
+                ImGui.EndMenu();
+            }
+
             if (ImGui.MenuItem("Info"))
             {
                 showInfoWindow = !showInfoWindow;
@@ -894,9 +911,17 @@ public class Engine
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[3]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[3]);
         ImGui.Begin("Project File Manager", editorPanelFlags |  ImGuiWindowFlags.NoTitleBar);
+        
+        if (_forceSetConsoleTab)
+        {
+            ImGui.SetTabItemClosed("Console");
+            _forceSetConsoleTab = false;
+        }
+        
         if (ImGui.BeginTabBar("Bottom Window"))
         {
-            if (ImGui.BeginTabItem("Project Manager"))
+            ImGuiTabItemFlags projectTabFlags = ImGuiTabItemFlags.NoCloseWithMiddleMouseButton;
+            if (ImGui.BeginTabItem("Project Manager", ref _projectTabActive, projectTabFlags))
             {
                 float leftPanelWidth = ImGui.GetContentRegionAvail().X * 0.2f;
                 ImGui.BeginChild("Directories", new Vector2(leftPanelWidth, ImGui.GetContentRegionAvail().Y),
@@ -992,9 +1017,11 @@ public class Engine
                 ImGui.EndChild();
                 ImGui.EndTabItem();
             }
+            
+            ImGuiTabItemFlags consoleFlags = ImGuiTabItemFlags.NoCloseWithMiddleMouseButton;
 
             //Game Console
-            if (ImGui.BeginTabItem("Console"))
+            if (ImGui.BeginTabItem("Console", ref _consoleTabActive, consoleFlags))
             {
                 GameConsole.RenderConsole();
                 ImGui.EndTabItem();

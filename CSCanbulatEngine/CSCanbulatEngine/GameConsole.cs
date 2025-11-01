@@ -23,10 +23,17 @@ public static class GameConsole
         ImGui.Text("Console Logs");
         ImGui.Separator();
         ImGui.BeginChild("Logs");
-        foreach (LogInfo log in logs)
+
+        var uv0 = new Vector2(1, 0);
+        var uv1 = new Vector2(0, 1);
+        var reversedLogs = logs;
+        reversedLogs.Reverse();
+        foreach (LogInfo log in reversedLogs)
         {
             ImGui.BeginGroup();
             {
+                Vector4 tintColor = new Vector4(1, 1, 1, 1);
+                
                 IntPtr icon = (IntPtr)LoadIcons.icons["Log.png"];
                 switch (log.logType)
                 {
@@ -35,14 +42,16 @@ public static class GameConsole
                         break;
                     case LogType.Warning:
                         icon = (IntPtr)LoadIcons.icons["Warning.png"];
+                        tintColor = new Vector4(1, 1, 0, 1);
                         break;
                     case LogType.Error:
                         icon = (IntPtr)LoadIcons.icons["Error.png"];
+                        tintColor = new Vector4(1, 0, 0, 1);
                         break;
                 }
-                ImGui.Image(icon, new Vector2(50, 50));
+                ImGui.Image(icon, new Vector2(50, 50), uv0, uv1, tintColor);
                 ImGui.SameLine();
-                ImGui.Text(log.log);
+                ImGui.Text($"[{log.time:HH:mm:ss.fff}]" + log.log);
             }
             ImGui.EndGroup();
         }

@@ -361,6 +361,12 @@ public class CircuitChips
                             CircuitEditor.chips.Add(new SetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Set World Position", spawnPos));
                             CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
                         }
+
+                        if (ImGui.MenuItem("Create Play Audio Chip"))
+                        {
+                            CircuitEditor.chips.Add(new PlayAudioChip(CircuitEditor.GetNextAvaliableChipID(), "Play Audio", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
                         
                         ImGui.EndMenu();
                     }
@@ -2672,6 +2678,10 @@ public class AudioConstant : Chip
                 {
                     audioInfo.pathToAudio = path;
                     audioInfo.Name = Path.GetFileNameWithoutExtension(path);
+                    if (!Engine.Audio._loadedClips.ContainsKey(audioInfo.Name))
+                    {
+                        Engine.Audio.LoadSound(audioInfo.Name, audioInfo.pathToAudio, false);
+                    }
                     searchButtonClicked = false;
                 }
                 float textWidth = ImGui.CalcTextSize(Path.GetFileNameWithoutExtension(audioInfo.Name)).X;
@@ -2686,5 +2696,36 @@ public class AudioConstant : Chip
             ImGui.Columns(1);
             ImGui.End();
         }
+    }
+}
+
+public class PlayAudioChip : Chip
+{
+    public PlayAudioChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Audio", true, [typeof(AudioInfo)], true);
+    }
+
+    public override void OnExecute()
+    {
+        try
+        {
+            AudioInfo? audioInfo = InputPorts[0].Value.GetValue().AudioInfo;
+
+            if (audioInfo != null && audioInfo.Name != null && audioInfo.pathToAudio != null)
+            {
+                Engine.Audio.PlaySound(audioInfo.Name);
+            }
+            else
+            {
+                GameConsole.Log($"[Play Audio Chip] Audio is null", LogType.Error);
+            }
+        }
+        catch (Exception e)
+        {
+           GameConsole.Log($"[Play Audio Chip] Error playing audio: {e.Message}", LogType.Error);
+            throw;
+        }
+        base.OnExecute();
     }
 }
