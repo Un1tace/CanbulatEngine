@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using CSCanbulatEngine.Circuits;
 using ImGuiNET;
 
 namespace CSCanbulatEngine;
@@ -50,6 +51,9 @@ public class InputManager
         {
             _keysPressedThisFrame.Add(key);
         }
+        
+        var keyEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnKeyPressed");
+        EventManager.Trigger(keyEvent, new ());
 
         _keysDown.Add(key);
     }
@@ -58,5 +62,8 @@ public class InputManager
     {
         _keysDown.Remove(key);
         _keysReleasedThisFrame.Add(key);
+        
+        var keyEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnKeyReleased");
+        EventManager.Trigger(keyEvent, new ());
     }
 }

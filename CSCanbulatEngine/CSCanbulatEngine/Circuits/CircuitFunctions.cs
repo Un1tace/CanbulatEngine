@@ -31,6 +31,8 @@ public static class EventManager
         var updateEvent = new Event("OnUpdate", false, true, false);
         updateEvent.baseValues.floats.Add("Delta Time");
         RegisterEvent(updateEvent);
+        RegisterEvent(new Event("OnKeyPressed", false, true, false));
+        RegisterEvent(new Event("OnKeyReleased", false, true, false));
     }
     
     public static void RegisterEvent(Event values)

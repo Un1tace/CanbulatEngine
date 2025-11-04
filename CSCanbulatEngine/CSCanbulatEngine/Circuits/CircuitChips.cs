@@ -316,6 +316,28 @@ public class CircuitChips
                         ImGui.EndMenu();
                     }
 
+                    if (ImGui.BeginMenu("Input Manager Chips"))
+                    {
+                        if (ImGui.MenuItem("Create Is Key Down Chip"))
+                        {
+                            CircuitEditor.chips.Add(new IsKeyDownChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Down", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Is Key Pressed This Frame Chip"))
+                        {
+                            CircuitEditor.chips.Add(new IsPressedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Pressed This Frame", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Is Key Released This Frame Chip"))
+                        {
+                            CircuitEditor.chips.Add(new IsKeyReleasedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Released This Frame", spawnPos));
+                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
+                        }
+                        ImGui.EndMenu();
+                    }
+
                     if (ImGui.BeginMenu("Miscellaneous Chips"))
                     {
                         if (ImGui.MenuItem("Create Log Chip"))
@@ -366,12 +388,6 @@ public class CircuitChips
                         if (ImGui.MenuItem("Create Play Audio Chip"))
                         {
                             CircuitEditor.chips.Add(new PlayAudioChip(CircuitEditor.GetNextAvaliableChipID(), "Play Audio", spawnPos));
-                            CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
-                        }
-
-                        if (ImGui.MenuItem("Create Is Key Down Chip"))
-                        {
-                            CircuitEditor.chips.Add(new IsKeyDownChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Down", spawnPos));
                             CircuitEditor.lastSelectedChip = CircuitEditor.chips.Last();
                         }
                         
@@ -2752,6 +2768,132 @@ public class IsKeyDownChip : Chip
         Values toOutput = new();
 
         toOutput.Bool = (keyToCheck != null && InputManager.IsKeyDown(keyToCheck.Value));
+
+        return toOutput;
+    }
+
+    public override void DisplayCustomItem()
+    {
+        ImGui.PushItemWidth(100);
+        if (ImGui.BeginCombo("##KeyCombo", keyToCheck.ToString()))
+        {
+            List<Key> allKeys = (List<Key>)Enum.GetValues(typeof(Key)).Cast<Key>().ToList();
+
+            int x = 0;
+            while (true)
+            {
+
+                if (allKeys.Count(e => e == allKeys[x]) > 1)
+                {
+                    allKeys.RemoveAt(x);
+                }
+                else x++;
+
+                if (x >= allKeys.Count())
+                {
+                    break;
+                }
+            }
+
+            for (int i = 0; i < allKeys.Count; i++)
+            {
+                bool isSelected = (keyToCheck != null &&allKeys[i] == keyToCheck.Value);
+
+                if (ImGui.Selectable(allKeys[i].ToString(), isSelected))
+                {
+                    keyToCheck = allKeys[i];
+                }
+
+                if (isSelected)
+                {
+                    ImGui.SetItemDefaultFocus();
+                }
+            }
+            
+            ImGui.EndCombo();
+        }
+        ImGui.PopItemWidth();
+    }
+}
+
+public class IsPressedThisFrameChip : Chip
+{
+    private Key? keyToCheck;
+    public IsPressedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("IsDown", false, [typeof(bool)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+        ShowCustomItemOnChip = true;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values toOutput = new();
+
+        toOutput.Bool = (keyToCheck != null && InputManager.IsKeyPressed(keyToCheck.Value));
+
+        return toOutput;
+    }
+
+    public override void DisplayCustomItem()
+    {
+        ImGui.PushItemWidth(100);
+        if (ImGui.BeginCombo("##KeyCombo", keyToCheck.ToString()))
+        {
+            List<Key> allKeys = (List<Key>)Enum.GetValues(typeof(Key)).Cast<Key>().ToList();
+
+            int x = 0;
+            while (true)
+            {
+
+                if (allKeys.Count(e => e == allKeys[x]) > 1)
+                {
+                    allKeys.RemoveAt(x);
+                }
+                else x++;
+
+                if (x >= allKeys.Count())
+                {
+                    break;
+                }
+            }
+
+            for (int i = 0; i < allKeys.Count; i++)
+            {
+                bool isSelected = (keyToCheck != null &&allKeys[i] == keyToCheck.Value);
+
+                if (ImGui.Selectable(allKeys[i].ToString(), isSelected))
+                {
+                    keyToCheck = allKeys[i];
+                }
+
+                if (isSelected)
+                {
+                    ImGui.SetItemDefaultFocus();
+                }
+            }
+            
+            ImGui.EndCombo();
+        }
+        ImGui.PopItemWidth();
+    }
+}
+
+public class IsKeyReleasedThisFrameChip : Chip
+{
+    private Key? keyToCheck;
+    public IsKeyReleasedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("IsDown", false, [typeof(bool)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+        ShowCustomItemOnChip = true;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values toOutput = new();
+
+        toOutput.Bool = (keyToCheck != null && InputManager.IsKeyReleased(keyToCheck.Value));
 
         return toOutput;
     }
