@@ -467,7 +467,7 @@ public class ChipPort
 
 public class ExecPort : ChipPort
 {
-    public ExecPort(int id, string name, Chip parent, bool isInput) : base(id, name, parent, isInput)
+    public ExecPort(int id, string name, Chip parent, bool isInput, bool showName = false) : base(id, name, parent, isInput, [], showName)
     {
         animationManagerStartWire = new EngineAnimationManager();
         animationManagerEndWire = new EngineAnimationManager();
@@ -596,11 +596,12 @@ public class Chip
         return port;
     }
 
-    public ExecPort AddExecPort(string name, bool isInput)
+    public ExecPort AddExecPort(string name, bool isInput, bool showName = false)
     {
         int nextAvaliableID = -1;
         bool idFound = false;
-        while (nextAvaliableID <= -1 && !idFound)
+        
+        while (!idFound)
         {
             nextAvaliableID += 1;
             if (FindPort(nextAvaliableID) == null)
@@ -608,7 +609,7 @@ public class Chip
                 idFound = true;
             }
         }
-        var port = new ExecPort(nextAvaliableID, name, this, isInput);
+        var port = new ExecPort(nextAvaliableID, name, this, isInput, showName);
         if (isInput) InputExecPorts.Add(port);
         else OutputExecPorts.Add(port);
         return port;
@@ -650,7 +651,8 @@ public class Chip
     {
         int nextAvaliableID = -1;
         bool idFound = false;
-        while (nextAvaliableID <= -1 && !idFound)
+        
+        while (!idFound)
         {
             nextAvaliableID += 1;
             if (FindPort(nextAvaliableID) == null)

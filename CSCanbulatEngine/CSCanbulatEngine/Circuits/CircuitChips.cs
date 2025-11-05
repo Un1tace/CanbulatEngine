@@ -70,8 +70,8 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
 
         ("Object/This", thisChip.Description, (pos) => new thisChip(CircuitEditor.GetNextAvaliableChipID(), "This", pos)),
         ("Object/Find By ID", FindObjectByID.Description, (pos) => new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID Chip", pos)),
-        ("Object/Find First By Tag", FindFirstObjectWithTag.Description, (pos) => new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", pos)),
-        ("Object/Find All By Tag", FindAllObjectsWithTag.Description, (pos) => new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", pos)),
+        ("Object/Find First With Tag", FindFirstObjectWithTag.Description, (pos) => new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", pos)),
+        ("Object/Find All With Tag", FindAllObjectsWithTag.Description, (pos) => new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", pos)),
         ("Object/Get Component", GetComponentChip.Description, (pos) => new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Get Component", pos)),
         ("Object/Has Component", HasComponentChip.Description, (pos) => new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Has Component", pos)),
         
@@ -84,9 +84,12 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Miscellaneous/Log Error", LogErrorChip.Description, (pos) => new LogErrorChip(CircuitEditor.GetNextAvaliableChipID(), "Log Error Chip", pos)),
         ("Miscellaneous/List/Get Element At", GetElementAt.Description, (pos) => new GetElementAt(CircuitEditor.GetNextAvaliableChipID(), "Get Element At", pos)),
         ("Miscellaneous/List/Create List", CreateList.Description, (pos) => new CreateList(CircuitEditor.GetNextAvaliableChipID(), "Create List", pos)),
-        ("Miscellaneous/Vector2/Create", Vector2Create.Description, (pos) => new Vector2Create(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Create", pos)),
+        ("Miscellaneous/Vector2 Create", Vector2Create.Description, (pos) => new Vector2Create(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Create", pos)),
+        ("Miscellaneous/Vector2 Split", Vector2Split.Description, (pos) => new Vector2Split(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Split", pos)),
         ("Miscellaneous/Transform/Set World Position", SetWorldPositionChip.Description, (pos) => new SetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Set World Position", pos)),
         ("Miscellaneous/Transform/Set Local Position", SetLocalPositionChip.Description, (pos) => new SetLocalPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Set Local Position", pos)),
+        ("Miscellaneous/Transform/Get World Position", GetWorldPositionChip.Description, (pos) => new GetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Get World Position", pos)),
+        ("Miscellaneous/Transform/Get Local Position", GetLocalPositionChip.Description, (pos) => new GetLocalPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Get Local Position", pos)),
         ("Miscellaneous/Audio/Play Audio", PlayAudioChip.Description, (pos) => new PlayAudioChip(CircuitEditor.GetNextAvaliableChipID(), "Play Audio", pos)),
     };
     
@@ -847,6 +850,20 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text(Vector2Create.Description);
                         ImGui.EndTooltip();
                     }
+                    
+                    if (ImGui.MenuItem("Create Vector2 Split Chip"))
+                    {
+                        CircuitEditor.chips.Add(new Vector2Split(CircuitEditor.GetNextAvaliableChipID(),
+                            "Vector2 Split", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Vector2 Split Chip");
+                        ImGui.Separator();
+                        ImGui.Text(Vector2Split.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Set World Position Chip"))
                     {
@@ -873,6 +890,34 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Set Local Position Chip");
                         ImGui.Separator();
                         ImGui.Text(SetLocalPositionChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get World Position Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Get World Position", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get World Position Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetWorldPositionChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get Local Position Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetLocalPositionChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Get Local Position", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Local Position Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetLocalPositionChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -3314,7 +3359,7 @@ public class Vector2Create : Chip
 
     public Values OutputVector(ChipPort? chipPort)
     {
-        Vector2 vector = new Vector2(InputPorts[0].Value.Float.Value, InputPorts[1].Value.Float.Value);
+        Vector2 vector = new Vector2(InputPorts[0].Value.GetValue().Float, InputPorts[1].Value.GetValue().Float);
         Values theValues = new Values();
         theValues.Vector2 = vector;
 
@@ -3588,8 +3633,8 @@ public class IfChip : Chip
     {
         AddExecPort("If", true);
         AddPort("Condition", true, [typeof(bool)], false);
-        AddExecPort("Then", false);
-        AddExecPort("Else", false);
+        AddExecPort("Then", false, true);
+        AddExecPort("Else", false, true);
     }
 
     public override void OnExecute()
@@ -3788,6 +3833,36 @@ public class IsKeyDownChip : Chip
         }
         ImGui.PopItemWidth();
     }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.ContainsKey("KeyCheck"))
+        {
+            string savedKeyString = properties["KeyCheck"];
+            
+            List<Key> allKeys = (List<Key>)Enum.GetValues(typeof(Key)).Cast<Key>().ToList();
+
+            for (int i = 0; i < allKeys.Count; i++)
+            {
+                if (properties["KeyCheck"] == allKeys[i].ToString())
+                {
+                    keyToCheck = allKeys[i];
+                }
+            }
+        }
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        Dictionary<string, string> properties = new();
+
+        if (keyToCheck != null)
+        {
+            properties.Add("KeyCheck", keyToCheck.ToString());
+        }
+
+        return properties;
+    }
 }
 
 public class IsPressedThisFrameChip : Chip
@@ -3865,6 +3940,36 @@ public class IsPressedThisFrameChip : Chip
         }
         ImGui.PopItemWidth();
     }
+    
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.ContainsKey("KeyCheck"))
+        {
+            string savedKeyString = properties["KeyCheck"];
+            
+            List<Key> allKeys = (List<Key>)Enum.GetValues(typeof(Key)).Cast<Key>().ToList();
+
+            for (int i = 0; i < allKeys.Count; i++)
+            {
+                if (properties["KeyCheck"] == allKeys[i].ToString())
+                {
+                    keyToCheck = allKeys[i];
+                }
+            }
+        }
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        Dictionary<string, string> properties = new();
+
+        if (keyToCheck != null)
+        {
+            properties.Add("KeyCheck", keyToCheck.ToString());
+        }
+
+        return properties;
+    }
 }
 
 public class IsKeyReleasedThisFrameChip : Chip
@@ -3941,5 +4046,109 @@ public class IsKeyReleasedThisFrameChip : Chip
             ImGui.EndCombo();
         }
         ImGui.PopItemWidth();
+    }
+    
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.ContainsKey("KeyCheck"))
+        {
+            string savedKeyString = properties["KeyCheck"];
+            
+            List<Key> allKeys = (List<Key>)Enum.GetValues(typeof(Key)).Cast<Key>().ToList();
+
+            for (int i = 0; i < allKeys.Count; i++)
+            {
+                if (properties["KeyCheck"] == allKeys[i].ToString())
+                {
+                    keyToCheck = allKeys[i];
+                }
+            }
+        }
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        Dictionary<string, string> properties = new();
+
+        if (keyToCheck != null)
+        {
+            properties.Add("KeyCheck", keyToCheck.ToString());
+        }
+
+        return properties;
+    }
+}
+
+public class Vector2Split : Chip
+{
+    public static string Description = "Splits an input Vector2 into its separate X and Y float outputs.";
+    public Vector2Split(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("Vector2", true, [typeof(Vector2)], false);
+        AddPort("X", false, [typeof(float)], true);
+        OutputPorts[0].Value.ValueFunction = Output1;
+        AddPort("Y", false, [typeof(float)], true);
+        OutputPorts[1].Value.ValueFunction = Output2;
+        
+    }
+
+    public Values Output1(ChipPort? chipPort)
+    {
+        Vector2 theVector = InputPorts[0].Value.GetValue().Vector2;
+        return new Values() { Float = theVector.X };
+    }
+    
+    public Values Output2(ChipPort? chipPort)
+    {
+        Vector2 theVector = InputPorts[0].Value.GetValue().Vector2;
+        return new Values() { Float = theVector.Y };
+    }
+}
+
+public class GetWorldPositionChip : Chip
+{
+    public static string Description = "Gets the world-space position (as a Vector2) of the input GameObject.";
+    public GetWorldPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], false);
+        AddPort("Position", false, [typeof(Vector2)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        GameObject? theGameObject = InputPorts[0].Value.GetValue().GameObject;
+
+        Values theValue = new Values();
+        if (theGameObject != null)
+        {
+            theValue.Vector2 = theGameObject.GetComponent<Transform>().WorldPosition;
+        }
+        
+        return theValue;
+    }
+}
+
+public class GetLocalPositionChip : Chip
+{
+    public static string Description = "Gets the world-space position (as a Vector2) of the input GameObject.";
+    public GetLocalPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], false);
+        AddPort("Position", false, [typeof(Vector2)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        GameObject? theGameObject = InputPorts[0].Value.GetValue().GameObject;
+
+        Values theValue = new Values();
+        if (theGameObject != null)
+        {
+            theValue.Vector2 = theGameObject.GetComponent<Transform>().LocalPosition;
+        }
+        
+        return theValue;
     }
 }
