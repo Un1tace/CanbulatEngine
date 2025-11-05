@@ -27,62 +27,67 @@ public class CircuitChips
     
     //!! Executing chips require try and catch statement !!
     
-    private static readonly List<(string Path, Func<Vector2, Chip> CreateAction)> allChips = new()
+private static readonly List<(string Path, string Description, Func<Vector2, Chip> CreateAction)> allChips = new()
     {
-        ("Event Chip", (pos) => new EventChip(CircuitEditor.GetNextAvaliableChipID(), "Event Chip", pos)),
-        ("Test Button", (pos) => new TestButton(CircuitEditor.GetNextAvaliableChipID(), "Test Button", pos)),
+        ("Event Chip", EventChip.Description, (pos) => new EventChip(CircuitEditor.GetNextAvaliableChipID(), "Event Chip", pos)),
+        ("Test Button", TestButton.Description, (pos) => new TestButton(CircuitEditor.GetNextAvaliableChipID(), "Test Button", pos)),
         
-        ("Constants/Bool Constant", (pos) => new BoolConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Bool Constant", pos)),
-        ("Constants/Float Constant", (pos) => new FloatConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Float Constant", pos)),
-        ("Constants/Int Constant", (pos) => new IntConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Int Constant", pos)),
-        ("Constants/String Constant", (pos) => new StringConstantChip(CircuitEditor.GetNextAvaliableChipID(), "String Constant", pos)),
-        ("Constants/Vector2 Constant", (pos) => new Vector2ConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Constant", pos)),
-        ("Constants/Audio Info Constant", (pos) => new AudioConstant(CircuitEditor.GetNextAvaliableChipID(), "Audio Constant", pos)),
+        ("Constants/Bool Constant", BoolConstantChip.Description, (pos) => new BoolConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Bool Constant", pos)),
+        ("Constants/Float Constant", FloatConstantChip.Description, (pos) => new FloatConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Float Constant", pos)),
+        ("Constants/Int Constant", IntConstantChip.Description, (pos) => new IntConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Int Constant", pos)),
+        ("Constants/String Constant", StringConstantChip.Description, (pos) => new StringConstantChip(CircuitEditor.GetNextAvaliableChipID(), "String Constant", pos)),
+        ("Constants/Vector2 Constant", Vector2ConstantChip.Description, (pos) => new Vector2ConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Constant", pos)),
+        ("Constants/Audio Info Constant", AudioConstant.Description, (pos) => new AudioConstant(CircuitEditor.GetNextAvaliableChipID(), "Audio Constant", pos)),
         
-        ("Math/Add", (pos) => new AddChip(CircuitEditor.GetNextAvaliableChipID(), "Add", pos)),
+        ("Math/Add", AddChip.Description, (pos) => new AddChip(CircuitEditor.GetNextAvaliableChipID(), "Add", pos)),
+        ("Math/Subtract", SubtractChip.Description, (pos) => new SubtractChip(CircuitEditor.GetNextAvaliableChipID(), "Subtract", pos)),
+        ("Math/Multiply", MultiplyChip.Description, (pos) => new MultiplyChip(CircuitEditor.GetNextAvaliableChipID(), "Multiply", pos)),
+        ("Math/Divide", DivideChip.Description, (pos) => new DivideChip(CircuitEditor.GetNextAvaliableChipID(), "Divide", pos)),
+        ("Math/Power", PowerChip.Description, (pos) => new PowerChip(CircuitEditor.GetNextAvaliableChipID(), "Power", pos)),
         
-        ("Logic/If", (pos) => new IfChip(CircuitEditor.GetNextAvaliableChipID(), "If", pos)),
-        ("Logic/Not", (pos) => new NotChip(CircuitEditor.GetNextAvaliableChipID(), "Not Chip", pos)),
-        ("Logic/And", (pos) => new AndChip(CircuitEditor.GetNextAvaliableChipID(), "And Chip", pos)),
-        ("Logic/Or", (pos) => new OrChip(CircuitEditor.GetNextAvaliableChipID(), "Or Chip", pos)),
-        ("Logic/Nor", (pos) => new NorChip(CircuitEditor.GetNextAvaliableChipID(), "Nor Chip", pos)),
-        ("Logic/Nand", (pos) => new NandChip(CircuitEditor.GetNextAvaliableChipID(), "Nand Chip", pos)),
-        ("Logic/Xor", (pos) => new XorChip(CircuitEditor.GetNextAvaliableChipID(), "Xor Chip", pos)),
+        ("Logic/If", IfChip.Description, (pos) => new IfChip(CircuitEditor.GetNextAvaliableChipID(), "If", pos)),
+        ("Logic/Not", NotChip.Description, (pos) => new NotChip(CircuitEditor.GetNextAvaliableChipID(), "Not Chip", pos)),
+        ("Logic/And", AndChip.Description, (pos) => new AndChip(CircuitEditor.GetNextAvaliableChipID(), "And Chip", pos)),
+        ("Logic/Or", OrChip.Description, (pos) => new OrChip(CircuitEditor.GetNextAvaliableChipID(), "Or Chip", pos)),
+        ("Logic/Nor", NorChip.Description, (pos) => new NorChip(CircuitEditor.GetNextAvaliableChipID(), "Nor Chip", pos)),
+        ("Logic/Nand", NandChip.Description, (pos) => new NandChip(CircuitEditor.GetNextAvaliableChipID(), "Nand Chip", pos)),
+        ("Logic/Xor", XorChip.Description, (pos) => new XorChip(CircuitEditor.GetNextAvaliableChipID(), "Xor Chip", pos)),
         
-        ("Comparison/Equals", (pos) => new EqualsChip(CircuitEditor.GetNextAvaliableChipID(), "Equals Chip", pos)),
-        ("Comparison/Less Than", (pos) => new LessThanChip(CircuitEditor.GetNextAvaliableChipID(), "Less Than Chip", pos)),
-        ("Comparison/Less Than Or Equals", (pos) => new LessThanOrEqualsChip(CircuitEditor.GetNextAvaliableChipID(), "Less Than Or Equals Chip", pos)),
-        ("Comparison/Greater Than", (pos) => new GreaterThanChip(CircuitEditor.GetNextAvaliableChipID(), "Greater Than Chip", pos)),
-        ("Comparison/Greater Than Or Equals", (pos) => new GreaterThanOrEqualsChip(CircuitEditor.GetNextAvaliableChipID(), "Greater Than Or Equals Chip", pos)),
+        ("Comparison/Equals", EqualsChip.Description, (pos) => new EqualsChip(CircuitEditor.GetNextAvaliableChipID(), "Equals Chip", pos)),
+        ("Comparison/Less Than", LessThanChip.Description, (pos) => new LessThanChip(CircuitEditor.GetNextAvaliableChipID(), "Less Than Chip", pos)),
+        ("Comparison/Less Than Or Equals", LessThanOrEqualsChip.Description, (pos) => new LessThanOrEqualsChip(CircuitEditor.GetNextAvaliableChipID(), "Less Than Or Equals Chip", pos)),
+        ("Comparison/Greater Than", GreaterThanChip.Description, (pos) => new GreaterThanChip(CircuitEditor.GetNextAvaliableChipID(), "Greater Than Chip", pos)),
+        ("Comparison/Greater Than Or Equals", GreaterThanOrEqualsChip.Description, (pos) => new GreaterThanOrEqualsChip(CircuitEditor.GetNextAvaliableChipID(), "Greater Than Or Equals Chip", pos)),
         
-        ("Variables/Bool Variable", (pos) => new BoolVariable(CircuitEditor.GetNextAvaliableChipID(), "Bool Variable", pos)),
-        ("Variables/Float Variable", (pos) => new FloatVariable(CircuitEditor.GetNextAvaliableChipID(), "Float Variable", pos)),
-        ("Variables/Int Variable", (pos) => new IntVariable(CircuitEditor.GetNextAvaliableChipID(), "Int Variable", pos)),
-        ("Variables/String Variable", (pos) => new StringVariable(CircuitEditor.GetNextAvaliableChipID(), "String Variable", pos)),
-        ("Variables/Vector2 Variable", (pos) => new Vector2Variable(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Variable", pos)),
-        ("Variables/GameObject Variable", (pos) => new GameObjectVariable(CircuitEditor.GetNextAvaliableChipID(), "GameObject Variable", pos)),
-        ("Variables/Audio Info Variable", (pos) => new AudioInfoVariable(CircuitEditor.GetNextAvaliableChipID(), "Audio Info Variable", pos)),
-        ("Variables/Component Holder Variable", (pos) => new ComponentHolderVariable(CircuitEditor.GetNextAvaliableChipID(), "Component Holder Variable", pos)),
+        ("Variables/Bool Variable", BoolVariable.Description, (pos) => new BoolVariable(CircuitEditor.GetNextAvaliableChipID(), "Bool Variable", pos)),
+        ("Variables/Float Variable", FloatVariable.Description, (pos) => new FloatVariable(CircuitEditor.GetNextAvaliableChipID(), "Float Variable", pos)),
+        ("Variables/Int Variable", IntVariable.Description, (pos) => new IntVariable(CircuitEditor.GetNextAvaliableChipID(), "Int Variable", pos)),
+        ("Variables/String Variable", StringVariable.Description, (pos) => new StringVariable(CircuitEditor.GetNextAvaliableChipID(), "String Variable", pos)),
+        ("Variables/Vector2 Variable", Vector2Variable.Description, (pos) => new Vector2Variable(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Variable", pos)),
+        ("Variables/GameObject Variable", GameObjectVariable.Description, (pos) => new GameObjectVariable(CircuitEditor.GetNextAvaliableChipID(), "GameObject Variable", pos)),
+        ("Variables/Audio Info Variable", AudioInfoVariable.Description, (pos) => new AudioInfoVariable(CircuitEditor.GetNextAvaliableChipID(), "Audio Info Variable", pos)),
+        ("Variables/Component Holder Variable", ComponentHolderVariable.Description, (pos) => new ComponentHolderVariable(CircuitEditor.GetNextAvaliableChipID(), "Component Holder Variable", pos)),
 
-        ("Object/This", (pos) => new thisChip(CircuitEditor.GetNextAvaliableChipID(), "This", pos)),
-        ("Object/Find By ID", (pos) => new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID Chip", pos)),
-        ("Object/Find First By Tag", (pos) => new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", pos)),
-        ("Object/Find All By Tag", (pos) => new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", pos)),
-        ("Object/Get Component", (pos) => new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Get Component", pos)),
-        ("Object/Has Component", (pos) => new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Has Component", pos)),
+        ("Object/This", thisChip.Description, (pos) => new thisChip(CircuitEditor.GetNextAvaliableChipID(), "This", pos)),
+        ("Object/Find By ID", FindObjectByID.Description, (pos) => new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID Chip", pos)),
+        ("Object/Find First By Tag", FindFirstObjectWithTag.Description, (pos) => new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", pos)),
+        ("Object/Find All By Tag", FindAllObjectsWithTag.Description, (pos) => new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", pos)),
+        ("Object/Get Component", GetComponentChip.Description, (pos) => new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Get Component", pos)),
+        ("Object/Has Component", HasComponentChip.Description, (pos) => new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Has Component", pos)),
         
-        ("Input/Is Key Down", (pos) => new IsKeyDownChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Down", pos)),
-        ("Input/Is Key Pressed", (pos) => new IsPressedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Pressed This Frame", pos)),
-        ("Input/Is Key Released", (pos) => new IsKeyReleasedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Released This Frame", pos)),
+        ("Input/Is Key Down", IsKeyDownChip.Description, (pos) => new IsKeyDownChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Down", pos)),
+        ("Input/Is Key Pressed", IsPressedThisFrameChip.Description, (pos) => new IsPressedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Pressed This Frame", pos)),
+        ("Input/Is Key Released", IsKeyReleasedThisFrameChip.Description, (pos) => new IsKeyReleasedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Released This Frame", pos)),
         
-        ("Miscellaneous/Log", (pos) => new LogChip(CircuitEditor.GetNextAvaliableChipID(), "Log Chip", pos)),
-        ("Miscellaneous/Log Warning", (pos) => new LogWarningChip(CircuitEditor.GetNextAvaliableChipID(), "Log Warning Chip", pos)),
-        ("Miscellaneous/Log Error", (pos) => new LogErrorChip(CircuitEditor.GetNextAvaliableChipID(), "Log Error Chip", pos)),
-        ("Miscellaneous/List/Get Element At", (pos) => new GetElementAt(CircuitEditor.GetNextAvaliableChipID(), "Get Element At", pos)),
-        ("Miscellaneous/List/Create List", (pos) => new CreateList(CircuitEditor.GetNextAvaliableChipID(), "Create List", pos)),
-        ("Miscellaneous/Vector2/Create", (pos) => new Vector2Create(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Create", pos)),
-        ("Miscellaneous/Transform/Set World Position", (pos) => new SetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Set World Position", pos)),
-        ("Miscellaneous/Audio/Play Audio", (pos) => new PlayAudioChip(CircuitEditor.GetNextAvaliableChipID(), "Play Audio", pos)),
+        ("Miscellaneous/Log", LogChip.Description, (pos) => new LogChip(CircuitEditor.GetNextAvaliableChipID(), "Log Chip", pos)),
+        ("Miscellaneous/Log Warning", LogWarningChip.Description, (pos) => new LogWarningChip(CircuitEditor.GetNextAvaliableChipID(), "Log Warning Chip", pos)),
+        ("Miscellaneous/Log Error", LogErrorChip.Description, (pos) => new LogErrorChip(CircuitEditor.GetNextAvaliableChipID(), "Log Error Chip", pos)),
+        ("Miscellaneous/List/Get Element At", GetElementAt.Description, (pos) => new GetElementAt(CircuitEditor.GetNextAvaliableChipID(), "Get Element At", pos)),
+        ("Miscellaneous/List/Create List", CreateList.Description, (pos) => new CreateList(CircuitEditor.GetNextAvaliableChipID(), "Create List", pos)),
+        ("Miscellaneous/Vector2/Create", Vector2Create.Description, (pos) => new Vector2Create(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Create", pos)),
+        ("Miscellaneous/Transform/Set World Position", SetWorldPositionChip.Description, (pos) => new SetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Set World Position", pos)),
+        ("Miscellaneous/Transform/Set Local Position", SetLocalPositionChip.Description, (pos) => new SetLocalPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Set Local Position", pos)),
+        ("Miscellaneous/Audio/Play Audio", PlayAudioChip.Description, (pos) => new PlayAudioChip(CircuitEditor.GetNextAvaliableChipID(), "Play Audio", pos)),
     };
     
     
@@ -147,11 +152,27 @@ public class CircuitChips
                     CircuitEditor.chips.Add(new EventChip(CircuitEditor.GetNextAvaliableChipID(), "Event Chip",
                         spawnPos));
                 }
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.Text("Event Chip");
+                    ImGui.Separator();
+                    ImGui.Text(EventChip.Description);
+                    ImGui.EndTooltip();
+                }
 
                 if (ImGui.MenuItem("Test Button"))
                 {
                     CircuitEditor.chips.Add(new TestButton(CircuitEditor.GetNextAvaliableChipID(), "Test Button",
                         spawnPos));
+                }
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.Text("Test Button");
+                    ImGui.Separator();
+                    ImGui.Text(TestButton.Description);
+                    ImGui.EndTooltip();
                 }
 
                 if (ImGui.BeginMenu("Constant Chips"))
@@ -161,11 +182,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new BoolConstantChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Bool Constant", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Bool Constant");
+                        ImGui.Separator();
+                        ImGui.Text(BoolConstantChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Float Constant"))
                     {
                         CircuitEditor.chips.Add(new FloatConstantChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Float Constant", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Float Constant");
+                        ImGui.Separator();
+                        ImGui.Text(FloatConstantChip.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Int Constant"))
@@ -173,11 +210,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new IntConstantChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Int Constant", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Int Constant");
+                        ImGui.Separator();
+                        ImGui.Text(IntConstantChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create String Constant"))
                     {
                         CircuitEditor.chips.Add(new StringConstantChip(CircuitEditor.GetNextAvaliableChipID(),
                             "String Constant", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("String Constant");
+                        ImGui.Separator();
+                        ImGui.Text(StringConstantChip.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Vector2 Constant"))
@@ -185,11 +238,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new Vector2ConstantChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Vector2 Constant", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Vector2 Constant");
+                        ImGui.Separator();
+                        ImGui.Text(Vector2ConstantChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Audio Info Constant"))
                     {
                         CircuitEditor.chips.Add(new AudioConstant(CircuitEditor.GetNextAvaliableChipID(),
                             "Audio Constant", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Audio Info Constant");
+                        ImGui.Separator();
+                        ImGui.Text(AudioConstant.Description);
+                        ImGui.EndTooltip();
                     }
 
                     ImGui.EndMenu();
@@ -202,6 +271,70 @@ public class CircuitChips
                         CircuitEditor.chips.Add(
                             new AddChip(CircuitEditor.GetNextAvaliableChipID(), "Add", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Add Chip");
+                        ImGui.Separator();
+                        ImGui.Text(AddChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Subtract Chip"))
+                    {
+                        CircuitEditor.chips.Add(
+                            new SubtractChip(CircuitEditor.GetNextAvaliableChipID(), "Subtract", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Subtract Chip");
+                        ImGui.Separator();
+                        ImGui.Text(SubtractChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Multiply Chip"))
+                    {
+                        CircuitEditor.chips.Add(
+                            new MultiplyChip(CircuitEditor.GetNextAvaliableChipID(), "Multiply", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Multiply Chip");
+                        ImGui.Separator();
+                        ImGui.Text(MultiplyChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Divide Chip"))
+                    {
+                        CircuitEditor.chips.Add(
+                            new DivideChip(CircuitEditor.GetNextAvaliableChipID(), "Divide", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Divide Chip");
+                        ImGui.Separator();
+                        ImGui.Text(DivideChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Power Chip"))
+                    {
+                        CircuitEditor.chips.Add(
+                            new PowerChip(CircuitEditor.GetNextAvaliableChipID(), "Power", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Add Chip");
+                        ImGui.Separator();
+                        ImGui.Text(PowerChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     ImGui.EndMenu();
                 }
@@ -211,6 +344,13 @@ public class CircuitChips
                     if (ImGui.MenuItem("Create If Chip"))
                     {
                         CircuitEditor.chips.Add(new IfChip(CircuitEditor.GetNextAvaliableChipID(), "If", spawnPos));
+                    }if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("If Chip");
+                        ImGui.Separator();
+                        ImGui.Text(IfChip.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Not Chip"))
@@ -218,11 +358,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new NotChip(CircuitEditor.GetNextAvaliableChipID(), "Not Chip",
                             spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Not Chip");
+                        ImGui.Separator();
+                        ImGui.Text(NotChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create And Chip"))
                     {
                         CircuitEditor.chips.Add(new AndChip(CircuitEditor.GetNextAvaliableChipID(), "And Chip",
                             spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("And Chip");
+                        ImGui.Separator();
+                        ImGui.Text(AndChip.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Or Chip"))
@@ -230,11 +386,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new OrChip(CircuitEditor.GetNextAvaliableChipID(), "Or Chip",
                             spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Or Chip");
+                        ImGui.Separator();
+                        ImGui.Text(OrChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Nor Chip"))
                     {
                         CircuitEditor.chips.Add(new NorChip(CircuitEditor.GetNextAvaliableChipID(), "Nor Chip",
                             spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Nor Chip");
+                        ImGui.Separator();
+                        ImGui.Text(NorChip.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Nand Chip"))
@@ -242,11 +414,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new NandChip(CircuitEditor.GetNextAvaliableChipID(), "Nand Chip",
                             spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Nand Chip");
+                        ImGui.Separator();
+                        ImGui.Text(NandChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Xor Chip"))
                     {
                         CircuitEditor.chips.Add(new XorChip(CircuitEditor.GetNextAvaliableChipID(), "Xor Chip",
                             spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Xor Chip");
+                        ImGui.Separator();
+                        ImGui.Text(XorChip.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Equals Chip"))
@@ -254,11 +442,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new EqualsChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Equals Chip", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Equals Chip");
+                        ImGui.Separator();
+                        ImGui.Text(EqualsChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Less Than Chip"))
                     {
                         CircuitEditor.chips.Add(new LessThanChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Less Than Chip", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Less Than Chip");
+                        ImGui.Separator();
+                        ImGui.Text(LessThanChip.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Less Than Or Equals Chip"))
@@ -266,17 +470,41 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new LessThanOrEqualsChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Less Than Or Equals Chip", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Less Than Or Equals Chip");
+                        ImGui.Separator();
+                        ImGui.Text(LessThanOrEqualsChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Greater Than Chip"))
                     {
                         CircuitEditor.chips.Add(new GreaterThanChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Greater Than Chip", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Greater Than Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GreaterThanChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Greater Than Or Equals Chip"))
                     {
                         CircuitEditor.chips.Add(new GreaterThanOrEqualsChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Greater Than Or Equals Chip", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Greater Than Or Equals Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GreaterThanOrEqualsChip.Description);
+                        ImGui.EndTooltip();
                     }
 
                     ImGui.EndMenu();
@@ -289,11 +517,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new BoolVariable(CircuitEditor.GetNextAvaliableChipID(),
                             "Bool Variable", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Bool Variable");
+                        ImGui.Separator();
+                        ImGui.Text(BoolVariable.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Float Variable"))
                     {
                         CircuitEditor.chips.Add(new FloatVariable(CircuitEditor.GetNextAvaliableChipID(),
                             "Float Variable", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Float Variable");
+                        ImGui.Separator();
+                        ImGui.Text(FloatVariable.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Int Variable"))
@@ -301,11 +545,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new IntVariable(CircuitEditor.GetNextAvaliableChipID(),
                             "Int Variable", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Int Variable");
+                        ImGui.Separator();
+                        ImGui.Text(IntVariable.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create String Variable"))
                     {
                         CircuitEditor.chips.Add(new StringVariable(CircuitEditor.GetNextAvaliableChipID(),
                             "String Variable", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("String Variable");
+                        ImGui.Separator();
+                        ImGui.Text(StringVariable.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Vector2 Variable"))
@@ -313,11 +573,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new Vector2Variable(CircuitEditor.GetNextAvaliableChipID(),
                             "Vector2 Variable", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Vector2 Variable");
+                        ImGui.Separator();
+                        ImGui.Text(Vector2Variable.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create GameObject Variable"))
                     {
                         CircuitEditor.chips.Add(new GameObjectVariable(CircuitEditor.GetNextAvaliableChipID(),
                             "GameObject Variable", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("GameObject Variable");
+                        ImGui.Separator();
+                        ImGui.Text(GameObjectVariable.Description);
+                        ImGui.EndTooltip();
                     }
                     
                     if (ImGui.MenuItem("Create Audio Info Variable"))
@@ -325,11 +601,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new AudioInfoVariable(CircuitEditor.GetNextAvaliableChipID(),
                             "Audio Info Variable", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Audio Info Variable");
+                        ImGui.Separator();
+                        ImGui.Text(AudioInfoVariable.Description);
+                        ImGui.EndTooltip();
+                    }
                     
                     if (ImGui.MenuItem("Create Component Holder Variable"))
                     {
                         CircuitEditor.chips.Add(new ComponentHolderVariable(CircuitEditor.GetNextAvaliableChipID(),
                             "Component Holder Variable", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Component Holder Variable");
+                        ImGui.Separator();
+                        ImGui.Text(ComponentHolderVariable.Description);
+                        ImGui.EndTooltip();
                     }
 
 
@@ -342,11 +634,27 @@ public class CircuitChips
                     {
                         CircuitEditor.chips.Add(new thisChip(CircuitEditor.GetNextAvaliableChipID(), "This", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("This Chip");
+                        ImGui.Separator();
+                        ImGui.Text(thisChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Find Object By ID Chip"))
                     {
                         CircuitEditor.chips.Add(new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(),
                             "Find Object By ID Chip", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Find Object By ID Chip");
+                        ImGui.Separator();
+                        ImGui.Text(FindObjectByID.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Find First Object By Tag Chip"))
@@ -354,11 +662,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(),
                             "Find First Object With Tag", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Find First Object With Tag Chip");
+                        ImGui.Separator();
+                        ImGui.Text(FindFirstObjectWithTag.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Find All Objects By Tag Chip"))
                     {
                         CircuitEditor.chips.Add(new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(),
                             "Find All Objects With Tag", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Find All Objects With Tag Chip");
+                        ImGui.Separator();
+                        ImGui.Text(FindAllObjectsWithTag.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Get Component Chip"))
@@ -366,11 +690,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Get Component", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Component Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetComponentChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Has Component Chip"))
                     {
                         CircuitEditor.chips.Add(new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Has Component", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Has Component Chip");
+                        ImGui.Separator();
+                        ImGui.Text(HasComponentChip.Description);
+                        ImGui.EndTooltip();
                     }
 
                     ImGui.EndMenu();
@@ -383,17 +723,41 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new IsKeyDownChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Down",
                             spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Is Key Down Chip");
+                        ImGui.Separator();
+                        ImGui.Text(IsKeyDownChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Is Key Pressed This Frame Chip"))
                     {
                         CircuitEditor.chips.Add(new IsPressedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Is Key Pressed This Frame", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Is Key Pressed This Frame Chip");
+                        ImGui.Separator();
+                        ImGui.Text(IsPressedThisFrameChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Is Key Released This Frame Chip"))
                     {
                         CircuitEditor.chips.Add(new IsKeyReleasedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Is Key Released This Frame", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Is Key Released This Frame Chip");
+                        ImGui.Separator();
+                        ImGui.Text(IsKeyReleasedThisFrameChip.Description);
+                        ImGui.EndTooltip();
                     }
 
                     ImGui.EndMenu();
@@ -406,11 +770,27 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new LogChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Log Chip", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Log Chip");
+                        ImGui.Separator();
+                        ImGui.Text(LogChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Log Warning Chip"))
                     {
                         CircuitEditor.chips.Add(new LogWarningChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Log Warning Chip", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Log Warning Chip");
+                        ImGui.Separator();
+                        ImGui.Text(LogWarningChip.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Log Error Chip"))
@@ -418,17 +798,40 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new LogErrorChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Log Error Chip", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Log Error Chip");
+                        ImGui.Separator();
+                        ImGui.Text(LogErrorChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Get Element At Chip"))
                     {
                         CircuitEditor.chips.Add(new GetElementAt(CircuitEditor.GetNextAvaliableChipID(),
                             "Get Element At", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Element At Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetElementAt.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create List Chip"))
                     {
                         CircuitEditor.chips.Add(new CreateList(CircuitEditor.GetNextAvaliableChipID(), "Create List",
                             spawnPos));
+                    }if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Create List Chip");
+                        ImGui.Separator();
+                        ImGui.Text(CreateList.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Vector2 Create Chip"))
@@ -436,11 +839,41 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new Vector2Create(CircuitEditor.GetNextAvaliableChipID(),
                             "Vector2 Create", spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Vector2 Create Chip");
+                        ImGui.Separator();
+                        ImGui.Text(Vector2Create.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create Set World Position Chip"))
                     {
                         CircuitEditor.chips.Add(new SetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Set World Position", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Set World Position Chip");
+                        ImGui.Separator();
+                        ImGui.Text(SetWorldPositionChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Set Local Position Chip"))
+                    {
+                        CircuitEditor.chips.Add(new SetLocalPositionChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Set Local Position", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Set Local Position Chip");
+                        ImGui.Separator();
+                        ImGui.Text(SetLocalPositionChip.Description);
+                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.MenuItem("Create Play Audio Chip"))
@@ -448,13 +881,21 @@ public class CircuitChips
                         CircuitEditor.chips.Add(new PlayAudioChip(CircuitEditor.GetNextAvaliableChipID(), "Play Audio",
                             spawnPos));
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Play Audio Chip");
+                        ImGui.Separator();
+                        ImGui.Text(PlayAudioChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     ImGui.EndMenu();
                 }
             }
             else
             {
-                foreach (var (path, createAction) in allChips)
+                foreach (var (path, description, createAction) in allChips)
                 {
                     if (path.ToLower().Contains(searchText.ToLower()))
                     {
@@ -462,6 +903,14 @@ public class CircuitChips
                         {
                             var newChip = createAction(spawnPos);
                             CircuitEditor.chips.Add(newChip);
+                        }
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text(path);
+                            ImGui.Separator();
+                            ImGui.Text(description);
+                            ImGui.EndTooltip();
                         }
                     }
                 }
@@ -478,6 +927,7 @@ public class CircuitChips
 
 public class BoolConstantChip : Chip
 {
+    public static string Description = "Outputs a constant Boolean (True/False) value.";
     public BoolConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(bool)]);
@@ -493,6 +943,7 @@ public class BoolConstantChip : Chip
 
 public class FloatConstantChip : Chip
 {
+    public static string Description = "Outputs a constant float (decimal) value.";
     public FloatConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(float)]);
@@ -508,6 +959,7 @@ public class FloatConstantChip : Chip
 
 public class IntConstantChip : Chip
 {
+    public static string Description = "Outputs a constant integer (Whole Number) value.";
     public IntConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(int)]);
@@ -523,6 +975,7 @@ public class IntConstantChip : Chip
 
 public class StringConstantChip : Chip
 {
+    public static string Description = "Outputs a constant string (text) value.";
     public StringConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(string)]);
@@ -538,6 +991,7 @@ public class StringConstantChip : Chip
 
 public class Vector2ConstantChip : Chip
 {
+    public static string Description = "Outputs a constant Vector2 (X,Y) value";
     public Vector2ConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(Vector2)]);
@@ -553,6 +1007,7 @@ public class Vector2ConstantChip : Chip
 
 public class AddChip : Chip
 {
+    public static string Description = "Outputs the sum of A and B. (A + B). Works with Ints and Floats.";
     public AddChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -612,8 +1067,257 @@ public class AddChip : Chip
     }
 }
 
+public class SubtractChip : Chip
+{
+    public static string Description = "Outputs the difference between A and B. (A - B). Works with Ints and Floats.";
+    public SubtractChip(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        AddPort("A", true, [typeof(int), typeof(float)]);
+        AddPort("B", true, [typeof(int), typeof(float)]);
+        AddPort("Output", false, [typeof(int), typeof(float)]);
+        base.OutputPorts[0].Value.ValueFunction = AddOutput;
+    }
+
+    public Values AddOutput(ChipPort? chipPort)
+    {
+        Values value = new Values();
+        if (InputPorts[0].PortType == typeof(float))
+        {
+            value.Float = InputPorts[0].Value.GetValue().Float - InputPorts[1].Value.GetValue().Float;
+        }
+        else if (InputPorts[0].PortType == typeof(int))
+        {
+            value.Int = InputPorts[0].Value.GetValue().Int - InputPorts[1].Value.GetValue().Int;
+        }
+
+        return value;
+    }
+
+    public override void UpdateChipConfig()
+    {
+        
+    }
+
+    public override void PortTypeChanged(ChipPort? chipPort)
+    {
+        if (chipPort == null)
+        {
+            foreach (var port in InputPorts)
+            {
+                port._PortType = null;
+                port.UpdateColor();
+            }
+            foreach (var port in OutputPorts)
+            {
+                port._PortType = null;
+                port.UpdateColor();
+            }
+        }
+        else
+        {
+            foreach (var port in InputPorts)
+            {
+                port._PortType = chipPort?.PortType ?? null;
+                port.UpdateColor();
+            }
+            foreach (var port in OutputPorts)
+            {
+                port._PortType = chipPort?.PortType ?? null;
+                port.UpdateColor();
+            }
+        }
+    }
+}
+
+public class DivideChip : Chip
+{
+    public static string Description = "Outputs the quotient of A and B. (A / B). Works with Ints and Floats.";
+    public DivideChip(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        AddPort("A", true, [typeof(int), typeof(float)]);
+        AddPort("B", true, [typeof(int), typeof(float)]);
+        AddPort("Output", false, [typeof(int), typeof(float)]);
+        base.OutputPorts[0].Value.ValueFunction = AddOutput;
+    }
+
+    public Values AddOutput(ChipPort? chipPort)
+    {
+        Values value = new Values();
+        if (InputPorts[0].PortType == typeof(float))
+        {
+            value.Float = InputPorts[0].Value.GetValue().Float / InputPorts[1].Value.GetValue().Float;
+        }
+        else if (InputPorts[0].PortType == typeof(int))
+        {
+            value.Int = InputPorts[0].Value.GetValue().Int / InputPorts[1].Value.GetValue().Int;
+        }
+
+        return value;
+    }
+
+    public override void UpdateChipConfig()
+    {
+        
+    }
+
+    public override void PortTypeChanged(ChipPort? chipPort)
+    {
+        if (chipPort == null)
+        {
+            foreach (var port in InputPorts)
+            {
+                port._PortType = null;
+                port.UpdateColor();
+            }
+            foreach (var port in OutputPorts)
+            {
+                port._PortType = null;
+                port.UpdateColor();
+            }
+        }
+        else
+        {
+            foreach (var port in InputPorts)
+            {
+                port._PortType = chipPort?.PortType ?? null;
+                port.UpdateColor();
+            }
+            foreach (var port in OutputPorts)
+            {
+                port._PortType = chipPort?.PortType ?? null;
+                port.UpdateColor();
+            }
+        }
+    }
+}
+
+public class MultiplyChip : Chip
+{
+    public static string Description = "Outputs the product of A and B. (A * B). Works with Ints and Floats.";
+    public MultiplyChip(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        AddPort("A", true, [typeof(int), typeof(float)]);
+        AddPort("B", true, [typeof(int), typeof(float)]);
+        AddPort("Output", false, [typeof(int), typeof(float)]);
+        base.OutputPorts[0].Value.ValueFunction = AddOutput;
+    }
+
+    public Values AddOutput(ChipPort? chipPort)
+    {
+        Values value = new Values();
+        if (InputPorts[0].PortType == typeof(float))
+        {
+            value.Float = InputPorts[0].Value.GetValue().Float * InputPorts[1].Value.GetValue().Float;
+        }
+        else if (InputPorts[0].PortType == typeof(int))
+        {
+            value.Int = InputPorts[0].Value.GetValue().Int * InputPorts[1].Value.GetValue().Int;
+        }
+
+        return value;
+    }
+
+    public override void UpdateChipConfig()
+    {
+        
+    }
+
+    public override void PortTypeChanged(ChipPort? chipPort)
+    {
+        if (chipPort == null)
+        {
+            foreach (var port in InputPorts)
+            {
+                port._PortType = null;
+                port.UpdateColor();
+            }
+            foreach (var port in OutputPorts)
+            {
+                port._PortType = null;
+                port.UpdateColor();
+            }
+        }
+        else
+        {
+            foreach (var port in InputPorts)
+            {
+                port._PortType = chipPort?.PortType ?? null;
+                port.UpdateColor();
+            }
+            foreach (var port in OutputPorts)
+            {
+                port._PortType = chipPort?.PortType ?? null;
+                port.UpdateColor();
+            }
+        }
+    }
+}
+
+public class PowerChip : Chip
+{
+    public static string Description = "Outputs the exponentiation of A and B. (A ^ B). Works with Ints and Floats.";
+    public PowerChip(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        AddPort("A", true, [typeof(int), typeof(float)]);
+        AddPort("B", true, [typeof(int), typeof(float)]);
+        AddPort("Output", false, [typeof(int), typeof(float)]);
+        base.OutputPorts[0].Value.ValueFunction = AddOutput;
+    }
+
+    public Values AddOutput(ChipPort? chipPort)
+    {
+        Values value = new Values();
+        if (InputPorts[0].PortType == typeof(float))
+        {
+            value.Float = MathF.Pow(InputPorts[0].Value.GetValue().Float, InputPorts[1].Value.GetValue().Float);
+        }
+        else if (InputPorts[0].PortType == typeof(int))
+        {
+            value.Int = (int)Math.Pow((double)InputPorts[0].Value.GetValue().Int, (double)InputPorts[1].Value.GetValue().Int);
+        }
+
+        return value;
+    }
+
+    public override void UpdateChipConfig()
+    {
+        
+    }
+
+    public override void PortTypeChanged(ChipPort? chipPort)
+    {
+        if (chipPort == null)
+        {
+            foreach (var port in InputPorts)
+            {
+                port._PortType = null;
+                port.UpdateColor();
+            }
+            foreach (var port in OutputPorts)
+            {
+                port._PortType = null;
+                port.UpdateColor();
+            }
+        }
+        else
+        {
+            foreach (var port in InputPorts)
+            {
+                port._PortType = chipPort?.PortType ?? null;
+                port.UpdateColor();
+            }
+            foreach (var port in OutputPorts)
+            {
+                port._PortType = chipPort?.PortType ?? null;
+                port.UpdateColor();
+            }
+        }
+    }
+}
+
 public class TestButton : Chip
 {
+    public static string Description = "A simple button on the chip that fires an execution pulse when clicked in the editor.";
     public TestButton(int id, string name, Vector2 position) : base(id, name, position)
     {
         ShowCustomItemOnChip = true;
@@ -632,6 +1336,7 @@ public class TestButton : Chip
 // Variables :)
 public class BoolVariable : Chip
 {
+    public static string Description = "Sets (on execute) or gets (on output) a global boolean variable by name.";
     private Values varValues;
     public BoolVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -704,6 +1409,7 @@ public class BoolVariable : Chip
 
 public class FloatVariable : Chip
 {
+    public static string Description = "Sets (on execute) or gets (on output) a global float variable by name.";
     private Values varValues;
     public FloatVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -776,6 +1482,7 @@ public class FloatVariable : Chip
 
 public class IntVariable : Chip
 {
+    public static string Description = "Sets (on execute) or gets (on output) a global integer variable by name.";
     private Values varValues;
     public IntVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -848,6 +1555,7 @@ public class IntVariable : Chip
 
 public class StringVariable : Chip
 {
+    public static string Description = "Sets (on execute) or gets (on output) a global string variable by name.";
     private Values varValues;
     public StringVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -920,6 +1628,7 @@ public class StringVariable : Chip
 
 public class Vector2Variable : Chip
 {
+    public static string Description = "Sets (on execute) or gets (on output) a global Vector2 variable by name.";
     private Values varValues;
     public Vector2Variable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -992,6 +1701,7 @@ public class Vector2Variable : Chip
 
 public class GameObjectVariable : Chip
 {
+    public static string Description = "Sets (on execute) or gets (on output) a global GameObject variable by name.";
     private Values varValues;
     public GameObjectVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -1069,6 +1779,7 @@ public class GameObjectVariable : Chip
 
 public class AudioInfoVariable : Chip
 {
+    public static string Description = "Sets (on execute) or gets (on output) a global Audio INfo variable by name.";
     private Values varValues;
     public AudioInfoVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -1141,6 +1852,7 @@ public class AudioInfoVariable : Chip
 
 public class ComponentHolderVariable : Chip
 {
+    public static string Description = "Sets (on execute) or gets (on output) a global Component variable by name.";
     private Values varValues;
     public ComponentHolderVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -1214,6 +1926,7 @@ public class ComponentHolderVariable : Chip
 // Logic Chips
 public class AndChip : Chip
 {
+    public static string Description = "Outputs true only if both A and B are true.";
     public AndChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input A", true, [typeof(bool)]);
@@ -1234,6 +1947,7 @@ public class AndChip : Chip
 
 public class OrChip : Chip
 {
+    public static string Description = "Outputs true if either A or B (Or both) are true.";
     public OrChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input A", true, [typeof(bool)]);
@@ -1254,6 +1968,7 @@ public class OrChip : Chip
 
 public class NotChip : Chip
 {
+    public static string Description = "Outputs the inverse of the input.";
     public NotChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(bool)]);
@@ -1273,6 +1988,7 @@ public class NotChip : Chip
 
 public class NorChip : Chip
 {
+    public static string Description = "Outputs true only if both A and B are false.";
     public NorChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input A", true, [typeof(bool)]);
@@ -1293,6 +2009,7 @@ public class NorChip : Chip
 
 public class NandChip : Chip
 {
+    public static string Description = "Outputs true only if A and B are false.";
     public NandChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input A", true, [typeof(bool)]);
@@ -1313,6 +2030,7 @@ public class NandChip : Chip
 
 public class XorChip : Chip
 {
+    public static string Description = "Outputs true only if A and B are opposites.";
     public XorChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input A", true, [typeof(bool)]);
@@ -1334,6 +2052,7 @@ public class XorChip : Chip
 //Comparison
 public class GreaterThanChip : Chip
 {
+    public static string Description = "Outputs true if A is greater than B. Works with Integers or Floats.";
     public GreaterThanChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -1392,6 +2111,7 @@ public class GreaterThanChip : Chip
 
 public class GreaterThanOrEqualsChip : Chip
 {
+    public static string Description = "Outputs true if A is greater than or equal to B. Works with Integers or Floats.";
     public GreaterThanOrEqualsChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -1450,6 +2170,7 @@ public class GreaterThanOrEqualsChip : Chip
 
 public class LessThanChip : Chip
 {
+    public static string Description = "Outputs true if A is less than B. Works with Integers or Floats.";
     public LessThanChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -1508,6 +2229,7 @@ public class LessThanChip : Chip
 
 public class LessThanOrEqualsChip : Chip
 {
+    public static string Description = "Outputs true if A is less than or equal to B. Works with Integers or Floats.";
     public LessThanOrEqualsChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -1566,6 +2288,7 @@ public class LessThanOrEqualsChip : Chip
 
 public class EqualsChip : Chip
 {
+    public static string Description = "Outputs true if A is equals to B. Works with most data types.";
     public EqualsChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2), typeof(GameObject)]);
@@ -1641,6 +2364,7 @@ public class EqualsChip : Chip
 // Event Chip
 public class EventChip : Chip
 {
+    public static string Description = "Sends (on execute) or recieves (on event) a named event with custom parameters. Also has predefined events that can be used such as: OnUpdate, OnStart...";
     public Event? SelectedEvent;
     private EventMode Mode = EventMode.Receive;
     private Action<EventValues>? ListenerAction;
@@ -2158,6 +2882,7 @@ public class EventChip : Chip
 
 public class LogChip : Chip
 {
+    public static string Description = "Prints a standard message to the game console when executed.";
     public LogChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("Log", true, [typeof(string)], false);
@@ -2172,6 +2897,7 @@ public class LogChip : Chip
 
 public class LogWarningChip : Chip
 {
+    public static string Description = "Prints a warning message to the game console when executed.";
     public LogWarningChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("Log", true, [typeof(string)], false);
@@ -2186,6 +2912,7 @@ public class LogWarningChip : Chip
 
 public class LogErrorChip : Chip
 {
+    public static string Description = "Prints an error message to the game console when executed.";
     public LogErrorChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("Log", true, [typeof(string)], false);
@@ -2200,6 +2927,7 @@ public class LogErrorChip : Chip
 
 public class FindObjectByID : Chip
 {
+    public static string Description = "Finds and outputs the first GameObject in the scene with a matching ID.";
     public FindObjectByID(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("ID", true, [typeof(int)], true);
@@ -2215,6 +2943,7 @@ public class FindObjectByID : Chip
 
 public class FindFirstObjectWithTag : Chip
 {
+    public static string Description = "Finds and outputs the first GameObject in the scene that has the specified tag.";
     public FindFirstObjectWithTag(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("Tag", true, [typeof(string)], true);
@@ -2232,6 +2961,7 @@ public class FindFirstObjectWithTag : Chip
 
 public class FindAllObjectsWithTag : Chip
 {
+    public static string Description = "Finds and outputs a List of all GameObjects in the scene that have the specified tag.";
     public FindAllObjectsWithTag(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         Size = new Vector2(250, 100);
@@ -2251,6 +2981,7 @@ public class FindAllObjectsWithTag : Chip
 
 public class CreateList : Chip
 {
+    public static string Description = "Combines multiple 'Element' inputs into a single List output. Add/Remove ports in the inspector.";
     private Type? ChipPortsType = null;
     public CreateList(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
@@ -2509,6 +3240,7 @@ public override void SetCustomProperties(Dictionary<string, string> properties)
 
 public class GetElementAt : Chip
 {
+    public static string Description = "Outputs a single element from a List at the secified index.";
     public GetElementAt(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("List", true, [typeof(List<bool>), typeof(List<int>), typeof(List<float>), typeof(List<string>), typeof(List<Vector2>), typeof(List<GameObject>)], true);
@@ -2571,6 +3303,7 @@ public class GetElementAt : Chip
 
 public class Vector2Create : Chip
 {
+    public static string Description = "Creates and outputs a new Vector2 from separate X and Y float inputs.";
     public Vector2Create(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("X", true, [typeof(float)], true);
@@ -2591,6 +3324,7 @@ public class Vector2Create : Chip
 
 public class thisChip : Chip
 {
+    public static string Description = "Outputs a reference to the GameObject that this CircuitScript component is attached to. (This will display null in the inspector.)";
     public GameObject? theThisGameObject;
     public thisChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
@@ -2611,6 +3345,7 @@ public class thisChip : Chip
 
 public class SetWorldPositionChip : Chip
 {
+    public static string Description = "Sets the world-space position of a GameObject when executed.";
     public SetWorldPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("GameObject", true, [typeof(GameObject)], true);
@@ -2656,6 +3391,7 @@ public class SetWorldPositionChip : Chip
 
 public class SetLocalPositionChip : Chip
 {
+    public static string Description = "Sets the local-space position of a GameObject (relative to its parent) when executed.";
     public SetLocalPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("GameObject", true, [typeof(GameObject)], true);
@@ -2701,6 +3437,7 @@ public class SetLocalPositionChip : Chip
 
 public class GetComponentChip : Chip
 {
+    public static string Description = "Gets a component (like Transform or MeshRenderer) from a GameObject by type.";
     private int selectedIndex = 0;
 
     private string previewValue;
@@ -2773,6 +3510,7 @@ public class GetComponentChip : Chip
 
 public class HasComponentChip : Chip
 {
+    public static string Description = "Outputs true if the target GameObject has the specified component.";
     private int selectedIndex = 0;
 
     private string previewValue;
@@ -2845,6 +3583,7 @@ public class HasComponentChip : Chip
 
 public class IfChip : Chip
 {
+    public static string Description = "Routes execution to 'Then' if the Condition is true, or to 'Else' if it is false.";
     public IfChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddExecPort("If", true);
@@ -2877,6 +3616,7 @@ public class IfChip : Chip
 
 public class AudioConstant : Chip
 {
+    public static string Description = "Selects an audio file in the inspector to output as an 'Audio Info' object.";
     private bool searchButtonClicked = false;
     AudioInfo audioInfo = new AudioInfo();
     public AudioConstant(int id, string name, Vector2 pos) : base(id, name, pos, false)
@@ -2942,6 +3682,7 @@ public class AudioConstant : Chip
 
 public class PlayAudioChip : Chip
 {
+    public static string Description = "Plays the specified 'Audio Info' sound file when executed.";
     public PlayAudioChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("Audio", true, [typeof(AudioInfo)], true);
@@ -2973,6 +3714,7 @@ public class PlayAudioChip : Chip
 
 public class IsKeyDownChip : Chip
 {
+    public static string Description = "Outputs true every frame that the selected key is being held down.";
     private Key? keyToCheck;
 
     private static byte[] KeySearchBuffer = new byte[128];
@@ -3050,6 +3792,7 @@ public class IsKeyDownChip : Chip
 
 public class IsPressedThisFrameChip : Chip
 {
+    public static string Description = "Outputs true for the single frame that the selected key is first pressed down.";
     private Key? keyToCheck;
     private static byte[] KeySearchBuffer = new byte[128];
     public IsPressedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
@@ -3126,6 +3869,7 @@ public class IsPressedThisFrameChip : Chip
 
 public class IsKeyReleasedThisFrameChip : Chip
 {
+    public static string Description = "Outputs true for the single frame that the selected key is released.";
     private Key? keyToCheck;
     private static byte[] KeySearchBuffer = new byte[128];
     public IsKeyReleasedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)

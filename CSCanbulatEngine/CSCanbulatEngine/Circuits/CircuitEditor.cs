@@ -546,7 +546,7 @@ public class Chip
     public Action CircuitFunction { get; set; }
     public bool ShowCustomItemOnChip { get; set; }
 
-    public Vector4 Color = new Vector4(0.5f, 0.5f, 0.5f, 1.0f); 
+    public Vector4 Color = new Vector4(0.5f, 0.5f, 0.5f, 1.0f);
     
     // Ports
     public List<ChipPort> InputPorts = new List<ChipPort>();
