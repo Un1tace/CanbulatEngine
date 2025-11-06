@@ -41,7 +41,23 @@ public static class CircuitSerialiser
             var allInputPorts = chip.InputPorts.Concat(chip.InputExecPorts);
             foreach (var inputPort in allInputPorts)
             {
-                if (inputPort.ConnectedPort != null)
+                if (inputPort is ExecPort execPort)
+                {
+                    if (execPort.InputConnections != null)
+                    {
+                        foreach (var connectedOutputPort in execPort.InputConnections)
+                        {
+                            circuitInfo.Connections.Add(new CircuitData.PortConnectionData
+                            {
+                                InputPortId = execPort.Id,
+                                InputChipId = chip.Id,
+                                OutputChipId = connectedOutputPort.Parent.Id,
+                                OutputPortId = connectedOutputPort.Id
+                            });
+                        }
+                    }
+                }
+                else if (inputPort.ConnectedPort != null)
                 {
                     circuitInfo.Connections.Add(new CircuitData.PortConnectionData
                     {

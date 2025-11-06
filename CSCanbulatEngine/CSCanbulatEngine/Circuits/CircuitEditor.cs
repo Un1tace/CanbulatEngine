@@ -407,7 +407,7 @@ public class ChipPort
         UpdateColor();
     }
 
-    public void RenderWire()
+    public virtual void RenderWire()
     {
         if (ConnectedPort == null)
         {
@@ -467,10 +467,13 @@ public class ChipPort
 
 public class ExecPort : ChipPort
 {
+    public List<ExecPort> InputConnections;
     public ExecPort(int id, string name, Chip parent, bool isInput, bool showName = false) : base(id, name, parent, isInput, [], showName)
     {
         animationManagerStartWire = new EngineAnimationManager();
         animationManagerEndWire = new EngineAnimationManager();
+
+        if (isInput) InputConnections = new();
     }
 
     public override bool ConnectPort(ChipPort port)
@@ -483,16 +486,16 @@ public class ExecPort : ChipPort
         if (this.Parent == port.Parent) return false;
         if (port is not ExecPort execPort) return false;
 
-        if (execPort == ConnectedPort)
+        if (InputConnections.Contains(execPort))
         {
-            ConnectedPort = null;
-            port.outputConnectedPorts.Remove(this);
+            execPort.outputConnectedPorts.Remove(this);
+            InputConnections.Remove(execPort);
             UpdateColor();
             Parent.ChildPortIsDisconnected(this);
         }
         else
         {
-            ConnectedPort = port;
+            InputConnections.Add(execPort);
             port.outputConnectedPorts.Add(this);
             UpdateColor();
             Parent.ChildPortIsConnected(this, port);
@@ -501,27 +504,56 @@ public class ExecPort : ChipPort
         Parent.UpdateChipConfig();
         return true;
     }
+    
+    public override void RenderWire()
+    {
+        if (!IsInput) return;
+
+        var drawList = ImGui.GetWindowDrawList();
+        
+        foreach (var outputPort in InputConnections)
+        {
+            Vector2 outputPortPos = outputPort.Position;
+
+            List<Vector2> linePositions = new List<Vector2>();
+            List<Vector4> lineColors = new List<Vector4>();
+
+            for (float i = 0f; i <= 1.1; i += 0.1f)
+            {
+                Vector4 start = outputPort.animationManagerStartWire?.GetPulseAnimationColor() ?? outputPort.Color;
+                Vector4 end = this.animationManagerEndWire?.GetPulseAnimationColor() ?? this.Color;
+            
+                linePositions.Add(new Vector2(float.Lerp(outputPortPos.X, Position.X, i), SineLerpFunction(outputPortPos.Y, Position.Y, i)));
+                lineColors.Add(Vector4.Lerp(start, end , i));
+            }
+
+            for (int i = 1; i < linePositions.Count; i++)
+            {
+                drawList.AddLine(linePositions[i - 1], linePositions[i], ImGui.GetColorU32(lineColors[i]), 2.5f);
+            }
+        }
+    }
 
     public void Execute()
     {
         if (IsInput)
         {
-            if (ConnectedPort != null)
+            if (InputConnections != null)
             {
-                animationManagerStartWire.SetUpPulseAnimation(ConnectedPort.Color,
-                             Vector4.Clamp(ConnectedPort.Color + new Vector4(1f, 1f, 1f, 0f), Vector4.Zero, Vector4.One),
-                             200);
+                foreach(var outputPort in InputConnections)
+                {
+                    outputPort.animationManagerStartWire?.SetUpPulseAnimation(outputPort.Color,
+                        Vector4.Clamp(outputPort.Color + new Vector4(1f, 1f, 1f, 0f), Vector4.Zero, Vector4.One),
+                        200);
+                }
             }
+            
             animationManagerEndWire.SetUpPulseAnimation(Color, Vector4.Clamp(Color + new Vector4(1f, 1f, 1f, 0f), Vector4.Zero, Vector4.One), 200);
-                
+            
             Parent.OnExecute();
         }
         else
         {
-            // if (ConnectedPort is ExecPort connectedExecPort)
-            // {
-            //     connectedExecPort.Execute();
-            // }
             foreach (ChipPort port in outputConnectedPorts)
             {
                 ExecPort? execPort = port as ExecPort;
@@ -533,7 +565,42 @@ public class ExecPort : ChipPort
         }
     }
 
+    public override bool PortIsConnected()
+    {
+        if (IsInput)
+        {
+            return InputConnections.Count > 0;
+        }
+        else
+        {
+            return outputConnectedPorts.Count > 0;
+        }
+    }
     
+    public override void DisconnectPort()
+    {
+        if (IsInput)
+        {
+            foreach (var outputPort in InputConnections.ToList())
+            {
+                outputPort.outputConnectedPorts.Remove(this);
+                Parent.ChildPortIsDisconnected(this);
+            }
+            InputConnections.Clear();
+            UpdateColor();
+        }
+        else
+        {
+            foreach (var inputPort in outputConnectedPorts.ToList())
+            {
+                (inputPort as ExecPort)?.InputConnections.Remove(this);
+                inputPort.Parent.ChildPortIsDisconnected(inputPort);
+                inputPort.UpdateColor();
+            }
+            outputConnectedPorts.Clear();
+            UpdateColor();
+        }
+    }
 }
 
 public class Chip

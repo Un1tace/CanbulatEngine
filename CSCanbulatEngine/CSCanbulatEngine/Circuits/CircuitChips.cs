@@ -102,7 +102,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
 
         if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
         {
-            spawnPos = io.MousePos - canvasPos - panning;
+            spawnPos = mousePosInWorld;
             
             foreach (var chip in CircuitEditor.chips)
             {
