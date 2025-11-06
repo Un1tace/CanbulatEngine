@@ -353,8 +353,31 @@ public class ChipPort
         if (port.IsInput == IsInput) return false;
         if (this.Parent == port.Parent) return false;
         if (!this.acceptedTypes.Intersect(port.acceptedTypes).Any()) return false;
-        if (PortType != null)  if (PortType != port.PortType) return false;
 
+        Type? typeToSet = null;
+        if (this.PortType != null && port.PortType != null)
+        {
+            if (this.PortType != port.PortType) return false;
+            typeToSet = this.PortType;
+        }
+        else if (this.PortType != null)
+        {
+            if (port.acceptedTypes.Contains(this.PortType))
+            {
+                typeToSet = this.PortType;
+            }
+            else return false;
+        }
+        else if (port.PortType != null)
+        {
+            if (this.acceptedTypes.Contains(port.PortType))
+            {
+                typeToSet = port.PortType;
+            }
+            else return false;
+        }
+
+        
         if (port == ConnectedPort)
         {
             var disconnectedPortBuffer = ConnectedPort;
