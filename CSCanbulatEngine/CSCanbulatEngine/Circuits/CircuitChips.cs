@@ -46,6 +46,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Math/Power", PowerChip.Description, (pos) => new PowerChip(CircuitEditor.GetNextAvaliableChipID(), "Power", pos)),
         
         ("Logic/If", IfChip.Description, (pos) => new IfChip(CircuitEditor.GetNextAvaliableChipID(), "If", pos)),
+        ("Logic/If Value", IfValueChip.Description, (pos) => new IfValueChip(CircuitEditor.GetNextAvaliableChipID(), "If Value", pos)),
         ("Logic/Not", NotChip.Description, (pos) => new NotChip(CircuitEditor.GetNextAvaliableChipID(), "Not Chip", pos)),
         ("Logic/And", AndChip.Description, (pos) => new AndChip(CircuitEditor.GetNextAvaliableChipID(), "And Chip", pos)),
         ("Logic/Or", OrChip.Description, (pos) => new OrChip(CircuitEditor.GetNextAvaliableChipID(), "Or Chip", pos)),
@@ -91,6 +92,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Miscellaneous/Transform/Get World Position", GetWorldPositionChip.Description, (pos) => new GetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Get World Position", pos)),
         ("Miscellaneous/Transform/Get Local Position", GetLocalPositionChip.Description, (pos) => new GetLocalPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Get Local Position", pos)),
         ("Miscellaneous/Audio/Play Audio", PlayAudioChip.Description, (pos) => new PlayAudioChip(CircuitEditor.GetNextAvaliableChipID(), "Play Audio", pos)),
+        ("Miscellaneous/To String", Circuits.ToString.Description, (pos) => new ToString(CircuitEditor.GetNextAvaliableChipID(), "To String", pos)),
     };
     
     
@@ -353,6 +355,18 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("If Chip");
                         ImGui.Separator();
                         ImGui.Text(IfChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create If Value Chip"))
+                    {
+                        CircuitEditor.chips.Add(new IfValueChip(CircuitEditor.GetNextAvaliableChipID(), "If", spawnPos));
+                    }if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("If Value Chip");
+                        ImGui.Separator();
+                        ImGui.Text(IfValueChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -932,6 +946,20 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Play Audio Chip");
                         ImGui.Separator();
                         ImGui.Text(PlayAudioChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create To String Chip"))
+                    {
+                        CircuitEditor.chips.Add(new ToString(CircuitEditor.GetNextAvaliableChipID(), "To String",
+                            spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("To String Chip");
+                        ImGui.Separator();
+                        ImGui.Text(Circuits.ToString.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -3659,6 +3687,89 @@ public class IfChip : Chip
     }
 }
 
+public class IfValueChip : Chip
+{
+    public static string Description = "Outputs 'A (True)' if 'Condition' is true, otherwise outputs 'B (False)'. 'A', 'B', and 'Result' must all be the same type.";
+
+    public Type? _lockedType = null;
+
+    private readonly List<Type> _allTypes = new()
+    {
+        typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2),
+        typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder),
+        typeof(List<bool>), typeof(List<int>), typeof(List<float>), typeof(List<string>),
+        typeof(List<Vector2>), typeof(List<GameObject>), typeof(List<AudioInfo>),
+        typeof(List<ComponentHolder>)
+    };
+
+    public IfValueChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("Condition", true, [typeof(bool)], true);
+        AddPort("A (True)", true, _allTypes, true);
+        AddPort("B (False)", true, _allTypes, true);
+        
+        AddPort("Result", false, _allTypes, true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        bool condition = InputPorts[0].Value.GetValue().Bool;
+
+        if (condition)
+        {
+            return InputPorts[1].Value.GetValue();
+        }
+        else
+        {
+            return InputPorts[2].Value.GetValue();
+        }
+    }
+
+    public override void ChildPortIsConnected(ChipPort childPort, ChipPort portConnectedTo)
+    {
+        if (childPort == InputPorts[0]) return;
+        
+        Type? newType = portConnectedTo._PortType;
+        if (newType == null) return;
+
+        if (_lockedType == null)
+        {
+            _lockedType = newType;
+            SetAllPortTypes(_lockedType);
+        }
+        else if (_lockedType != newType)
+        {
+            GameConsole.Log($"[IfValueChip] Type mismatch. Expected: '{TypeHelper.GetName(_lockedType)}' but got '{TypeHelper.GetName(newType)}'.", LogType.Warning);
+        }
+    }
+
+    public override void ChildPortIsDisconnected(ChipPort childPort)
+    {
+        if (childPort == InputPorts[0]) return;
+
+        bool anyConnection = InputPorts[1].ConnectedPort != null || InputPorts[2].ConnectedPort != null ||
+                             OutputPorts[0].PortIsConnected();
+
+        if (!anyConnection)
+        {
+            _lockedType = null;
+            SetAllPortTypes(_lockedType);
+        }
+    }
+
+    private void SetAllPortTypes(Type? type)
+    {
+        InputPorts[1].PortType = type;
+        InputPorts[2].PortType = type;
+        OutputPorts[0].PortType = type;
+
+        InputPorts[1].UpdateColor();
+        OutputPorts[0].UpdateColor();
+        InputPorts[2].UpdateColor();
+    }
+}
+
 public class AudioConstant : Chip
 {
     public static string Description = "Selects an audio file in the inspector to output as an 'Audio Info' object.";
@@ -4150,5 +4261,42 @@ public class GetLocalPositionChip : Chip
         }
         
         return theValue;
+    }
+}
+
+public class ToString : Chip
+{
+    public static string Description = "Convert Data types (bools, ints, floats and Vector2s) into string format.";
+    public ToString(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("Input", true, [typeof(bool), typeof(int), typeof(float), typeof(Vector2)]);
+        AddPort("Output", false, [typeof(string)]);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Type? typeBeingUsed = InputPorts[0]._PortType;
+
+        Values theValues = new();
+        
+        if (typeBeingUsed == typeof(bool))
+        {
+            theValues.String = InputPorts[0].Value.GetValue().Bool.ToString();
+        }
+        else if (typeBeingUsed == typeof(int))
+        {
+            theValues.String = InputPorts[0].Value.GetValue().Int.ToString();
+        }
+        else if (typeBeingUsed == typeof(float))
+        {
+            theValues.String = InputPorts[0].Value.GetValue().Float.ToString();
+        }
+        else if (typeBeingUsed == typeof(Vector2))
+        {
+            theValues.String = InputPorts[0].Value.GetValue().Vector2.ToString();
+        }
+
+        return theValues;
     }
 }
