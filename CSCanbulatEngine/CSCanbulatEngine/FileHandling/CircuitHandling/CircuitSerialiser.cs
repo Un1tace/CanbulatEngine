@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Numerics;
 using CSCanbulatEngine.Circuits;
 using Newtonsoft.Json;
+using Silk.NET.Input;
 
 namespace CSCanbulatEngine.FileHandling.CircuitHandling;
 
@@ -76,12 +77,14 @@ public static class CircuitSerialiser
                     else if (inputPort.PortType == typeof(float)) valueStr = portValue.Float.Value.ToString(CultureInfo.InvariantCulture);
                     else if (inputPort.PortType == typeof(string)) valueStr = portValue.String;
                     else if (inputPort.PortType == typeof(Vector2)) valueStr = $"{portValue.Vector2.Value.X},{portValue.Vector2.Value.Y}";
+                    else if (inputPort.PortType == typeof(Key)) valueStr = portValue.Key.ToString();
+                    else if (inputPort.PortType == typeof(MouseButton)) valueStr = portValue.MouseButton.ToString();
                     
                     circuitInfo.UnconnectedPortValues.Add(new CircuitData.UnconnectedPortValueData
                     {
                         ChipId = chip.Id,
                         PortId = inputPort.Id,
-                        ValueType = inputPort.PortType.FullName,
+                        ValueType = TypeHelper.GetName(inputPort.PortType),
                         Value = valueStr
                     });
                 }
@@ -123,7 +126,7 @@ public static class CircuitSerialiser
 
             if (port != null)
             {
-                Type? type = Type.GetType(portValueData.ValueType);
+                Type? type = TypeHelper.GetType(portValueData.ValueType)?? Type.GetType(portValueData.ValueType);
                 if (type != null)
                 {
                     if (type == typeof(bool)) port.Value.SetValue(bool.Parse(portValueData.Value));
@@ -135,6 +138,14 @@ public static class CircuitSerialiser
                         var parts = portValueData.Value.Split(',');
                         port.Value.SetValue(new Vector2(float.Parse(parts[0], CultureInfo.InvariantCulture),
                             float.Parse(parts[1], CultureInfo.InvariantCulture)));
+                    }
+                    else if (type == typeof(Key))
+                    {
+                        port.Value.SetValue(Enum.GetValues(typeof(Key)).Cast<Key>().ToList().Find(e => e.ToString() == portValueData.Value));
+                    }
+                    else if (type == typeof(MouseButton))
+                    {
+                        port.Value.SetValue(Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>().ToList().Find(e => e.ToString() == portValueData.Value));
                     }
                 }
             }

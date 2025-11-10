@@ -1,12 +1,14 @@
 using System.ComponentModel;
 using System.Data.SqlTypes;
 using System.Numerics;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 using CSCanbulatEngine.Audio;
 using CSCanbulatEngine.GameObjectScripts;
 using ImGuiNET;
 using MiniAudioEx.Core.StandardAPI;
+using Silk.NET.Input;
 
 namespace CSCanbulatEngine.Circuits;
 
@@ -27,12 +29,32 @@ public static class EventManager
 
     public static void PredefineMainEvents()
     {
-        RegisterEvent(new Event("OnStart", false, true, false));
-        var updateEvent = new Event("OnUpdate", false, true, false);
+        RegisterEvent(new Event("OnStart", false, true, false, "Executes when the game first loads."));
+        var updateEvent = new Event("OnUpdate", false, true, false, "Executes every frame and provides delta time.");
         updateEvent.baseValues.floats.Add("Delta Time");
         RegisterEvent(updateEvent);
-        RegisterEvent(new Event("OnKeyPressed", false, true, false));
-        RegisterEvent(new Event("OnKeyReleased", false, true, false));
+        
+        var keyPressedEvent = new Event("OnKeyPressed", false, true, false, "Executes on the frame a key is pressed.");
+        keyPressedEvent.baseValues.Keys.Add("Key");
+        RegisterEvent(keyPressedEvent);
+        var keyReleasedEvent =
+            new Event("OnKeyReleased", false, true, false, "Executes on the frame a key is released.");
+        keyReleasedEvent.baseValues.Keys.Add("Key");
+        RegisterEvent(keyReleasedEvent);
+        
+        var mouseButtonPressedEvent = new Event("OnMouseButtonPressed", false, true, false, "Executes when any mouse is pressed down.");
+        mouseButtonPressedEvent.baseValues.MouseButtons.Add("MouseButton");
+        RegisterEvent(mouseButtonPressedEvent);
+        var mouseButtonReleasedEvent = new Event("OnMouseButtonReleased", false, true, false, "Executes when any mouse button is released.");
+        mouseButtonReleasedEvent.baseValues.MouseButtons.Add("MouseButton");
+        RegisterEvent(mouseButtonReleasedEvent);
+        var clickedEvent = new Event("OnMouseButtonClicked", false, true, false, "Executes when any mouse button is clicked (Pressed then released).");
+        clickedEvent.baseValues.Vector2s.Add("Position");
+        RegisterEvent(clickedEvent);
+        var doubleClickedEvent = new Event("OnMouseButtonDoubleClicked", false, true, false, "Executes when any mouse button is clicked twice (Pressed then released).");
+        doubleClickedEvent.baseValues.Vector2s.Add("Position");
+        RegisterEvent(doubleClickedEvent);
+        RegisterEvent(new Event("OnMouseScrolled", false, true, false, "Executes when the mouse is scrolling."));
     }
     
     public static void RegisterEvent(Event values)
@@ -124,6 +146,8 @@ public class EventValues
     public Dictionary<string, GameObject> GameObjects = new Dictionary<string, GameObject>();
     public Dictionary<string, AudioInfo> AudioInfos = new Dictionary<string, AudioInfo>();
     public Dictionary<string, ComponentHolder> ComponentHolders = new();
+    public Dictionary<string, Key> Keys = new Dictionary<string, Key>();
+    public Dictionary<string, MouseButton> MouseButtons = new Dictionary<string, MouseButton>();
 }
 
 public class BaseEventValues
@@ -136,15 +160,18 @@ public class BaseEventValues
     public List<string> GameObjects = new List<string>();
     public List<string> AudioInfos = new();
     public List<string> ComponentHolders = new();
+    public List<string> Keys = new();
+    public List<string> MouseButtons = new();
 }
 
-public class Event(string eventName, bool canSend = true, bool canReceive = true, bool canConfig = true)
+public class Event(string eventName, bool canSend = true, bool canReceive = true, bool canConfig = true, string description = "")
 {
     public string EventName = eventName;
     public BaseEventValues baseValues = new BaseEventValues();
     public bool CanSend = canSend;
     public bool CanReceive = canReceive;
     public bool CanConfig = canConfig;
+    public string Description = description;
 }
 
 public static class VariableManager

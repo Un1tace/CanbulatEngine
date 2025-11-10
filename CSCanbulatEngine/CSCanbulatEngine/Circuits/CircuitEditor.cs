@@ -32,6 +32,11 @@ public class Values()
 
     public ComponentHolder?  ComponentHolder = new();
     public List<ComponentHolder>? ComponentHolderList = new();
+
+    public Key? Key = null;
+    public List<Key>? KeyList = new();
+    public MouseButton? MouseButton = null;
+    public List<MouseButton>? MouseButtonList = null;
     
     public Type? ActiveType { get; set; }
 }
@@ -61,6 +66,11 @@ public class ChipPortValue
     public ComponentHolder? ComponentHolder { get; set; }
     
     public List<ComponentHolder>? ComponentHolderList { get; set; }
+    
+    public Key? Key { get; set; }
+    public List<Key>? KeyList { get; set; }
+    public MouseButton? MouseButton { get; set; }
+    public List<MouseButton>? MouseButtonList { get; set; }
 
     public byte[] S_bufer = new byte[100];
 
@@ -187,6 +197,30 @@ public class ChipPortValue
                 AssignedChipPort.PortType = typeof(T);
                 return true;
             }
+            else if (typeof(T) == typeof(Key))
+            {
+                Key = value as Key?;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(List<Key>))
+            {
+                KeyList = value as List<Key>;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(MouseButton))
+            {
+                MouseButton = value as MouseButton?;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(List<MouseButton>))
+            {
+                MouseButtonList = value as List<MouseButton>;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
             
         }
         else if (AssignedChipPort.acceptedTypes.Contains(typeof(string)))
@@ -228,6 +262,10 @@ public class ChipPortValue
                 values.AudioInfoList = AudioInfoList ?? null;
                 values.ComponentHolder = ComponentHolder ?? null;
                 values.ComponentHolderList = ComponentHolderList ?? null;
+                values.Key = Key ?? null;
+                values.KeyList = KeyList ?? null;
+                values.MouseButton = MouseButton ?? null;
+                values.MouseButtonList = MouseButtonList ?? null;
                 return values;
             }
         }
@@ -997,6 +1035,82 @@ public static class CircuitEditor
                         port.Value.SetValue(val);
                     }
                 }
+                else if (portType == typeof(Key))
+                {
+                    ImGui.PushItemWidth(60 * Zoom);
+                    
+                    if (ImGui.BeginCombo("##KeyCombo", port.Value.Key.ToString()))
+                    {
+            
+                        ImGui.InputText("Search", port.Value.S_bufer, (uint)port.Value.S_bufer.Length);
+                        string searchText = Encoding.UTF8.GetString(port.Value.S_bufer).TrimEnd('\0').ToLower();
+                        ImGui.Separator();
+
+
+                        Key[] allKeys = InputManager.GetAllKeys();
+
+                        for (int x = 0; x < allKeys.Length; x++)
+                        {
+                            bool isSelected = (port.Value.Key != null &&allKeys[x] == port.Value.Key);
+
+                            if (!String.IsNullOrWhiteSpace(searchText) &&
+                                !allKeys[x].ToString().ToLower().Contains(searchText.ToLower()))
+                            {
+                                continue;
+                            }
+
+                            if (ImGui.Selectable(allKeys[x].ToString(), isSelected))
+                            {
+                                port.Value.Key = allKeys[x];
+                            }
+
+                            if (isSelected)
+                            {
+                                ImGui.SetItemDefaultFocus();
+                            }
+                        }
+            
+                        ImGui.EndCombo();
+                    }
+                }
+                else if (portType == typeof(MouseButton))
+                {
+                    ImGui.PushItemWidth(60 * Zoom);
+                    
+                    if (ImGui.BeginCombo("##KeyCombo", port.Value.MouseButton.ToString()))
+                    {
+            
+                        ImGui.InputText("Search", port.Value.S_bufer, (uint)port.Value.S_bufer.Length);
+                        string searchText = Encoding.UTF8.GetString(port.Value.S_bufer).TrimEnd('\0').ToLower();
+                        ImGui.Separator();
+
+
+                        MouseButton[] allMouseButtons = InputManager.GetAllMouseButtons();
+
+                        for (int x = 0; x < allMouseButtons.Length; x++)
+                        {
+                            bool isSelected = (port.Value.MouseButton != null &&allMouseButtons[x] == port.Value.MouseButton);
+
+                            if (!String.IsNullOrWhiteSpace(searchText) &&
+                                !allMouseButtons[x].ToString().ToLower().Contains(searchText.ToLower()))
+                            {
+                                continue;
+                            }
+
+                            if (ImGui.Selectable(allMouseButtons[x].ToString(), isSelected))
+                            {
+                                port.Value.MouseButton = allMouseButtons[x];
+                            }
+
+                            if (isSelected)
+                            {
+                                ImGui.SetItemDefaultFocus();
+                            }
+                        }
+            
+                        ImGui.EndCombo();
+                    }
+                }
                 else if (portType == typeof(string))
                 {
                     ImGui.PushItemWidth(100 * Zoom);
@@ -1072,6 +1186,18 @@ public static class CircuitEditor
                         textWidth = ImGui.CalcTextSize(port.Value.GetValue().ComponentHolder is not null && port.Value.GetValue().ComponentHolder.Component is not null? port.Value.GetValue().ComponentHolder.Component.name : "").X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
                         ImGui.LabelText($"##{port.Id}", port.Value.GetValue().ComponentHolder is not null && port.Value.GetValue().ComponentHolder.Component is not null? port.Value.GetValue().ComponentHolder.Component.name : "");
+                    }
+                    else if (port.PortType == typeof(Key))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().Key.ToString()).X;
+                        Vector2 drawPos = portPos + new Vector2(-textWidth / 2, -25);
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().Key.ToString());
+                    }
+                    else if (port.PortType == typeof(MouseButton))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().MouseButton.ToString()).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().MouseButton.ToString());
                     }
                 }
                 else if (port.acceptedTypes != null)
@@ -1260,6 +1386,30 @@ public static class CircuitEditor
                         textWidth = ImGui.CalcTextSize(port.Value.GetValue().ComponentHolderList is not null? port.Value.GetValue().ComponentHolderList.Count().ToString() : "null").X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
                         ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().ComponentHolderList is not null? port.Value.GetValue().ComponentHolderList.Count().ToString() : "null"));
+                    }
+                    else if (port.PortType == typeof(Key))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().Key is not null && port.Value.GetValue().Key is not null? port.Value.GetValue().Key.ToString() : "").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().Key is not null && port.Value.GetValue().Key is not null? port.Value.GetValue().Key.ToString() : "");
+                    }
+                    else if (port.PortType == typeof(MouseButton))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().MouseButton is not null && port.Value.GetValue().MouseButton is not null? port.Value.GetValue().MouseButton.ToString() : "").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().MouseButton is not null && port.Value.GetValue().MouseButton is not null? port.Value.GetValue().MouseButton.ToString() : "");
+                    }
+                    else if (port.PortType == typeof(List<Key>))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().KeyList is not null && port.Value.GetValue().KeyList is not null? port.Value.GetValue().KeyList.Count().ToString() : "").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().KeyList is not null && port.Value.GetValue().KeyList is not null? port.Value.GetValue().KeyList.Count().ToString() : "");
+                    }
+                    else if (port.PortType == typeof(List<MouseButton>))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().MouseButtonList is not null && port.Value.GetValue().MouseButtonList is not null? port.Value.GetValue().MouseButtonList.Count().ToString() : "").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().MouseButtonList is not null && port.Value.GetValue().MouseButtonList is not null? port.Value.GetValue().MouseButtonList.Count().ToString() : "");
                     }
                 }
                 else if (port.acceptedTypes != null)
@@ -1476,7 +1626,7 @@ public static class CircuitEditor
 
 public enum ChipTypes
 {
-    Default, Bool, Int, Float, String, Vector2, GameObject, Exec, BoolList, IntList, FloatList, StringList, Vector2List, GameObjectList, AudioInfo, AudioInfoList, ComponentHolder, ComponentHolderList
+    Default, Bool, Int, Float, String, Vector2, GameObject, Exec, BoolList, IntList, FloatList, StringList, Vector2List, GameObjectList, AudioInfo, AudioInfoList, ComponentHolder, ComponentHolderList, Key, KeyList, MouseButton, MouseButtonList
 }
 
 public static class TypeHelper
@@ -1547,6 +1697,22 @@ public static class TypeHelper
             {
                 return "List<ComponentHolder>";
             }
+            else if (type == typeof(Key))
+            {
+                return "Key";
+            }
+            else if (type == typeof(List<Key>))
+            {
+                return "List<Key>";
+            }
+            else if (type == typeof(MouseButton))
+            {
+                return "MouseButton";
+            }
+            else if (type == typeof(List<MouseButton>))
+            {
+                return "List<MouseButton>";
+            }
             else
             {
                 return "";
@@ -1590,6 +1756,14 @@ public static class TypeHelper
                 return typeof(ComponentHolder);
             case "list<componentholder>":
                 return typeof(List<ComponentHolder>);
+            case "key":
+                return typeof(Key);
+            case "list<key>":
+                return typeof(List<Key>);
+            case "mouseButton":
+                return typeof(MouseButton);
+            case "list<mousebutton>":
+                return typeof(List<MouseButton>);
         }
 
         return null;
@@ -1605,6 +1779,8 @@ public static class TypeHelper
         else if (listType == typeof(List<GameObject>)) return typeof(GameObject);
         else if (listType == typeof(List<AudioInfo>)) return typeof(AudioInfo);
         else if (listType == typeof(List<ComponentHolder>)) return typeof(ComponentHolder);
+        else if (listType == typeof(List<Key>)) return typeof(Key);
+        else if (listType == typeof(List<MouseButton>)) return typeof(MouseButton);
         else return null;
     }
 
@@ -1618,6 +1794,8 @@ public static class TypeHelper
         else if (type == typeof(GameObject)) return typeof(List<GameObject>);
         else if (type == typeof(AudioInfo)) return typeof(List<AudioInfo>);
         else if (type == typeof(ComponentHolder)) return typeof(List<ComponentHolder>);
+        else if (type == typeof(Key)) return typeof(List<Key>);
+        else if (type == typeof(MouseButton)) return typeof(List<MouseButton>);
         else return null;
     }
     
@@ -1682,6 +1860,18 @@ public static class ChipColor
                 return new Vector4(1f, 0.89f, 0.15f, 1f);
                 break;
             case ChipTypes.ComponentHolderList:
+                return new Vector4(1f, 1f, 0.35f, 1f);
+                break;
+            case ChipTypes.Key:
+                return new Vector4(1f, 0.89f, 0.15f, 1f);
+                break;
+            case ChipTypes.KeyList:
+                return new Vector4(1f, 1f, 0.35f, 1f);
+                break;
+            case ChipTypes.MouseButton:
+                return new Vector4(1f, 0.89f, 0.15f, 1f);
+                break;
+            case ChipTypes.MouseButtonList:
                 return new Vector4(1f, 1f, 0.35f, 1f);
                 break;
             default:
@@ -1753,6 +1943,22 @@ public static class ChipColor
             return new Vector4(1f, 0.89f, 0.15f, 1f);
         }
         else if (type == typeof(List<ComponentHolder>))
+        {
+            return new Vector4(1f, 1f, 0.35f, 1f);
+        }
+        else if (type == typeof(Key))
+        {
+            return new Vector4(1f, 0.89f, 0.15f, 1f);
+        }
+        else if (type == typeof(List<Key>))
+        {
+            return new Vector4(1f, 1f, 0.35f, 1f);
+        }
+        else if (type == typeof(MouseButton))
+        {
+            return new Vector4(1f, 0.89f, 0.15f, 1f);
+        }
+        else if (type == typeof(List<MouseButton>))
         {
             return new Vector4(1f, 1f, 0.35f, 1f);
         }

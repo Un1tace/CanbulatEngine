@@ -1,3 +1,4 @@
+using System.Data.SqlTypes;
 using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices.JavaScript;
@@ -38,6 +39,8 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Constants/String Constant", StringConstantChip.Description, (pos) => new StringConstantChip(CircuitEditor.GetNextAvaliableChipID(), "String Constant", pos)),
         ("Constants/Vector2 Constant", Vector2ConstantChip.Description, (pos) => new Vector2ConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Constant", pos)),
         ("Constants/Audio Info Constant", AudioConstant.Description, (pos) => new AudioConstant(CircuitEditor.GetNextAvaliableChipID(), "Audio Constant", pos)),
+        ("Constants/Key Constant", KeyConstantChip.Description, (pos) => new KeyConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Key Constant", pos)),
+        ("Constants/MouseButton Constant", MouseButtonConstantChip.Description, (pos) => new MouseButtonConstantChip(CircuitEditor.GetNextAvaliableChipID(), "MouseButton Constant", pos)),
         
         ("Math/Add", AddChip.Description, (pos) => new AddChip(CircuitEditor.GetNextAvaliableChipID(), "Add", pos)),
         ("Math/Subtract", SubtractChip.Description, (pos) => new SubtractChip(CircuitEditor.GetNextAvaliableChipID(), "Subtract", pos)),
@@ -77,8 +80,11 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Object/Has Component", HasComponentChip.Description, (pos) => new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Has Component", pos)),
         
         ("Input/Is Key Down", IsKeyDownChip.Description, (pos) => new IsKeyDownChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Down", pos)),
-        ("Input/Is Key Pressed", IsPressedThisFrameChip.Description, (pos) => new IsPressedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Pressed This Frame", pos)),
+        ("Input/Is Key Pressed", IsKeyPressedThisFrameChip.Description, (pos) => new IsKeyPressedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Pressed This Frame", pos)),
         ("Input/Is Key Released", IsKeyReleasedThisFrameChip.Description, (pos) => new IsKeyReleasedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Released This Frame", pos)),
+        ("Input/Is MouseButton Down", IsMouseButtonDownChip.Description, (pos) => new IsMouseButtonDownChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Down", pos)),
+        ("Input/Is MouseButton Pressed", IsMouseButtonPressedThisFrameChip.Description, (pos) => new IsMouseButtonPressedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(), "Is MouseButton Pressed This Frame", pos)),
+        ("Input/Is MouseButton Released", IsMouseButtonReleasedThisFrameChip.Description, (pos) => new IsMouseButtonReleasedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(), "Is MouseButton Released This Frame", pos)),
         
         ("Miscellaneous/Log", LogChip.Description, (pos) => new LogChip(CircuitEditor.GetNextAvaliableChipID(), "Log Chip", pos)),
         ("Miscellaneous/Log Warning", LogWarningChip.Description, (pos) => new LogWarningChip(CircuitEditor.GetNextAvaliableChipID(), "Log Warning Chip", pos)),
@@ -105,6 +111,8 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
         {
             spawnPos = mousePosInWorld;
+
+            hoveredChip = null;
             
             foreach (var chip in CircuitEditor.chips)
             {
@@ -112,7 +120,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                 if (chipRectangle.Contains(mousePosInWorld.X, mousePosInWorld.Y))
                 {
                     hoveredChip = chip;
-                    continue;
+                    break;
                 }
             }
         }
@@ -263,6 +271,34 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Audio Info Constant");
                         ImGui.Separator();
                         ImGui.Text(AudioConstant.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Key Constant"))
+                    {
+                        CircuitEditor.chips.Add(new KeyConstantChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Key Constant", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Key Constant");
+                        ImGui.Separator();
+                        ImGui.Text(KeyConstantChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create MouseButton Constant"))
+                    {
+                        CircuitEditor.chips.Add(new MouseButtonConstantChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "MouseButton Constant", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("MouseButton Constant");
+                        ImGui.Separator();
+                        ImGui.Text(MouseButtonConstantChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -751,7 +787,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
 
                     if (ImGui.MenuItem("Create Is Key Pressed This Frame Chip"))
                     {
-                        CircuitEditor.chips.Add(new IsPressedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(),
+                        CircuitEditor.chips.Add(new IsKeyPressedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(),
                             "Is Key Pressed This Frame", spawnPos));
                     }
                     if (ImGui.IsItemHovered())
@@ -759,7 +795,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.BeginTooltip();
                         ImGui.Text("Is Key Pressed This Frame Chip");
                         ImGui.Separator();
-                        ImGui.Text(IsPressedThisFrameChip.Description);
+                        ImGui.Text(IsKeyPressedThisFrameChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -774,6 +810,48 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Is Key Released This Frame Chip");
                         ImGui.Separator();
                         ImGui.Text(IsKeyReleasedThisFrameChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Is MouseButton Down Chip"))
+                    {
+                        CircuitEditor.chips.Add(new IsMouseButtonDownChip(CircuitEditor.GetNextAvaliableChipID(), "Is MouseButton Down",
+                            spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Is MouseButton Down Chip");
+                        ImGui.Separator();
+                        ImGui.Text(IsMouseButtonDownChip.Description);
+                        ImGui.EndTooltip();
+                    }
+
+                    if (ImGui.MenuItem("Create Is MouseButton Pressed This Frame Chip"))
+                    {
+                        CircuitEditor.chips.Add(new IsMouseButtonPressedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Is MouseButton Pressed This Frame", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Is MouseButton Pressed This Frame Chip");
+                        ImGui.Separator();
+                        ImGui.Text(IsMouseButtonPressedThisFrameChip.Description);
+                        ImGui.EndTooltip();
+                    }
+
+                    if (ImGui.MenuItem("Create Is MouseButton Released This Frame Chip"))
+                    {
+                        CircuitEditor.chips.Add(new IsMouseButtonReleasedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Is MouseButton Released This Frame", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Is MouseButton Released This Frame Chip");
+                        ImGui.Separator();
+                        ImGui.Text(IsMouseButtonReleasedThisFrameChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -2364,8 +2442,10 @@ public class EqualsChip : Chip
     public static string Description = "Outputs true if A is equals to B. Works with most data types.";
     public EqualsChip(int id, string name, Vector2 position) : base(id, name, position)
     {
-        AddPort("A", true, [typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2), typeof(GameObject)]);
-        AddPort("B", true, [typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2), typeof(GameObject)]);
+        AddPort("A", true, [typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2), typeof(GameObject), 
+            typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton)]);
+        AddPort("B", true, [typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2), typeof(GameObject), 
+            typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton)]);
         AddPort("Output", false, [typeof(bool)]);
         base.OutputPorts[0].Value.ValueFunction = ChipOutput;
     }
@@ -2396,6 +2476,23 @@ public class EqualsChip : Chip
         else if (InputPorts[0].PortType == typeof(GameObject))
         {
             value.Bool = InputPorts[0].Value.GetValue().GameObject == InputPorts[1].Value.GetValue().GameObject;
+        }
+        else if (InputPorts[0].PortType == typeof(AudioInfo))
+        {
+            value.Bool = InputPorts[0].Value.GetValue().AudioInfo.Name == InputPorts[1].Value.GetValue().AudioInfo.Name && 
+                         InputPorts[0].Value.GetValue().AudioInfo.pathToAudio == InputPorts[1].Value.GetValue().AudioInfo.pathToAudio;
+        }
+        else if (InputPorts[0].PortType == typeof(ComponentHolder))
+        {
+            value.Bool = InputPorts[0].Value.GetValue().ComponentHolder == InputPorts[1].Value.GetValue().ComponentHolder;
+        }
+        else if (InputPorts[0].PortType == typeof(Key))
+        {
+            value.Bool = InputPorts[0].Value.GetValue().Key == InputPorts[1].Value.GetValue().Key;
+        }
+        else if (InputPorts[0].PortType == typeof(MouseButton))
+        {
+            value.Bool = InputPorts[0].Value.GetValue().MouseButton == InputPorts[1].Value.GetValue().MouseButton;
         }
 
         return value;
@@ -2507,6 +2604,18 @@ public class EventChip : Chip
             foreach (var key in SelectedEvent.baseValues.GameObjects)
                 AddPort(key, false, [typeof(GameObject)], true).Value.ValueFunction = (p) => new Values
                     { GameObject = LastRecievedPayload.GameObjects.GetValueOrDefault(p.Name) };
+            foreach (var key in SelectedEvent.baseValues.AudioInfos)
+                AddPort(key, false, [typeof(AudioInfo)], true).Value.ValueFunction = (p) => new Values
+                    { AudioInfo = LastRecievedPayload.AudioInfos.GetValueOrDefault(p.Name) };
+            foreach (var key in SelectedEvent.baseValues.ComponentHolders)
+                AddPort(key, false, [typeof(ComponentHolder)], true).Value.ValueFunction = (p) => new Values
+                    { ComponentHolder = LastRecievedPayload.ComponentHolders.GetValueOrDefault(p.Name) };
+            foreach (var key in SelectedEvent.baseValues.Keys)
+                AddPort(key, false, [typeof(Key)], true).Value.ValueFunction = (p) => new Values
+                    { Key = LastRecievedPayload.Keys.GetValueOrDefault(p.Name) };
+            foreach (var key in SelectedEvent.baseValues.MouseButtons)
+                AddPort(key, false, [typeof(MouseButton)], true).Value.ValueFunction = (p) => new Values
+                    { MouseButton = LastRecievedPayload.MouseButtons.GetValueOrDefault(p.Name) };
 
             ListenerAction = (payload) =>
             {
@@ -2536,6 +2645,14 @@ public class EventChip : Chip
                 AddPort(key, true, [typeof(string)], true);
             foreach (var key in SelectedEvent.baseValues.GameObjects)
                 AddPort(key, true, [typeof(GameObject)], true);
+            foreach (var key in SelectedEvent.baseValues.AudioInfos)
+                AddPort(key, true, [typeof(AudioInfo)], true);
+            foreach (var key in SelectedEvent.baseValues.ComponentHolders)
+                AddPort(key, true, [typeof(ComponentHolder)], true);
+            foreach (var key in SelectedEvent.baseValues.Keys)
+                AddPort(key, true, [typeof(Key)], true);
+            foreach (var key in SelectedEvent.baseValues.MouseButtons)
+                AddPort(key, true, [typeof(MouseButton)], true);
         }
 
         Size = new Vector2(Size.X, ((CircuitEditor.portSpacing/CircuitEditor.Zoom) * (SelectedEvent.baseValues.bools.Count() + SelectedEvent.baseValues.floats.Count() + SelectedEvent.baseValues.ints.Count() + SelectedEvent.baseValues.strings.Count() + SelectedEvent.baseValues.Vector2s.Count() + SelectedEvent.baseValues.GameObjects.Count())) + 75);
@@ -2554,6 +2671,10 @@ public class EventChip : Chip
                 else if (port.PortType == typeof(string)) payload.strings[port.Name] = port.Value.GetValue().String;
                 else if (port.PortType == typeof(Vector2)) payload.Vector2s[port.Name] = port.Value.GetValue().Vector2;
                 else if (port.PortType == typeof(GameObject)) payload.GameObjects[port.Name] = port.Value.GetValue().GameObject;
+                else if (port.PortType == typeof(AudioInfo)) payload.AudioInfos[port.Name] = port.Value.GetValue().AudioInfo;
+                else if (port.PortType == typeof(ComponentHolder)) payload.ComponentHolders[port.Name] = port.Value.GetValue().ComponentHolder;
+                else if (port.PortType == typeof(Key)) payload.Keys[port.Name] = port.Value.GetValue().Key.Value;
+                else if (port.PortType == typeof(MouseButton)) payload.MouseButtons[port.Name] = port.Value.GetValue().MouseButton.Value;
             }
             
             EventManager.Trigger(SelectedEvent, payload);
@@ -2576,6 +2697,18 @@ public class EventChip : Chip
                 {
                     SelectedEvent = registeredEvent;
                     ConfigurePorts();
+                }
+
+                if (!String.IsNullOrWhiteSpace(registeredEvent.Description))
+                {
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text(registeredEvent.EventName);
+                        ImGui.Separator();
+                        ImGui.Text(registeredEvent.Description);
+                        ImGui.EndTooltip();
+                    }
                 }
             }
             ImGui.EndCombo();
@@ -2699,6 +2832,17 @@ public class EventChip : Chip
                 portTypes.Add(typeof(ComponentHolder));
             }
             
+            foreach (var port in baseValues.Keys)
+            {
+                ports.Add(port);
+                portTypes.Add(typeof(Key));
+            }
+            foreach (var port in baseValues.MouseButtons)
+            {
+                ports.Add(port);
+                portTypes.Add(typeof(MouseButton));
+            }
+            
             //Ports Menu
             if (ImGui.ImageButton("InputPortAddButton", (IntPtr)LoadIcons.icons["Plus.png"], new Vector2(25)))
             {
@@ -2781,7 +2925,7 @@ public class EventChip : Chip
 
                 if (ImGui.BeginCombo("Type", TypeHelper.GetName(portTypes[index])))
                 {
-                    List<Type> availableTypes = [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder)];
+                    List<Type> availableTypes = [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton)];
 
                     foreach (var type in availableTypes)
                     {
@@ -2901,6 +3045,15 @@ public class EventChip : Chip
         else if (type == typeof(ComponentHolder))
         {
             return 7;
+        }
+        else if (type == typeof(Key))
+        {
+            return 8;
+        }
+
+        else if (type == typeof(MouseButton))
+        {
+            return 9;
         }
 
         return 0;
@@ -3696,10 +3849,10 @@ public class IfValueChip : Chip
     private readonly List<Type> _allTypes = new()
     {
         typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2),
-        typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder),
+        typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton),
         typeof(List<bool>), typeof(List<int>), typeof(List<float>), typeof(List<string>),
         typeof(List<Vector2>), typeof(List<GameObject>), typeof(List<AudioInfo>),
-        typeof(List<ComponentHolder>)
+        typeof(List<ComponentHolder>), typeof(List<Key>), typeof(List<MouseButton>)
     };
 
     public IfValueChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
@@ -3871,322 +4024,60 @@ public class PlayAudioChip : Chip
 public class IsKeyDownChip : Chip
 {
     public static string Description = "Outputs true every frame that the selected key is being held down.";
-    private Key? keyToCheck;
-
-    private static byte[] KeySearchBuffer = new byte[128];
     public IsKeyDownChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("IsDown", false, [typeof(bool)], false);
+        AddPort("Key", true, [typeof(Key)], false);
         OutputPorts[0].Value.ValueFunction = OutputFunction;
-        ShowCustomItemOnChip = true;
     }
 
     public Values OutputFunction(ChipPort? chipPort)
     {
         Values toOutput = new();
 
-        toOutput.Bool = (keyToCheck != null && InputManager.IsKeyDown(keyToCheck.Value));
+        toOutput.Bool = (InputPorts[0].Value.GetValue().Key != null && InputManager.IsKeyDown(InputPorts[0].Value.GetValue().Key.Value));
 
         return toOutput;
-    }
-
-    public override void DisplayCustomItem()
-    {
-        ImGui.PushItemWidth(100);
-        if (ImGui.BeginCombo("##KeyCombo", keyToCheck.ToString()))
-        {
-            
-            ImGui.InputText("Search", KeySearchBuffer, (uint)KeySearchBuffer.Length);
-            string searchText = Encoding.UTF8.GetString(KeySearchBuffer).TrimEnd('\0').ToLower();
-            ImGui.Separator();
-            
-            
-            List<Key> allKeys = (List<Key>)Enum.GetValues(typeof(Key)).Cast<Key>().ToList();
-
-            int x = 0;
-            while (true)
-            {
-
-                if (allKeys.Count(e => e == allKeys[x]) > 1)
-                {
-                    allKeys.RemoveAt(x);
-                }
-                else x++;
-
-                if (x >= allKeys.Count())
-                {
-                    break;
-                }
-            }
-
-            for (int i = 0; i < allKeys.Count; i++)
-            {
-                bool isSelected = (keyToCheck != null &&allKeys[i] == keyToCheck.Value);
-
-                if (!String.IsNullOrWhiteSpace(searchText) &&
-                    !allKeys[i].ToString().ToLower().Contains(searchText.ToLower()))
-                {
-                    continue;
-                }
-
-                if (ImGui.Selectable(allKeys[i].ToString(), isSelected))
-                {
-                    keyToCheck = allKeys[i];
-                }
-
-                if (isSelected)
-                {
-                    ImGui.SetItemDefaultFocus();
-                }
-            }
-            
-            ImGui.EndCombo();
-        }
-        ImGui.PopItemWidth();
-    }
-
-    public override void SetCustomProperties(Dictionary<string, string> properties)
-    {
-        if (properties.ContainsKey("KeyCheck"))
-        {
-            string savedKeyString = properties["KeyCheck"];
-            
-            List<Key> allKeys = (List<Key>)Enum.GetValues(typeof(Key)).Cast<Key>().ToList();
-
-            for (int i = 0; i < allKeys.Count; i++)
-            {
-                if (properties["KeyCheck"] == allKeys[i].ToString())
-                {
-                    keyToCheck = allKeys[i];
-                }
-            }
-        }
-    }
-
-    public override Dictionary<string, string> GetCustomProperties()
-    {
-        Dictionary<string, string> properties = new();
-
-        if (keyToCheck != null)
-        {
-            properties.Add("KeyCheck", keyToCheck.ToString());
-        }
-
-        return properties;
     }
 }
 
-public class IsPressedThisFrameChip : Chip
+public class IsKeyPressedThisFrameChip : Chip
 {
     public static string Description = "Outputs true for the single frame that the selected key is first pressed down.";
-    private Key? keyToCheck;
-    private static byte[] KeySearchBuffer = new byte[128];
-    public IsPressedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    public IsKeyPressedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("IsDown", false, [typeof(bool)], false);
+        AddPort("Key", true, [typeof(Key)], false);
         OutputPorts[0].Value.ValueFunction = OutputFunction;
-        ShowCustomItemOnChip = true;
     }
 
     public Values OutputFunction(ChipPort? chipPort)
     {
         Values toOutput = new();
 
-        toOutput.Bool = (keyToCheck != null && InputManager.IsKeyPressed(keyToCheck.Value));
+        toOutput.Bool = (InputPorts[0].Value.GetValue().Key != null && InputManager.IsKeyPressed(InputPorts[0].Value.GetValue().Key.Value));
 
         return toOutput;
-    }
-
-    public override void DisplayCustomItem()
-    {
-        ImGui.PushItemWidth(100);
-        if (ImGui.BeginCombo("##KeyCombo", keyToCheck.ToString()))
-        {
-            
-            ImGui.InputText("Search", KeySearchBuffer, (uint)KeySearchBuffer.Length);
-            string searchText = Encoding.UTF8.GetString(KeySearchBuffer).TrimEnd('\0').ToLower();
-            ImGui.Separator();
-            
-            
-            List<Key> allKeys = (List<Key>)Enum.GetValues(typeof(Key)).Cast<Key>().ToList();
-
-            int x = 0;
-            while (true)
-            {
-
-                if (allKeys.Count(e => e == allKeys[x]) > 1)
-                {
-                    allKeys.RemoveAt(x);
-                }
-                else x++;
-
-                if (x >= allKeys.Count())
-                {
-                    break;
-                }
-            }
-
-            for (int i = 0; i < allKeys.Count; i++)
-            {
-                bool isSelected = (keyToCheck != null &&allKeys[i] == keyToCheck.Value);
-
-                if (!String.IsNullOrWhiteSpace(searchText) &&
-                    !allKeys[i].ToString().ToLower().Contains(searchText.ToLower()))
-                {
-                    continue;
-                }
-
-                if (ImGui.Selectable(allKeys[i].ToString(), isSelected))
-                {
-                    keyToCheck = allKeys[i];
-                }
-
-                if (isSelected)
-                {
-                    ImGui.SetItemDefaultFocus();
-                }
-            }
-            
-            ImGui.EndCombo();
-        }
-        ImGui.PopItemWidth();
-    }
-    
-    public override void SetCustomProperties(Dictionary<string, string> properties)
-    {
-        if (properties.ContainsKey("KeyCheck"))
-        {
-            string savedKeyString = properties["KeyCheck"];
-            
-            List<Key> allKeys = (List<Key>)Enum.GetValues(typeof(Key)).Cast<Key>().ToList();
-
-            for (int i = 0; i < allKeys.Count; i++)
-            {
-                if (properties["KeyCheck"] == allKeys[i].ToString())
-                {
-                    keyToCheck = allKeys[i];
-                }
-            }
-        }
-    }
-
-    public override Dictionary<string, string> GetCustomProperties()
-    {
-        Dictionary<string, string> properties = new();
-
-        if (keyToCheck != null)
-        {
-            properties.Add("KeyCheck", keyToCheck.ToString());
-        }
-
-        return properties;
     }
 }
 
 public class IsKeyReleasedThisFrameChip : Chip
 {
     public static string Description = "Outputs true for the single frame that the selected key is released.";
-    private Key? keyToCheck;
-    private static byte[] KeySearchBuffer = new byte[128];
     public IsKeyReleasedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("IsDown", false, [typeof(bool)], false);
+        AddPort("Key", true, [typeof(Key)], false);
         OutputPorts[0].Value.ValueFunction = OutputFunction;
-        ShowCustomItemOnChip = true;
     }
 
     public Values OutputFunction(ChipPort? chipPort)
     {
         Values toOutput = new();
 
-        toOutput.Bool = (keyToCheck != null && InputManager.IsKeyReleased(keyToCheck.Value));
+        toOutput.Bool = (InputPorts[0].Value.GetValue().Key != null && InputManager.IsKeyReleased(InputPorts[0].Value.GetValue().Key.Value));
 
         return toOutput;
-    }
-
-    public override void DisplayCustomItem()
-    {
-        ImGui.PushItemWidth(100);
-        if (ImGui.BeginCombo("##KeyCombo", keyToCheck.ToString()))
-        {
-            
-            ImGui.InputText("Search", KeySearchBuffer, (uint)KeySearchBuffer.Length);
-            string searchText = Encoding.UTF8.GetString(KeySearchBuffer).TrimEnd('\0').ToLower();
-            ImGui.Separator();
-            
-            
-            List<Key> allKeys = (List<Key>)Enum.GetValues(typeof(Key)).Cast<Key>().ToList();
-
-            int x = 0;
-            while (true)
-            {
-
-                if (allKeys.Count(e => e == allKeys[x]) > 1)
-                {
-                    allKeys.RemoveAt(x);
-                }
-                else x++;
-
-                if (x >= allKeys.Count())
-                {
-                    break;
-                }
-            }
-
-            for (int i = 0; i < allKeys.Count; i++)
-            {
-                bool isSelected = (keyToCheck != null &&allKeys[i] == keyToCheck.Value);
-
-                if (!String.IsNullOrWhiteSpace(searchText) &&
-                    !allKeys[i].ToString().ToLower().Contains(searchText.ToLower()))
-                {
-                    continue;
-                }
-
-                if (ImGui.Selectable(allKeys[i].ToString(), isSelected))
-                {
-                    keyToCheck = allKeys[i];
-                }
-
-                if (isSelected)
-                {
-                    ImGui.SetItemDefaultFocus();
-                }
-            }
-            
-            ImGui.EndCombo();
-        }
-        ImGui.PopItemWidth();
-    }
-    
-    public override void SetCustomProperties(Dictionary<string, string> properties)
-    {
-        if (properties.ContainsKey("KeyCheck"))
-        {
-            string savedKeyString = properties["KeyCheck"];
-            
-            List<Key> allKeys = (List<Key>)Enum.GetValues(typeof(Key)).Cast<Key>().ToList();
-
-            for (int i = 0; i < allKeys.Count; i++)
-            {
-                if (properties["KeyCheck"] == allKeys[i].ToString())
-                {
-                    keyToCheck = allKeys[i];
-                }
-            }
-        }
-    }
-
-    public override Dictionary<string, string> GetCustomProperties()
-    {
-        Dictionary<string, string> properties = new();
-
-        if (keyToCheck != null)
-        {
-            properties.Add("KeyCheck", keyToCheck.ToString());
-        }
-
-        return properties;
     }
 }
 
@@ -4298,5 +4189,97 @@ public class ToString : Chip
         }
 
         return theValues;
+    }
+}
+
+public class KeyConstantChip : Chip
+{
+    public static string Description = "Outputs a constant key (input) value.";
+    public KeyConstantChip(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        AddPort("Input", true, [typeof(Key)]);
+        AddPort("Output", false, [typeof(Key)]);
+        base.OutputPorts[0].Value.ValueFunction = ConstantOutput;
+    }
+
+    public Values ConstantOutput(ChipPort? chipPort)
+    {
+        return base.InputPorts[0].Value.GetValue();
+    }
+}
+
+public class MouseButtonConstantChip : Chip
+{
+    public static string Description = "Outputs a constant MouseButton (Input) value.";
+    public MouseButtonConstantChip(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        AddPort("Input", true, [typeof(MouseButton)]);
+        AddPort("Output", false, [typeof(MouseButton)]);
+        base.OutputPorts[0].Value.ValueFunction = ConstantOutput;
+    }
+
+    public Values ConstantOutput(ChipPort? chipPort)
+    {
+        return base.InputPorts[0].Value.GetValue();
+    }
+}
+
+public class IsMouseButtonDownChip : Chip
+{
+    public static string Description = "Outputs true every frame that the selected MouseButton is being held down.";
+    public IsMouseButtonDownChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("IsDown", false, [typeof(bool)], false);
+        AddPort("MouseButton", true, [typeof(MouseButton)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values toOutput = new();
+
+        toOutput.Bool = (InputPorts[0].Value.GetValue().MouseButton != null && InputManager.IsMouseButtonDown(InputPorts[0].Value.GetValue().MouseButton.Value));
+
+        return toOutput;
+    }
+}
+
+public class IsMouseButtonPressedThisFrameChip : Chip
+{
+    public static string Description = "Outputs true for the single frame that the selected MouseButton is first pressed down.";
+    public IsMouseButtonPressedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("IsDown", false, [typeof(bool)], false);
+        AddPort("MouseButton", true, [typeof(MouseButton)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values toOutput = new();
+
+        toOutput.Bool = (InputPorts[0].Value.GetValue().MouseButton != null && InputManager.IsMouseButtonPressed(InputPorts[0].Value.GetValue().MouseButton.Value));
+
+        return toOutput;
+    }
+}
+
+public class IsMouseButtonReleasedThisFrameChip : Chip
+{
+    public static string Description = "Outputs true for the single frame that the selected MouseButton is first released";
+    public IsMouseButtonReleasedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("IsDown", false, [typeof(bool)], false);
+        AddPort("MouseButton", true, [typeof(MouseButton)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values toOutput = new();
+
+        toOutput.Bool = (InputPorts[0].Value.GetValue().MouseButton != null && InputManager.IsMouseButtonReleased(InputPorts[0].Value.GetValue().MouseButton.Value));
+
+        return toOutput;
     }
 }

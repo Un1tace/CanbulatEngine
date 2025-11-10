@@ -50,6 +50,7 @@ public class Engine
 
     private const float GameAspectRatio = 16f / 9f;
     private static IKeyboard? primaryKeyboard;
+    private static IMouse? primaryMouse;
 
     private static float _cameraZoom = 2f;
 
@@ -124,6 +125,9 @@ public class Engine
     private bool circuitEditorIsOpen = false;
     private bool _consoleTabActive = true;
     private bool _projectTabActive = true;
+    
+    //Viewport
+    public static bool _isViewportFocused { get; private set; } = false;
 #endif
 
     public void Run()
@@ -167,7 +171,13 @@ public class Engine
         primaryKeyboard = input.Keyboards.FirstOrDefault();
         if (primaryKeyboard != null)
         {
-            InputManager.Initialize(primaryKeyboard);
+            InputManager.InitializeKeyboard(primaryKeyboard);
+        }
+
+        primaryMouse = input.Mice.FirstOrDefault();
+        if (primaryMouse != null)
+        {
+            InputManager.InitializeMouse(primaryMouse);
         }
         
         // ---- Initialising the IMGUI Controller----
@@ -738,6 +748,7 @@ public class Engine
         {
             if (ImGui.BeginTabItem("Viewport"))
             {
+                _isViewportFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
                 circuitEditorIsOpen = false;
                 Vector2 viewportPanelSize = ImGui.GetContentRegionAvail();
                 // Vector2 viewportPos = ImGui.GetWindowPos();
@@ -776,6 +787,10 @@ public class Engine
                 }
 
                 ImGui.EndTabItem();
+            }
+            else
+            {
+                _isViewportFocused = false;
             }
 
             if (ImGui.BeginTabItem("Circuit Editor"))
