@@ -33,7 +33,6 @@ public static class TextureLoader
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
         
         // *** DEBUGGING STEP: Use simple linear filtering without mipmaps. ***
-        // This is a common way to fix "texture unloadable" errors on macOS.
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.Linear);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
         

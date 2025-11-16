@@ -26,15 +26,17 @@ public static class CircuitSerialiser
 
         foreach (var chip in CircuitEditor.chips)
         {
-            circuitInfo.Chips.Add(new CircuitData.ChipData
-            {
-                id = chip.Id,
-                Name = chip.Name,
-                Position = chip.Position,
-                ChipType = chip.GetType().FullName,
-                Color = chip.Color,
-                CustomProperties = chip.GetCustomProperties()
-            });
+            // circuitInfo.Chips.Add(new CircuitData.ChipData
+            // {
+            //     id = chip.Id,
+            //     Name = chip.Name,
+            //     Position = chip.Position,
+            //     ChipType = chip.GetType().FullName,
+            //     Color = chip.Color,
+            //     CustomProperties = chip.GetCustomProperties()
+            // });
+            
+            circuitInfo.Chips.Add(GetChipData(chip));
         }
 
         foreach (var chip in CircuitEditor.chips)
@@ -70,15 +72,17 @@ public static class CircuitSerialiser
                 }
                 else if (inputPort.PortType != null)
                 {
-                    var portValue = inputPort.Value;
-                    string valueStr = "";
-                    if (inputPort.PortType == typeof(bool)) valueStr = portValue.Bool.Value.ToString();
-                    else if (inputPort.PortType == typeof(int)) valueStr = portValue.Int.Value.ToString();
-                    else if (inputPort.PortType == typeof(float)) valueStr = portValue.Float.Value.ToString(CultureInfo.InvariantCulture);
-                    else if (inputPort.PortType == typeof(string)) valueStr = portValue.String;
-                    else if (inputPort.PortType == typeof(Vector2)) valueStr = $"{portValue.Vector2.Value.X},{portValue.Vector2.Value.Y}";
-                    else if (inputPort.PortType == typeof(Key)) valueStr = portValue.Key.ToString();
-                    else if (inputPort.PortType == typeof(MouseButton)) valueStr = portValue.MouseButton.ToString();
+                    // var portValue = inputPort.Value;
+                    // string valueStr = "";
+                    // if (inputPort.PortType == typeof(bool)) valueStr = portValue.Bool.Value.ToString();
+                    // else if (inputPort.PortType == typeof(int)) valueStr = portValue.Int.Value.ToString();
+                    // else if (inputPort.PortType == typeof(float)) valueStr = portValue.Float.Value.ToString(CultureInfo.InvariantCulture);
+                    // else if (inputPort.PortType == typeof(string)) valueStr = portValue.String;
+                    // else if (inputPort.PortType == typeof(Vector2)) valueStr = $"{portValue.Vector2.Value.X},{portValue.Vector2.Value.Y}";
+                    // else if (inputPort.PortType == typeof(Key)) valueStr = portValue.Key.ToString();
+                    // else if (inputPort.PortType == typeof(MouseButton)) valueStr = portValue.MouseButton.ToString();
+
+                    string valueStr = GetPortValueAsString(inputPort);
                     
                     circuitInfo.UnconnectedPortValues.Add(new CircuitData.UnconnectedPortValueData
                     {
@@ -97,6 +101,81 @@ public static class CircuitSerialiser
         Engine.ReloadAllCircuitScripts();
     }
 
+    public static string GetPortValueAsString(ChipPort port)
+    {
+        var portValue = port.Value;
+        string valueStr = "";
+        if (port.PortType == typeof(bool)) valueStr = portValue.Bool.Value.ToString();
+        else if (port.PortType == typeof(int)) valueStr = portValue.Int.Value.ToString();
+        else if (port.PortType == typeof(float)) valueStr = portValue.Float.Value.ToString(CultureInfo.InvariantCulture);
+        else if (port.PortType == typeof(string)) valueStr = portValue.String;
+        else if (port.PortType == typeof(Vector2)) valueStr = $"{portValue.Vector2.Value.X},{portValue.Vector2.Value.Y}";
+        else if (port.PortType == typeof(Key)) valueStr = portValue.Key.ToString();
+        else if (port.PortType == typeof(MouseButton)) valueStr = portValue.MouseButton.ToString();
+
+        return valueStr;
+    }
+
+    public static void ParseAndSetPortData(CircuitData.UnconnectedPortValueData portValueData, ChipPort portToSet)
+    {
+        if (portToSet != null)
+        {
+            Type? type = TypeHelper.GetType(portValueData.ValueType)?? Type.GetType(portValueData.ValueType);
+            if (type != null)
+            {
+                if (type == typeof(bool)) portToSet.Value.SetValue(bool.Parse(portValueData.Value));
+                else if (type == typeof(int)) portToSet.Value.SetValue(int.Parse(portValueData.Value));
+                else if (type == typeof(float)) portToSet.Value.SetValue(float.Parse(portValueData.Value));
+                else if (type == typeof(string)) portToSet.Value.SetValue(portValueData.Value);
+                else if (type == typeof(Vector2))
+                {
+                    var parts = portValueData.Value.Split(',');
+                    portToSet.Value.SetValue(new Vector2(float.Parse(parts[0], CultureInfo.InvariantCulture),
+                        float.Parse(parts[1], CultureInfo.InvariantCulture)));
+                }
+                else if (type == typeof(Key))
+                {
+                    portToSet.Value.SetValue(Enum.GetValues(typeof(Key)).Cast<Key>().ToList().Find(e => e.ToString() == portValueData.Value));
+                }
+                else if (type == typeof(MouseButton))
+                {
+                    portToSet.Value.SetValue(Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>().ToList().Find(e => e.ToString() == portValueData.Value));
+                }
+            }
+        }
+    }
+    
+    public static CircuitData.ChipData GetChipData(Chip chip)
+    {
+        var theChip = new CircuitData.ChipData
+        {
+            id = chip.Id,
+            Name = chip.Name,
+            Position = chip.Position,
+            ChipType = chip.GetType().FullName,
+            Color = chip.Color,
+            CustomProperties = chip.GetCustomProperties()
+        };
+
+        return theChip;
+    }
+
+    public static Chip? CreateChipFromData(CircuitData.ChipData data, bool setID = true)
+    {
+        Type chipType = Type.GetType(data.ChipType);
+
+        if (chipType != null)
+        {
+            Chip newChip = (Chip)Activator.CreateInstance(chipType, setID? data.id : CircuitEditor.GetNextAvaliableChipID(), data.Name, data.Position);
+            newChip.SetCustomProperties(data.CustomProperties);
+            newChip.Color = data.Color;
+            CircuitEditor.chips.Add(newChip);
+            return newChip;
+        }
+
+        return null;
+    }
+
     public static void LoadCircuit(string filePath)
     {
         string json = File.ReadAllText(filePath);
@@ -108,15 +187,7 @@ public static class CircuitSerialiser
         
         foreach (var chip in circuitInfo.Chips)
         {
-            Type chipType = Type.GetType(chip.ChipType);
-
-            if (chipType != null)
-            {
-                Chip newChip = (Chip)Activator.CreateInstance(chipType, chip.id, chip.Name, chip.Position);
-                newChip.SetCustomProperties(chip.CustomProperties);
-                newChip.Color = chip.Color;
-                CircuitEditor.chips.Add(newChip);
-            }
+            CreateChipFromData(chip);
         }
 
         foreach (var portValueData in circuitInfo.UnconnectedPortValues)
@@ -124,31 +195,32 @@ public static class CircuitSerialiser
             var chip = CircuitEditor.FindChip(portValueData.ChipId);
             var port = chip?.InputPorts.FirstOrDefault(p => p.Id == portValueData.PortId);
 
-            if (port != null)
-            {
-                Type? type = TypeHelper.GetType(portValueData.ValueType)?? Type.GetType(portValueData.ValueType);
-                if (type != null)
-                {
-                    if (type == typeof(bool)) port.Value.SetValue(bool.Parse(portValueData.Value));
-                    else if (type == typeof(int)) port.Value.SetValue(int.Parse(portValueData.Value));
-                    else if (type == typeof(float)) port.Value.SetValue(float.Parse(portValueData.Value));
-                    else if (type == typeof(string)) port.Value.SetValue(portValueData.Value);
-                    else if (type == typeof(Vector2))
-                    {
-                        var parts = portValueData.Value.Split(',');
-                        port.Value.SetValue(new Vector2(float.Parse(parts[0], CultureInfo.InvariantCulture),
-                            float.Parse(parts[1], CultureInfo.InvariantCulture)));
-                    }
-                    else if (type == typeof(Key))
-                    {
-                        port.Value.SetValue(Enum.GetValues(typeof(Key)).Cast<Key>().ToList().Find(e => e.ToString() == portValueData.Value));
-                    }
-                    else if (type == typeof(MouseButton))
-                    {
-                        port.Value.SetValue(Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>().ToList().Find(e => e.ToString() == portValueData.Value));
-                    }
-                }
-            }
+            ParseAndSetPortData(portValueData, port);
+            // if (port != null)
+            // {
+            //     Type? type = TypeHelper.GetType(portValueData.ValueType)?? Type.GetType(portValueData.ValueType);
+            //     if (type != null)
+            //     {
+            //         if (type == typeof(bool)) port.Value.SetValue(bool.Parse(portValueData.Value));
+            //         else if (type == typeof(int)) port.Value.SetValue(int.Parse(portValueData.Value));
+            //         else if (type == typeof(float)) port.Value.SetValue(float.Parse(portValueData.Value));
+            //         else if (type == typeof(string)) port.Value.SetValue(portValueData.Value);
+            //         else if (type == typeof(Vector2))
+            //         {
+            //             var parts = portValueData.Value.Split(',');
+            //             port.Value.SetValue(new Vector2(float.Parse(parts[0], CultureInfo.InvariantCulture),
+            //                 float.Parse(parts[1], CultureInfo.InvariantCulture)));
+            //         }
+            //         else if (type == typeof(Key))
+            //         {
+            //             port.Value.SetValue(Enum.GetValues(typeof(Key)).Cast<Key>().ToList().Find(e => e.ToString() == portValueData.Value));
+            //         }
+            //         else if (type == typeof(MouseButton))
+            //         {
+            //             port.Value.SetValue(Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>().ToList().Find(e => e.ToString() == portValueData.Value));
+            //         }
+            //     }
+            // }
         }
         
         foreach (var connectionData in circuitInfo.Connections)

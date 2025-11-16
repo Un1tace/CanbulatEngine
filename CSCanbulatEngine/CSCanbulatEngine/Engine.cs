@@ -128,6 +128,8 @@ public class Engine
     
     //Viewport
     public static bool _isViewportFocused { get; private set; } = false;
+    public static string gameObjectClipBoard = "";
+    
 #endif
 
     public void Run()
@@ -166,7 +168,7 @@ public class Engine
 
         // For inputs
         IInputContext input = window.CreateInput();
-        Console.WriteLine("Created an input context");
+        Console.WriteLine("[Engine] Created an input context");
         
         primaryKeyboard = input.Keyboards.FirstOrDefault();
         if (primaryKeyboard != null)
@@ -217,14 +219,14 @@ public class Engine
         if (File.Exists(fontPath))
         {
             _customFont = io.Fonts.AddFontFromFileTTF(fontPath, 18f);
-            Console.WriteLine("Custom Font queued for loading");
+            Console.WriteLine("[Engine] Custom Font queued for loading");
 
             io.Fonts.Build();
-            Console.WriteLine("ImGui font atlas built");
+            Console.WriteLine("[Engine] ImGui font atlas built");
         }
         else
         {
-            Console.WriteLine("Could not find font file: " + fontPath + ". Using default font");
+            Console.WriteLine("[Engine] Could not find font file: " + fontPath + ". Using default font");
         }
         
         fontPath = Path.Combine(AppContext.BaseDirectory, "EditorAssets/Fonts/Nunito-ExtraBold.ttf");
@@ -232,14 +234,14 @@ public class Engine
         if (File.Exists(fontPath))
         {
             _extraThickFont = io.Fonts.AddFontFromFileTTF(fontPath, 18f);
-            Console.WriteLine("Extra-Bold Font queued for loading");
+            Console.WriteLine("[Engine] Extra-Bold Font queued for loading");
 
             io.Fonts.Build();
-            Console.WriteLine("ImGui font atlas built");
+            Console.WriteLine("[Engine] ImGui font atlas built");
         }
         else
         {
-            Console.WriteLine("Could not find font file: " + fontPath + ". Using default font");
+            Console.WriteLine("[Engine] Could not find font file: " + fontPath + ". Using default font");
         }
         
         io.Fonts.GetTexDataAsRGBA32(out byte* pixelData, out int width, out int height, out int bytesPerPixel);
@@ -262,23 +264,23 @@ public class Engine
         
         io.Fonts.ClearTexData();
     
-        Console.WriteLine("Font texture manually created and uploaded to GPU.");
+        Console.WriteLine("[Engine] Font texture manually created and uploaded to GPU.");
         
         imGuiController = new ImGuiController(gl, window, input);
 
         ViewportSize = window.FramebufferSize;
         CreateFrameBuffer();
-        Console.WriteLine("Initialised IMGUI Controller and framebuffer");
+        Console.WriteLine("[Engine] Initialised IMGUI Controller and framebuffer");
 
         try
         {
             string logoPath = Path.Combine(AppContext.BaseDirectory, "EditorAssets/Images/Logo.png");
             _logoTextureID = TextureLoader.Load(gl, logoPath, out _logoSize);
-            Console.WriteLine("Texture Loaded");
+            Console.WriteLine("[Engine] Texture Loaded");
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Failed to load logo texture: {e.Message}");
+            Console.WriteLine($"[Engine] Failed to load logo texture: {e.Message}");
         }
 
         LoadIcons.PreloadIcons();
@@ -381,6 +383,50 @@ public class Engine
                 else if (InputManager.IsKeyPressed(Key.Number2) && _selectedGameObject != null)
                 {
                     renamePopupOpen = true;
+                }
+                else if (InputManager.IsKeyPressed(Key.C))
+                {
+                    if (!circuitEditorIsOpen && _selectedGameObject != null)
+                    {
+                        gameObjectClipBoard = JsonConvert.SerializeObject(SceneSerialiser.GetGameObjectData(_selectedGameObject.gameObject));
+                        Console.WriteLine("[Clipboard] Copied selected GameObject to clipboard");
+                    }
+                    else if (circuitEditorIsOpen && CircuitEditor.lastSelectedChip != null)
+                    {
+                        CircuitEditor.chipClipboard =
+                            JsonConvert.SerializeObject(CircuitSerialiser.GetChipData(CircuitEditor.lastSelectedChip));
+                        CircuitEditor.chipPosClipboard = CircuitEditor.lastSelectedChip.Position;
+                        Console.WriteLine("[Clipboard] Copied selected chip to clipboard");
+                    }
+                }
+                else if (InputManager.IsKeyPressed(Key.V))
+                {
+                    if (!circuitEditorIsOpen && !String.IsNullOrWhiteSpace(gameObjectClipBoard))
+                    {
+                        var theData = JsonConvert.DeserializeObject<SceneData.GameObjectData>(gameObjectClipBoard);
+                        
+                        if (theData != null)
+                        {
+                            var theGameObject = SceneSerialiser.CreateGameObjectFromData(theData);
+                            theGameObject.GetComponent<Transform>().WorldPosition = theGameObject.GetComponent<Transform>().WorldPosition + new Vector2(0.5f);
+                            Console.WriteLine("[Clipboard] Pasted selected GameObject to clipboard");
+                        }
+                    }
+                    else if (circuitEditorIsOpen && !String.IsNullOrWhiteSpace(CircuitEditor.chipClipboard))
+                    {
+                        var theData = JsonConvert.DeserializeObject<CircuitData.ChipData>(CircuitEditor.chipClipboard);
+
+                        if (theData != null)
+                        {
+                            var theChip = CircuitSerialiser.CreateChipFromData(theData, false);
+                            theChip.Position = CircuitEditor.chipPosClipboard + new Vector2(5);
+                            Console.WriteLine("[Clipboard] Pasted selected chip to clipboard");
+                        }
+                        else
+                        {
+                            Console.WriteLine("[Clipboard] Tried to paste but nothing was in the clipboard.");
+                        }
+                    }
                 }
             }
         }

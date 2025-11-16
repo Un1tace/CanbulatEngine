@@ -18,7 +18,7 @@ public class GameObject
     public GameObject? ParentObject { get; set; }
     public List<GameObject> ChildObjects { get; set; }
 
-    public GameObject(Mesh mesh, string name = "GameObject")
+    public GameObject(Mesh mesh, string name = "GameObject", bool addCoreComponents = true)
     {
         Name = name;
         Components = new List<Component>();
@@ -27,9 +27,12 @@ public class GameObject
         
         ChildObjects = new List<GameObject>();
         
-        //Add Core Components
-        AddComponent(new Transform());
-        AddComponent(new MeshRenderer(mesh));
+        if (addCoreComponents)
+        {
+            //Add Core Components
+            AddComponent(new Transform());
+            AddComponent(new MeshRenderer(mesh));
+        }
         
         //
         int nameCheck = 0;

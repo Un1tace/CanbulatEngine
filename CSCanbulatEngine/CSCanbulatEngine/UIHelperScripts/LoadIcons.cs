@@ -35,13 +35,13 @@ public class LoadIcons
                     uint textureID = TextureLoader.Load(Engine.gl, file, out size);
                     icons.Add(baseFile, textureID);
                     iconSizes.Add(baseFile, size);
-                    Console.WriteLine($"{baseFile} has been loaded");
+                    Console.WriteLine($"[IconLoader] {baseFile} has been loaded");
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to load icons: {ex.Message}");
+            Console.WriteLine($"[IconLoader] Failed to load icons: {ex.Message}");
         }
         
         
@@ -82,7 +82,7 @@ public class LoadIcons
                         uint id = TextureLoader.Load(Engine.gl, file, out Vector2D<int> size);
                         imageIcons.Add(file, id);
                         imageIconSizes.Add(file, size);
-                        Console.WriteLine($"{file} has been loaded");
+                        Console.WriteLine($"[IconLoader] {file} has been loaded");
                     }
                 }
             }

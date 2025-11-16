@@ -55,51 +55,92 @@ public class SceneSerialiser
         
         foreach (var obj in Engine.currentScene.GameObjects)
         {
-            // SceneData.TransformData transformData = null;
-            // SceneData.MeshRendererData meshRendererData = null;
-            // foreach(var component in obj.Components)
+            // List<SceneData.ComponentData> componentData = new();
+            // foreach (var component in obj.Components)
             // {
-            //     switch (component)
+            //     SceneData.ComponentData toAdd = new()
             //     {
-            //         case Transform transform:
-            //             transformData = new SceneData.TransformData();
-            //             transformData.Name = "Transform";
-            //             transformData.Enabled = transform.isEnabled;
-            //             transformData.Position = transform.WorldPosition;
-            //             transformData.Scale = transform.Scale;
-            //             transformData.Rotation = transform.Rotation;
-            //             transformData.Enabled = transform.isEnabled;
-            //             break;
-            //         case MeshRenderer meshRenderer:
-            //             meshRendererData = new SceneData.MeshRendererData();
-            //             meshRendererData.Name = "MeshRenderer";
-            //             meshRendererData.Enabled = meshRenderer.isEnabled;
-            //             meshRendererData.Color = meshRenderer.Color;
-            //             meshRendererData.TexturePath = meshRenderer.TexturePath;
-            //             meshRendererData.Enabled = meshRenderer.isEnabled;
-            //             break;
-            //         case null:
-            //             break;
-            //     }
+            //         Name = component.name,
+            //         Enabled = component.isEnabled,
+            //         ComponentType = component.GetType().FullName,
+            //         CustomProperties = component.GetCustomProperties()
+            //     };
+            //     componentData.Add(toAdd);
             // }
-            // sceneData.GameObjects.Add(new SceneData.GameObjectData(){Name = obj.Name, transformData = transformData, meshRendererData = meshRendererData, ObjectID = obj.ID, Tags = obj.Tags, ParentObjectID = obj.ParentObject?.ID});
-
-            List<SceneData.ComponentData> componentData = new();
-            foreach (var component in obj.Components)
-            {
-                SceneData.ComponentData toAdd = new()
-                {
-                    Name = component.name,
-                    Enabled = component.isEnabled,
-                    ComponentType = component.GetType().FullName,
-                    CustomProperties = component.GetCustomProperties()
-                };
-                componentData.Add(toAdd);
-            }
-            sceneData.GameObjects.Add(new SceneData.GameObjectData(){Name = obj.Name, ObjectID = obj.ID, Tags = obj.Tags, ParentObjectID = obj.ParentObject?.ID, ComponentData = componentData});
+            // sceneData.GameObjects.Add(new SceneData.GameObjectData(){Name = obj.Name, ObjectID = obj.ID, Tags = obj.Tags, ParentObjectID = obj.ParentObject?.ID, ComponentData = componentData});
+            sceneData.GameObjects.Add(GetGameObjectData(obj));
         }
 
         return sceneData;
+    }
+
+    public static SceneData.GameObjectData GetGameObjectData(GameObject obj)
+    {
+        List<SceneData.ComponentData> componentData = new();
+        foreach (var component in obj.Components)
+        {
+            SceneData.ComponentData toAdd = new()
+            {
+                Name = component.name,
+                Enabled = component.isEnabled,
+                ComponentType = component.GetType().FullName,
+                CustomProperties = component.GetCustomProperties()
+            };
+            componentData.Add(toAdd);
+        }
+
+        return new SceneData.GameObjectData()
+        {
+            Name = obj.Name, ObjectID = obj.ID, Tags = obj.Tags, ParentObjectID = obj.ParentObject?.ID,
+            ComponentData = componentData
+        };
+    }
+
+    public static void SetGameObjectData(GameObject setToObj, SceneData.GameObjectData objData)
+    {
+        setToObj.Tags = objData.Tags ?? new List<string>();
+
+        foreach (var componentData in objData.ComponentData)
+        {
+            var componentType = Type.GetType(componentData.ComponentType);
+            if (componentType is null)
+            {
+                Console.WriteLine($"[SceneSerialiser] Couldn't find component of type {componentData.ComponentType}");
+                continue;
+            }
+
+            Component newComponent;
+
+            if (componentType == typeof(MeshRenderer))
+            {
+                newComponent = new MeshRenderer(Engine._squareMesh);
+            }
+            else
+            {
+                newComponent = (Component)Activator.CreateInstance(componentType);
+            }
+                
+            setToObj.AddComponent(newComponent);
+            newComponent.isEnabled = componentData.Enabled;
+            newComponent.SetCustomProperties(componentData.CustomProperties);
+        }
+    }
+
+    public static GameObject CreateGameObjectFromData(SceneData.GameObjectData objData, bool useNextAvaliableID = true)
+    {
+        GameObject obj;
+        if (useNextAvaliableID)
+        {
+            obj = new GameObject(Engine._squareMesh, objData.Name, false);
+        }
+        else
+        {
+            obj = new GameObject(objData.Name, objData.ObjectID.Value);
+        }
+            
+        SetGameObjectData(obj, objData);
+
+        return obj;
     }
 
     public static void LoadSceneFromString(string json)
@@ -133,73 +174,37 @@ public class SceneSerialiser
         
         foreach (var objData in sceneData.GameObjects)
         {
-            GameObject obj = new GameObject(objData.Name, objData.ObjectID.Value);
-
-            obj.Tags = objData.Tags ?? new List<string>();
-
-            foreach (var componentData in objData.ComponentData)
-            {
-                var componentType = Type.GetType(componentData.ComponentType);
-                if (componentType is null)
-                {
-                    Console.WriteLine($"[SceneSerialiser] Couldn't find component of type {componentData.ComponentType}");
-                    continue;
-                }
-
-                Component newComponent;
-
-                if (componentType == typeof(MeshRenderer))
-                {
-                    newComponent = new MeshRenderer(Engine._squareMesh);
-                }
-                else
-                {
-                    newComponent = (Component)Activator.CreateInstance(componentType);
-                }
-                
-                obj.AddComponent(newComponent);
-                newComponent.isEnabled = componentData.Enabled;
-                newComponent.SetCustomProperties(componentData.CustomProperties);
-            }
+            CreateGameObjectFromData(objData, false);
             
-            // if (objData.transformData != null)
-            // {
-            //     SceneData.TransformData transformData = objData.transformData;
-            //     Transform transform = new Transform();
-            //     transform.WorldPosition = transformData.Position;
-            //     transform.Scale = transformData.Scale;
-            //     transform.Rotation = transformData.Rotation;
-            //     transform.name = transformData.Name;
-            //     transform.isEnabled = true;
-            //     transform.AttachedGameObject = obj;
-            //     if (obj.GetComponentIndex<Transform>() != -1)
-            //     {
-            //         obj.Components[obj.GetComponentIndex<Transform>()] = transform;
-            //     }
-            // }
+            // GameObject obj = new GameObject(objData.Name, objData.ObjectID.Value);
             //
-            // if (objData.meshRendererData != null)
+            // SetGameObjectData(obj, objData);
+
+            // obj.Tags = objData.Tags ?? new List<string>();
+            //
+            // foreach (var componentData in objData.ComponentData)
             // {
-            //     SceneData.MeshRendererData meshRendererData = objData.meshRendererData;
-            //     MeshRenderer meshRenderer = new MeshRenderer(Engine._squareMesh);
-            //     meshRenderer.name = meshRendererData.Name;
-            //     meshRenderer.Color = meshRendererData.Color;
-            //     meshRenderer.TexturePath = meshRendererData.TexturePath;
-            //     meshRenderer.AttachedGameObject = obj;
-            //     meshRenderer.isEnabled = meshRendererData.Enabled;
-            //     if (!String.IsNullOrWhiteSpace(meshRendererData.TexturePath))
+            //     var componentType = Type.GetType(componentData.ComponentType);
+            //     if (componentType is null)
             //     {
-            //         meshRenderer.AssignTexture(meshRendererData.TexturePath);
+            //         Console.WriteLine($"[SceneSerialiser] Couldn't find component of type {componentData.ComponentType}");
+            //         continue;
             //     }
             //
-            //     if (obj.GetComponentIndex<MeshRenderer>() != -1)
+            //     Component newComponent;
+            //
+            //     if (componentType == typeof(MeshRenderer))
             //     {
-            //         obj.Components[obj.GetComponentIndex<MeshRenderer>()] = meshRenderer;
+            //         newComponent = new MeshRenderer(Engine._squareMesh);
             //     }
-            // }
-            // else
-            // {
-            //     obj.RemoveComponent(obj.GetComponent<MeshRenderer>());
+            //     else
+            //     {
+            //         newComponent = (Component)Activator.CreateInstance(componentType);
+            //     }
+            //     
+            //     obj.AddComponent(newComponent);
+            //     newComponent.isEnabled = componentData.Enabled;
+            //     newComponent.SetCustomProperties(componentData.CustomProperties);
             // }
         }
 

@@ -834,7 +834,11 @@ public static class CircuitEditor
     public const float MaxZoom = 2f;
     
     public static float portSpacing = 25f * Zoom;
-
+    
+    //Clipboard
+    public static string chipClipboard = "";
+    public static Vector2 chipPosClipboard = Vector2.Zero;
+    public static string chipUnconnectedPortClipboard = "";
     public unsafe static void Render()
     {
         ImGui.SetWindowFontScale(CircuitEditor.Zoom);

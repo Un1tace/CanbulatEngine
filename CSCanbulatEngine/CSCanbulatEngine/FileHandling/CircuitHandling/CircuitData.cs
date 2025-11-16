@@ -14,12 +14,18 @@ public class CircuitData
         public Dictionary<string, string> CustomProperties { get; set; } = new Dictionary<string, string>(); // Holds custom data, e.g event picked
     }
 
+    public class UnconnectedClipboardChipData
+    {
+        public List<UnconnectedPortValueData> inputPorts { get; set; }
+        public List<UnconnectedPortValueData> outputPorts { get; set; }
+    }
+
     public class UnconnectedPortValueData
     {
         public int ChipId { get; set; }
         public int PortId { get; set; }
-        public string ValueType { get; set; }
-        public string Value { get; set; }
+        public string? ValueType { get; set; }
+        public string? Value { get; set; }
     }
     
     public class PortConnectionData
