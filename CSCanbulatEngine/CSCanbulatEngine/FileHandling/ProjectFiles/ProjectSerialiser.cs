@@ -100,7 +100,7 @@ public class ProjectSerialiser
         Engine.currentProject.LastOpenedScenePath = projectData.LastOpenedScenePath;
         ProjectManager.ProjectManager.selectedDir = GetAssetsFolder();
 
-        Console.WriteLine($"Opened project file: {projectFileName}");
+        EngineLog.Log($"Opened project file: {projectFileName}");
         return true;
     }
 
@@ -177,7 +177,7 @@ public class ProjectSerialiser
 
         string projectJson = JsonConvert.SerializeObject(projectData);
         File.WriteAllText(Path.Combine(projectFolderPath, projectName + ".cbp"), projectJson);
-        Console.WriteLine("Project File Saved To: " + Path.Combine(projectFolderPath, projectName + ".cbp"));
+        EngineLog.Log("Project File Saved To: " + Path.Combine(projectFolderPath, projectName + ".cbp"));
     }
 
     //Create or load when the engine starts up

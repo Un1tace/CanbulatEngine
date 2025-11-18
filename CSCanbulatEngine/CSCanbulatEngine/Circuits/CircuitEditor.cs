@@ -821,7 +821,7 @@ public class Chip
 public static class CircuitEditor
 {
     public static List<Chip> chips = new List<Chip>();
-    private static Vector2 panning = Vector2.Zero;
+    public static Vector2 panning = Vector2.Zero;
     public static Chip? selectedChip = null;
     public static Chip? lastSelectedChip = null;
     private static ChipPort? _portDragSource = null;
@@ -892,7 +892,7 @@ public static class CircuitEditor
                 }
                 else if (_portDragSource.ConnectPort(targetPort))
                 {
-                    Console.WriteLine($"Connected '{_portDragSource.Name}' to '{targetPort.Name}'");
+                    EngineLog.Log($"Connected '{_portDragSource.Name}' to '{targetPort.Name}'");
                 }
             }
             _portDragSource = null;

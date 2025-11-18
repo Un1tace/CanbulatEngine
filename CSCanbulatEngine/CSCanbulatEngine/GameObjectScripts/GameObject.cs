@@ -176,7 +176,7 @@ public class GameObject
             Components.Remove(component);
         }
 
-        Console.WriteLine($"Component ({component.name}) cannot be removed");
+        EngineLog.Log($"Component ({component.name}) cannot be removed");
     }
     
 

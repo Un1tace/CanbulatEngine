@@ -92,7 +92,7 @@ public class CircuitScript : Component
             
         }
         
-        Console.WriteLine($"Loaded circuit script: {filePath}");
+        EngineLog.Log($"Loaded circuit script: {filePath}");
     }
     
     public Chip? FindChip(int id)

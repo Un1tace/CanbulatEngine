@@ -97,7 +97,7 @@ public static class CircuitSerialiser
 
         string json = JsonConvert.SerializeObject(circuitInfo, Formatting.Indented);
         File.WriteAllText(Path.Combine(filePath, circuitName + ".ccs"), json);
-        Console.WriteLine($"Saved circuit script: {circuitName}");
+        EngineLog.Log($"Saved circuit script: {circuitName}");
         Engine.ReloadAllCircuitScripts();
     }
 
@@ -243,6 +243,6 @@ public static class CircuitSerialiser
 
         CircuitEditor.selectedChip = null;
         CircuitEditor.lastSelectedChip = null;
-        Console.WriteLine($"Loaded circuit script: {filePath}");
+        EngineLog.Log($"Loaded circuit script: {filePath}");
     }
 }

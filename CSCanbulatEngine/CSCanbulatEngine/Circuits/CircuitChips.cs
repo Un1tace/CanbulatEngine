@@ -149,8 +149,6 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
 
     public static void CreateContextMenu()
     {
-        
-
         if (ImGui.BeginMenu("Create Chips"))
         {
             ImGui.InputText("Search", ChipSearchBuffer, (uint)ChipSearchBuffer.Length);
@@ -1070,6 +1068,11 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
             ImGui.EndMenu();
         }
         
+    }
+    
+    public static void SetSpawnPos(Vector2 pos)
+    {
+        spawnPos = pos;
     }
 }
 
@@ -3259,7 +3262,7 @@ public class CreateList : Chip
                 thePort.UpdateColor();
             }
 
-            Console.WriteLine("Changing all portTypes to null");
+            EngineLog.Log("Changing all portTypes to null");
             OutputPorts[0].PortType = null;
             OutputPorts[0].UpdateColor();
         }
@@ -3834,7 +3837,7 @@ public class IfChip : Chip
         catch (Exception e)
         {
             GameConsole.Log($"[If] Error executing condition: {e.Message}");
-            Console.WriteLine(e);
+            EngineLog.Log(e.ToString());
             throw;
         }
     }

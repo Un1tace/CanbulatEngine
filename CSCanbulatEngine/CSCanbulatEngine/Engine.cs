@@ -104,6 +104,8 @@ public class Engine
     public static Vector2? portConfigWindowPosition = null;
     public static Vector2? portConfigWindowSize = null;
     
+    public static bool openSpawnMenuNextFrame = false;
+    
     //Project Manager
     public static string projectFilePath = "";
     
@@ -168,7 +170,7 @@ public class Engine
 
         // For inputs
         IInputContext input = window.CreateInput();
-        Console.WriteLine("[Engine] Created an input context");
+        EngineLog.Log("[Engine] Created an input context");
         
         primaryKeyboard = input.Keyboards.FirstOrDefault();
         if (primaryKeyboard != null)
@@ -198,12 +200,12 @@ public class Engine
             }
             else
             {
-                Console.WriteLine($"[Engine] Could not find sound to load at: {soundPath}");
+                EngineLog.Log($"[Engine] Could not find sound to load at: {soundPath}");
             }
         }
         catch (Exception e)
         {
-            Console.WriteLine($"[Engine] Failed to initialize AudioEngine: {e.Message}");
+            EngineLog.Log($"[Engine] Failed to initialize AudioEngine: {e.Message}");
             throw;
         }
 
@@ -219,14 +221,14 @@ public class Engine
         if (File.Exists(fontPath))
         {
             _customFont = io.Fonts.AddFontFromFileTTF(fontPath, 18f);
-            Console.WriteLine("[Engine] Custom Font queued for loading");
+            EngineLog.Log("[Engine] Custom Font queued for loading");
 
             io.Fonts.Build();
-            Console.WriteLine("[Engine] ImGui font atlas built");
+            EngineLog.Log("[Engine] ImGui font atlas built");
         }
         else
         {
-            Console.WriteLine("[Engine] Could not find font file: " + fontPath + ". Using default font");
+            EngineLog.Log("[Engine] Could not find font file: " + fontPath + ". Using default font");
         }
         
         fontPath = Path.Combine(AppContext.BaseDirectory, "EditorAssets/Fonts/Nunito-ExtraBold.ttf");
@@ -234,14 +236,14 @@ public class Engine
         if (File.Exists(fontPath))
         {
             _extraThickFont = io.Fonts.AddFontFromFileTTF(fontPath, 18f);
-            Console.WriteLine("[Engine] Extra-Bold Font queued for loading");
+            EngineLog.Log("[Engine] Extra-Bold Font queued for loading");
 
             io.Fonts.Build();
-            Console.WriteLine("[Engine] ImGui font atlas built");
+            EngineLog.Log("[Engine] ImGui font atlas built");
         }
         else
         {
-            Console.WriteLine("[Engine] Could not find font file: " + fontPath + ". Using default font");
+            EngineLog.Log("[Engine] Could not find font file: " + fontPath + ". Using default font");
         }
         
         io.Fonts.GetTexDataAsRGBA32(out byte* pixelData, out int width, out int height, out int bytesPerPixel);
@@ -264,23 +266,23 @@ public class Engine
         
         io.Fonts.ClearTexData();
     
-        Console.WriteLine("[Engine] Font texture manually created and uploaded to GPU.");
+        EngineLog.Log("[Engine] Font texture manually created and uploaded to GPU.");
         
         imGuiController = new ImGuiController(gl, window, input);
 
         ViewportSize = window.FramebufferSize;
         CreateFrameBuffer();
-        Console.WriteLine("[Engine] Initialised IMGUI Controller and framebuffer");
+        EngineLog.Log("[Engine] Initialised IMGUI Controller and framebuffer");
 
         try
         {
             string logoPath = Path.Combine(AppContext.BaseDirectory, "EditorAssets/Images/Logo.png");
             _logoTextureID = TextureLoader.Load(gl, logoPath, out _logoSize);
-            Console.WriteLine("[Engine] Texture Loaded");
+            EngineLog.Log("[Engine] Texture Loaded");
         }
         catch (Exception e)
         {
-            Console.WriteLine($"[Engine] Failed to load logo texture: {e.Message}");
+            EngineLog.Log($"[Engine] Failed to load logo texture: {e.Message}");
         }
 
         LoadIcons.PreloadIcons();
@@ -328,12 +330,13 @@ public class Engine
 
     private void OnUpdate(double deltaTime)
     {
+        EngineLog.PrintLogs();
 #if EDITOR
         //--------Keyboard shortcuts--------
         if (primaryKeyboard != null && !ImGui.GetIO().WantCaptureKeyboard)
         {
             bool modifierDown;
-            var altKey = Key.AltLeft;
+            bool altKeyDown = InputManager.IsKeyDown(Key.AltLeft) || InputManager.IsKeyDown(Key.AltRight);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 modifierDown = InputManager.IsKeyDown(Key.SuperLeft) || InputManager.IsKeyDown(Key.SuperRight);
@@ -345,28 +348,28 @@ public class Engine
 
             if (modifierDown)
             {
-                if (InputManager.IsKeyPressed(altKey) && InputManager.IsKeyPressed(Key.N))
+                if (altKeyDown && InputManager.IsKeyPressed(Key.N))
                 {
                     CircuitEditor.chips.Clear();
                     CircuitEditor.CircuitScriptName = "";
                     CircuitEditor.CircuitScriptDirPath = "";
                 }
-                else if (InputManager.IsKeyPressed(altKey) && InputManager.IsKeyPressed(Key.O))
+                else if (altKeyDown && InputManager.IsKeyPressed(Key.O))
                 {
                     OpenCircuitScript();
                 }
-                else if (InputManager.IsKeyPressed(altKey) && InputManager.IsKeyPressed(Key.S))
+                else if (altKeyDown && InputManager.IsKeyPressed(Key.S))
                 {
                     SaveCircuitScript();
-                }
-                else if (InputManager.IsKeyPressed(Key.S))
-                {
-                    SaveScene();
                 }
                 else if (InputManager.IsKeyPressed(Key.S) &&
                          (InputManager.IsKeyDown(Key.ShiftLeft) || InputManager.IsKeyDown(Key.ShiftRight)))
                 {
                     SaveSceneAs();
+                }
+                else if (InputManager.IsKeyPressed(Key.S))
+                {
+                    SaveScene();
                 }
                 else if (InputManager.IsKeyPressed(Key.O))
                 {
@@ -376,9 +379,13 @@ public class Engine
                 {
                     _selectedGameObject?.gameObject.DeleteObject();
                 }
-                else if (InputManager.IsKeyPressed(Key.A) && !renamePopupOpen)
+                else if (InputManager.IsKeyPressed(Key.A) && !renamePopupOpen && !circuitEditorIsOpen)
                 {
                     new GameObject(_squareMesh);
+                }
+                else if (InputManager.IsKeyPressed(Key.A) && !renamePopupOpen && circuitEditorIsOpen)
+                {
+                    openSpawnMenuNextFrame = true;
                 }
                 else if (InputManager.IsKeyPressed(Key.Number2) && _selectedGameObject != null)
                 {
@@ -389,14 +396,14 @@ public class Engine
                     if (!circuitEditorIsOpen && _selectedGameObject != null)
                     {
                         gameObjectClipBoard = JsonConvert.SerializeObject(SceneSerialiser.GetGameObjectData(_selectedGameObject.gameObject));
-                        Console.WriteLine("[Clipboard] Copied selected GameObject to clipboard");
+                        EngineLog.Log("[Clipboard] Copied selected GameObject to clipboard");
                     }
                     else if (circuitEditorIsOpen && CircuitEditor.lastSelectedChip != null)
                     {
                         CircuitEditor.chipClipboard =
                             JsonConvert.SerializeObject(CircuitSerialiser.GetChipData(CircuitEditor.lastSelectedChip));
                         CircuitEditor.chipPosClipboard = CircuitEditor.lastSelectedChip.Position;
-                        Console.WriteLine("[Clipboard] Copied selected chip to clipboard");
+                        EngineLog.Log("[Clipboard] Copied selected chip to clipboard");
                     }
                 }
                 else if (InputManager.IsKeyPressed(Key.V))
@@ -409,7 +416,7 @@ public class Engine
                         {
                             var theGameObject = SceneSerialiser.CreateGameObjectFromData(theData);
                             theGameObject.GetComponent<Transform>().WorldPosition = theGameObject.GetComponent<Transform>().WorldPosition + new Vector2(0.5f);
-                            Console.WriteLine("[Clipboard] Pasted selected GameObject to clipboard");
+                            EngineLog.Log("[Clipboard] Pasted selected GameObject to clipboard");
                         }
                     }
                     else if (circuitEditorIsOpen && !String.IsNullOrWhiteSpace(CircuitEditor.chipClipboard))
@@ -420,11 +427,11 @@ public class Engine
                         {
                             var theChip = CircuitSerialiser.CreateChipFromData(theData, false);
                             theChip.Position = CircuitEditor.chipPosClipboard + new Vector2(5);
-                            Console.WriteLine("[Clipboard] Pasted selected chip to clipboard");
+                            EngineLog.Log("[Clipboard] Pasted selected chip to clipboard");
                         }
                         else
                         {
-                            Console.WriteLine("[Clipboard] Tried to paste but nothing was in the clipboard.");
+                            EngineLog.Log("[Clipboard] Tried to paste but nothing was in the clipboard.");
                         }
                     }
                 }
@@ -581,6 +588,20 @@ public class Engine
                 
             }
             ImGui.EndPopup();
+        }
+        
+        if (openSpawnMenuNextFrame)
+        {
+            var canvasPos = ImGui.GetCursorScreenPos();
+            var io = ImGui.GetIO();
+            
+            Vector2 mousePosInWorld = (io.MousePos - canvasPos - CircuitEditor.panning) / CircuitEditor.Zoom;
+            
+            CircuitChips.SetSpawnPos(mousePosInWorld);
+            
+            ImGui.BeginPopupContextWindow("SpawnChipMenu");
+
+            openSpawnMenuNextFrame = false;
         }
         
         //Renaming a file in project manager
@@ -886,45 +907,63 @@ public class Engine
         // -- Hierarchy --
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[2]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[2]);
-        ImGui.Begin($"Hierarchy - {currentScene.SceneName}", editorPanelFlags);
+        ImGui.Begin((circuitEditorIsOpen? "Circuit Editor" : "Hierarchy") + $" - {currentScene.SceneName}", editorPanelFlags);
 
-        if (ImGui.BeginDragDropTarget())
+        if (!circuitEditorIsOpen)
         {
-            var payload = ImGui.AcceptDragDropPayload("HIERARCHY_GAMEOBJECT");
-
-            if (payload.NativePtr != null && payload.Data != IntPtr.Zero)
+            if (ImGui.BeginDragDropTarget())
             {
-                int draggedId = *(int*)payload.Data;
+                var payload = ImGui.AcceptDragDropPayload("HIERARCHY_GAMEOBJECT");
 
-                GameObject draggedObject = GameObject.FindGameObject(draggedId);
-
-                if (draggedObject != null)
+                if (payload.NativePtr != null && payload.Data != IntPtr.Zero)
                 {
-                    draggedObject.RemoveParentObject();
+                    int draggedId = *(int*)payload.Data;
+
+                    GameObject draggedObject = GameObject.FindGameObject(draggedId);
+
+                    if (draggedObject != null)
+                    {
+                        draggedObject.RemoveParentObject();
+                    }
                 }
+
+                ImGui.EndDragDropTarget();
             }
 
-            ImGui.EndDragDropTarget();
+            while (true)
+            {
+                HierarchyNeedsRefresh = false;
+
+                foreach (var gameObject in currentScene.GameObjects.ToList())
+                {
+                    if (gameObject is null || GameObject.FindGameObject(gameObject.ID) == null) continue;
+
+                    if (gameObject.ParentObject == null)
+                    {
+                        RenderHierarchyNode(gameObject);
+                    }
+
+                    if (HierarchyNeedsRefresh) break;
+                }
+
+                if (!HierarchyNeedsRefresh) break;
+
+            }
         }
-
-        while(true)
+        else
         {
-            HierarchyNeedsRefresh = false;
-            
-            foreach (var gameObject in currentScene.GameObjects.ToList())
+            foreach (var chip in CircuitEditor.chips)
             {
-                if (gameObject is null || GameObject.FindGameObject(gameObject.ID) == null) continue;
-
-                if (gameObject.ParentObject == null)
+                bool selected = chip == CircuitEditor.lastSelectedChip;
+                ImGui.PushID(chip.Id);
+                if (ImGui.Selectable($"{chip.Name}", selected))
                 {
-                    RenderHierarchyNode(gameObject);
+                    CircuitEditor.selectedChip = chip;
+                    CircuitEditor.lastSelectedChip = chip;
                 }
 
-                if (HierarchyNeedsRefresh) break;
+                ImGui.PopID();
             }
-            
-            if (!HierarchyNeedsRefresh) break;
-            
         }
         ImGui.End();
         
@@ -987,7 +1026,7 @@ public class Engine
                 if (ImGui.Selectable("Assets"))
                 {
                     ProjectManager.selectedDir = ProjectSerialiser.GetAssetsFolder();
-                    Console.WriteLine(ProjectManager.selectedDir);
+                    EngineLog.Log(ProjectManager.selectedDir);
                 }
 
                 _projectManagerBounds = new RectangleF(new(ImGui.GetWindowPos()), new(ImGui.GetWindowSize()));
@@ -996,7 +1035,7 @@ public class Engine
                 {
                     if (ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows))
                     {
-                        Console.WriteLine("Files dropped onto Project Manager!");
+                        EngineLog.Log("Files dropped onto Project Manager!");
 
                         foreach (var path in _pendingDroppedFiles)
                         {
@@ -1005,11 +1044,11 @@ public class Engine
                                 string fileName = Path.GetFileName(path);
                                 string destPath = Path.Combine(ProjectManager.selectedDir, fileName);
                                 File.Copy(path, destPath, true);
-                                Console.WriteLine($"Imported '{fileName}' to assets.");
+                                EngineLog.Log($"Imported '{fileName}' to assets.");
                             }
                             catch (Exception e)
                             {
-                                Console.WriteLine($"Failed to import file '{path}': {e.Message}");
+                                EngineLog.Log($"Failed to import file '{path}': {e.Message}");
                             }
                         }
                     }
@@ -1260,7 +1299,7 @@ public class Engine
     private void OnFileDrop(string[] paths)
     {
         _pendingDroppedFiles = paths;
-        Console.WriteLine("File drop detected by OS, pending processing");
+        EngineLog.Log("File drop detected by OS, pending processing");
     }
     #endif
 
@@ -1369,7 +1408,7 @@ public class Engine
 
         if (gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != GLEnum.FramebufferComplete)
         {
-            Console.WriteLine("The Framebuffer is not complete!");
+            EngineLog.Log("The Framebuffer is not complete!");
         }
 
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
@@ -1428,14 +1467,14 @@ public class Engine
     private static void LoadProject()
     {
         string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        Console.WriteLine($"Folder Selected: {FileDialogHelper.ShowSelectFolderDialog(documentsPath, "Select The Folder To Load Project")}");
+        EngineLog.Log($"Folder Selected: {FileDialogHelper.ShowSelectFolderDialog(documentsPath, "Select The Folder To Load Project")}");
     }
 
     private static void LoadScene()
     {
         string documentsPath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Scenes");
         string? projectPath = FileDialogHelper.ShowOpenFileDialog(documentsPath, new [] {"*.cbs"});
-        Console.WriteLine($"Folder Selected: {projectPath}");
+        EngineLog.Log($"Folder Selected: {projectPath}");
         if (!String.IsNullOrWhiteSpace(projectPath))
         {
             SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);
@@ -1463,7 +1502,7 @@ public class Engine
     {
         string circuitPathFolder = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Circuits");
         string? circuitScriptPath = FileDialogHelper.ShowOpenFileDialog(circuitPathFolder, new [] {"*.ccs"});
-        Console.WriteLine($"File Selected: {circuitScriptPath}");
+        EngineLog.Log($"File Selected: {circuitScriptPath}");
         if (!String.IsNullOrWhiteSpace(circuitScriptPath))
         {
             LoadCircuitScript(circuitScriptPath);

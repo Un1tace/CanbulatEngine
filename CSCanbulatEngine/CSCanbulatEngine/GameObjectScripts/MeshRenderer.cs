@@ -56,7 +56,7 @@ public class MeshRenderer : Component
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Unable to load texture: {e.Message}");
+            EngineLog.Log($"Unable to load texture: {e.Message}");
         }
     }
 
@@ -185,7 +185,7 @@ public class MeshRenderer : Component
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"Failed to load dropped texture: {e.Message}");
+                        EngineLog.Log($"Failed to load dropped texture: {e.Message}");
                     }
                 }
             }

@@ -77,7 +77,7 @@ public static class ProjectManager
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
         {
             selectedDir = Path.Combine(ProjectSerialiser.GetAssetsFolder(), FileHandling.GetNameOfFile(dir));
-            Console.WriteLine(selectedDir);
+            EngineLog.Log(selectedDir);
         }
 
         if (nodeOpen)
@@ -171,7 +171,7 @@ public static class ProjectManager
                 ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
                 if (ImGui.ImageButton(name, (IntPtr)iconId, new Vector2(size.X, size.Y)))
                 {
-                    Console.WriteLine($"Clicked on {name}");
+                    EngineLog.Log($"Clicked on {name}");
                     if (isDir)
                     {
                         selectedDir = name;

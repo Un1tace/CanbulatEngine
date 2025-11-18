@@ -20,11 +20,11 @@ public class AudioEngine : IDisposable
             AudioContext.Initialize(44100, 2);
             _loadedClips = new Dictionary<string, AudioClip>();
             _playingSources = new List<AudioSource>();
-            Console.WriteLine("[AudioEngine] MiniAudioExNET Context Initialized.");
+            EngineLog.Log("[AudioEngine] MiniAudioExNET Context Initialized.");
         }
         catch (Exception e)
         {
-            Console.WriteLine($"[AudioEngine] CRITICAL FAILURE to initialize MiniAudioExNET: {e.Message}");
+            EngineLog.Log($"[AudioEngine] CRITICAL FAILURE to initialize MiniAudioExNET: {e.Message}");
             throw;
         }
     }
@@ -33,7 +33,7 @@ public class AudioEngine : IDisposable
     {
         if (_loadedClips.ContainsKey(name))
         {
-            Console.WriteLine($"[AudioEngine] Sound '{name}' already loaded.");
+            EngineLog.Log($"[AudioEngine] Sound '{name}' already loaded.");
             return;
         }
 
@@ -44,11 +44,11 @@ public class AudioEngine : IDisposable
             clip.Name = name;
             
             _loadedClips[name] = clip;
-            Console.WriteLine($"[AudioEngine] Loaded sound '{name}' from '{path}' (Streaming: {streamFromFile}).");
+            EngineLog.Log($"[AudioEngine] Loaded sound '{name}' from '{path}' (Streaming: {streamFromFile}).");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[AudioEngine] Failed to load sound '{name}' from '{path}'. Error: {ex.Message}");
+            EngineLog.Log($"[AudioEngine] Failed to load sound '{name}' from '{path}'. Error: {ex.Message}");
         }
     }
 
@@ -56,7 +56,7 @@ public class AudioEngine : IDisposable
     {
         if (!_loadedClips.TryGetValue(name, out var clip))
         {
-            Console.WriteLine($"[AudioEngine] Sound '{name}' isn't found.");
+            EngineLog.Log($"[AudioEngine] Sound '{name}' isn't found.");
             return;
         }
 
@@ -70,7 +70,7 @@ public class AudioEngine : IDisposable
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[AudioEngine] Failed to play sound '{name}'. Error: {ex.Message}");
+            EngineLog.Log($"[AudioEngine] Failed to play sound '{name}'. Error: {ex.Message}");
         }
     }
     
@@ -100,7 +100,7 @@ public class AudioEngine : IDisposable
         }
         _loadedClips.Clear();
         AudioContext.Deinitialize();
-        Console.WriteLine("[AudioEngine] MiniAudioExNET Deinitialized.");
+        EngineLog.Log("[AudioEngine] MiniAudioExNET Deinitialized.");
     }
 }
 

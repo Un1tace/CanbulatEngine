@@ -101,7 +101,7 @@ public class Shader
         location = _gl.GetUniformLocation(_handle, name);
         if (location == -1)
         {
-            Console.WriteLine($"Warning: Uniform '{name}' not found in shader");
+            EngineLog.Log($"Warning: Uniform '{name}' not found in shader");
         }
 
         _uniformLocations[name] = location;

@@ -27,7 +27,7 @@ public class FileHandling
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Error showing file in manager: {e.Message}");
+            EngineLog.Log($"Error showing file in manager: {e.Message}");
             throw;
         }
     }

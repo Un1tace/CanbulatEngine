@@ -26,7 +26,7 @@ public class SceneSerialiser
         string json = JsonConvert.SerializeObject(sceneData, Formatting.Indented);
         File.WriteAllText(Path.Combine(filePath, sceneName + ".cbs"), json);
         Engine.currentScene.SceneFilePath = Path.Combine(filePath, sceneName + ".cbs");
-        Console.WriteLine($"Saved scene: {filePath}");
+        EngineLog.Log($"Saved scene: {filePath}");
         Engine.currentScene.SceneSavedOnce = true;
     }
     
@@ -105,7 +105,7 @@ public class SceneSerialiser
             var componentType = Type.GetType(componentData.ComponentType);
             if (componentType is null)
             {
-                Console.WriteLine($"[SceneSerialiser] Couldn't find component of type {componentData.ComponentType}");
+                EngineLog.Log($"[SceneSerialiser] Couldn't find component of type {componentData.ComponentType}");
                 continue;
             }
 
@@ -187,7 +187,7 @@ public class SceneSerialiser
             //     var componentType = Type.GetType(componentData.ComponentType);
             //     if (componentType is null)
             //     {
-            //         Console.WriteLine($"[SceneSerialiser] Couldn't find component of type {componentData.ComponentType}");
+            //         EngineLog.Log($"[SceneSerialiser] Couldn't find component of type {componentData.ComponentType}");
             //         continue;
             //     }
             //
