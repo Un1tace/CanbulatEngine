@@ -99,6 +99,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Miscellaneous/Transform/Get Local Position", GetLocalPositionChip.Description, (pos) => new GetLocalPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Get Local Position", pos)),
         ("Miscellaneous/Audio/Play Audio", PlayAudioChip.Description, (pos) => new PlayAudioChip(CircuitEditor.GetNextAvaliableChipID(), "Play Audio", pos)),
         ("Miscellaneous/To String", Circuits.ToString.Description, (pos) => new ToString(CircuitEditor.GetNextAvaliableChipID(), "To String", pos)),
+        ("Miscellaneous/String Format", Circuits.StringFormatChip.Description, (pos) => new StringFormatChip(CircuitEditor.GetNextAvaliableChipID(), "String Format Chip", pos)),
     };
     
     
@@ -1036,6 +1037,20 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("To String Chip");
                         ImGui.Separator();
                         ImGui.Text(Circuits.ToString.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create String Format Chip"))
+                    {
+                        CircuitEditor.chips.Add(new StringFormatChip(CircuitEditor.GetNextAvaliableChipID(), "String Format",
+                            spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("String Format Chip");
+                        ImGui.Separator();
+                        ImGui.Text(Circuits.StringFormatChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -3838,7 +3853,6 @@ public class IfChip : Chip
         {
             GameConsole.Log($"[If] Error executing condition: {e.Message}");
             EngineLog.Log(e.ToString());
-            throw;
         }
     }
 }
@@ -4018,7 +4032,6 @@ public class PlayAudioChip : Chip
         catch (Exception e)
         {
            GameConsole.Log($"[Play Audio Chip] Error playing audio: {e.Message}", LogType.Error);
-            throw;
         }
         base.OnExecute();
     }
@@ -4284,5 +4297,77 @@ public class IsMouseButtonReleasedThisFrameChip : Chip
         toOutput.Bool = (InputPorts[0].Value.GetValue().MouseButton != null && InputManager.IsMouseButtonReleased(InputPorts[0].Value.GetValue().MouseButton.Value));
 
         return toOutput;
+    }
+}
+
+public class StringFormatChip : Chip
+{
+    public static string Description = "Formats a string with other strings. Can put in strings with {<argumentIndex>}";
+    public List<ChipPort> argumentPorts;
+    public StringFormatChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        argumentPorts = new();
+        AddPort("Format", true, [typeof(string)], true);
+        AddPort("Output", false, [typeof(string)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+        AddArgumentPort();
+        ShowCustomItemOnChip = true;
+        Size = new Vector2(250, 150);
+    }
+
+    public void AddArgumentPort()
+    {
+        argumentPorts.Add(AddPort($"({argumentPorts.Count()-1})", true, [typeof(string)], true));
+        RefreshSize();
+    }
+
+    public void RemoveArgumentPort()
+    {
+        if (argumentPorts.Count > 0)
+        {
+            var portToRemove = argumentPorts[^1];
+            argumentPorts.Remove(portToRemove);
+            InputPorts.Remove(portToRemove);
+            RefreshSize();
+        }
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values theValue = new();
+        try
+        {
+            object?[] arguments = new object?[argumentPorts.Count()];
+            for (int i = 0; i < argumentPorts.Count(); i++)
+            {
+                arguments[i] = argumentPorts[i].Value.GetValue().String;
+            }
+            theValue.String = string.Format(InputPorts[0].Value.GetValue().String, arguments);
+            return theValue;
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log(e.ToString());
+            return theValue;
+        }
+    }
+
+    // Default size: 150, 100
+    public void RefreshSize()
+    {
+        Size = new Vector2(250, 100 + (argumentPorts.Count * 25f));
+    }
+
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.ImageButton("AddStringPort", (IntPtr)LoadIcons.icons["Plus.png"], new Vector2(25)))
+        {
+            AddArgumentPort();
+        }
+
+        if (ImGui.ImageButton("RemoveStringPort", (IntPtr)LoadIcons.icons["Minus.png"], new Vector2(25)))
+        {
+            RemoveArgumentPort();
+        }
     }
 }

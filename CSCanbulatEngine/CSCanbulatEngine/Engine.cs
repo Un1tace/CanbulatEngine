@@ -27,6 +27,9 @@ using Silk.NET.OpenGL.Extensions.ImGui;
 
 public class Engine
 {
+    int minWidth = 1024;
+    int minHeight = 720;
+    
     public static Project? currentProject;
     public static Scene currentScene;
     
@@ -330,6 +333,14 @@ public class Engine
 
     private void OnUpdate(double deltaTime)
     {
+        if (window.Size.X < minWidth || window.Size.Y < minHeight)
+        {
+            window.Size = new Vector2D<int>(
+                Math.Max(window.Size.X, minWidth), 
+                Math.Max(window.Size.Y, minHeight)
+            );
+        }
+        
         EngineLog.PrintLogs();
 #if EDITOR
         //--------Keyboard shortcuts--------
