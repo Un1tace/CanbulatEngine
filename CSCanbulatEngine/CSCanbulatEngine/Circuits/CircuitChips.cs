@@ -3608,7 +3608,6 @@ public class SetWorldPositionChip : Chip
     {
         try
         {
-            GameConsole.Log($"[SetWorldPositionChip] Been Executed to {InputPorts[1].Value.GetValue().Vector2} for {InputPorts[0].Value.GetValue().GameObject.Name}");
             GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
             Vector2? targetPosition = InputPorts[1].Value.GetValue().Vector2;
 
