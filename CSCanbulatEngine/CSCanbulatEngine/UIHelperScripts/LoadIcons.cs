@@ -3,7 +3,6 @@ using Silk.NET.Maths;
 
 namespace CSCanbulatEngine.UIHelperScripts;
 
-#if EDITOR
 public class LoadIcons
 {
     public static Dictionary<string, uint> icons = new Dictionary<string, uint>();
@@ -89,4 +88,3 @@ public class LoadIcons
         }
     }
 }
-#endif

@@ -8,6 +8,7 @@ namespace CSCanbulatEngine.FileHandling.CircuitHandling;
 
 public static class CircuitSerialiser
 {
+    #if EDITOR
     public static void SaveCircuit(string circuitName, string filePath = "")
     {
         if (filePath == "")
@@ -115,6 +116,7 @@ public static class CircuitSerialiser
 
         return valueStr;
     }
+#endif
 
     public static void ParseAndSetPortData(CircuitData.UnconnectedPortValueData portValueData, ChipPort portToSet)
     {
@@ -241,8 +243,10 @@ public static class CircuitSerialiser
             
         }
 
+        #if EDITOR
         CircuitEditor.selectedChip = null;
         CircuitEditor.lastSelectedChip = null;
+#endif
         EngineLog.Log($"Loaded circuit script: {filePath}");
     }
 }

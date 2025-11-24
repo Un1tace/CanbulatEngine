@@ -73,8 +73,14 @@ public class InputManager
         {
             _keysPressedThisFrame.Add(key);
         }
+        
+        #if EDITOR
+        bool viewportFocused = Engine._isViewportFocused;
+        #elif GAME
+        bool viewportFocused = true;
+        #endif
 
-        if (Engine._isViewportFocused)
+        if (viewportFocused)
         {
             var keyEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnKeyPressed");
             EventValues eventValues = new EventValues();
@@ -89,8 +95,14 @@ public class InputManager
     {
         _keysDown.Remove(key);
         _keysReleasedThisFrame.Add(key);
+        
+#if EDITOR
+        bool viewportFocused = Engine._isViewportFocused;
+#elif GAME
+        bool viewportFocused = true;
+#endif
 
-        if (Engine._isViewportFocused)
+        if (viewportFocused)
         {
             var keyEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnKeyReleased");
             EventValues eventValues = new EventValues();
@@ -124,8 +136,14 @@ public class InputManager
         }
 
         _mouseButtonsDown.Add(button);
+        
+#if EDITOR
+        bool viewportFocused = Engine._isViewportFocused;
+#elif GAME
+        bool viewportFocused = true;
+#endif
 
-        if (Engine._isViewportFocused)
+        if (viewportFocused)
         {
             var mouseEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnMouseButtonPressed");
             EventValues eventValues = new EventValues();
@@ -139,7 +157,13 @@ public class InputManager
         _mouseButtonsReleasedThisFrame.Add(button);
         _mouseButtonsDown.Remove(button);
         
-        if (Engine._isViewportFocused)
+#if EDITOR
+        bool viewportFocused = Engine._isViewportFocused;
+#elif GAME
+        bool viewportFocused = true;
+#endif
+        
+        if (viewportFocused)
         {
             var mouseEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnMouseButtonReleased");
             EventValues eventValues = new EventValues();
@@ -150,7 +174,14 @@ public class InputManager
 
     private static void OnMouseScroll(IMouse mouse, ScrollWheel scrollWheel)
     {
-        if (Engine._isViewportFocused)
+        
+#if EDITOR
+        bool viewportFocused = Engine._isViewportFocused;
+#elif GAME
+        bool viewportFocused = true;
+#endif
+        
+        if (viewportFocused)
         {
             var mouseEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnMouseScrolled");
             EventManager.Trigger(mouseEvent, new());
@@ -159,7 +190,13 @@ public class InputManager
 
     private static void OnMouseDoubleClick(IMouse mouse, MouseButton button, Vector2 pos)
     {
-        if (Engine._isViewportFocused)
+#if EDITOR
+        bool viewportFocused = Engine._isViewportFocused;
+#elif GAME
+        bool viewportFocused = true;
+#endif
+        
+        if (viewportFocused)
         {
             var mouseEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnMouseButtonDoubleClicked");
             var eventValues = new EventValues();
@@ -170,7 +207,13 @@ public class InputManager
 
     private static void OnMouseClick(IMouse mouse, MouseButton button, Vector2 pos)
     {
-        if (Engine._isViewportFocused)
+#if EDITOR
+        bool viewportFocused = Engine._isViewportFocused;
+#elif GAME
+        bool viewportFocused = true;
+#endif
+        
+        if (viewportFocused)
         {
             var mouseEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnMouseButtonClicked");
             var eventValues = new EventValues();

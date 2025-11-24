@@ -80,6 +80,28 @@ public class ProjectSerialiser
         
         LoadProjectFile(projectFolder);
     }
+    
+    //Create or load when the engine starts up
+    public static void CreateOrLoadProjectFile()
+    {
+        projectFolder = null;
+        do
+        {
+            projectFolder = FileDialogHelper.ShowSelectFolderDialog(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "Select a folder to open/store your project");
+        } while (String.IsNullOrWhiteSpace(projectFolder) || !Directory.Exists(projectFolder));
+        
+        string projectFile = FindProjectFile(projectFolder);
+
+        if (String.IsNullOrWhiteSpace(projectFile))
+        {
+            ShowNamePopUp();
+            return;
+        }
+        
+        LoadProjectFile(projectFolder);
+    }
 #endif
     
     public static bool LoadProjectFile(string projectFolder)
@@ -98,6 +120,7 @@ public class ProjectSerialiser
         Engine.currentProject = new Project(projectData.ProjectName, projectFolder);
         Engine.currentProject.LastOpenedSceneName = projectData.LastOpenedScene;
         Engine.currentProject.LastOpenedScenePath = projectData.LastOpenedScenePath;
+        Engine.currentProject.StartupSceneName = projectData.StartupSceneName;
         ProjectManager.ProjectManager.selectedDir = GetAssetsFolder();
 
         EngineLog.Log($"Opened project file: {projectFileName}");
@@ -118,8 +141,7 @@ public class ProjectSerialiser
         
         LoadProjectFile(projectFolder);
     }
-
-#if EDITOR
+    
     //Gets assets folder and checks correct directories
     public static string GetAssetsFolder()
     {
@@ -174,34 +196,12 @@ public class ProjectSerialiser
         projectData.ProjectPath = projectFolderPath;
         projectData.LastOpenedScene = Engine.currentScene?.SceneName;
         projectData.LastOpenedScenePath = Engine.currentScene?.SceneFilePath;
+        projectData.StartupSceneName = Engine.currentProject?.StartupSceneName;
 
         string projectJson = JsonConvert.SerializeObject(projectData);
         File.WriteAllText(Path.Combine(projectFolderPath, projectName + ".cbp"), projectJson);
         EngineLog.Log("Project File Saved To: " + Path.Combine(projectFolderPath, projectName + ".cbp"));
     }
-
-    //Create or load when the engine starts up
-    public static void CreateOrLoadProjectFile()
-    {
-        projectFolder = null;
-        do
-        {
-            projectFolder = FileDialogHelper.ShowSelectFolderDialog(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "Select a folder to open/store your project");
-        } while (String.IsNullOrWhiteSpace(projectFolder) || !Directory.Exists(projectFolder));
-        
-        string projectFile = FindProjectFile(projectFolder);
-
-        if (String.IsNullOrWhiteSpace(projectFile))
-        {
-            ShowNamePopUp();
-            return;
-        }
-        
-        LoadProjectFile(projectFolder);
-    }
-#endif
     
     public static string? FindProjectFile(string folder)
     {
@@ -263,6 +263,7 @@ public class ProjectSerialiser
             ImGui.EndPopup();
         }
     }
+#endif
 
     private static List<string> imageFiles = new List<string>();
     
@@ -306,5 +307,5 @@ public class ProjectSerialiser
 
         return filesFound;
     }
-#endif
+
 }

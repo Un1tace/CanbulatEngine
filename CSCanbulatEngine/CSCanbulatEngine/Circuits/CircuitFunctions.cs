@@ -126,6 +126,8 @@ public static class EventManager
         {
             DeleteEvent(ev); 
         }
+        
+        s_eventListeners.Clear();
     
 
         if (!RegisteredEvents.Any(e => e.EventName == "OnStart" || !RegisteredEvents.Any(e => e.EventName == "OnUpdate"))) 
@@ -184,6 +186,7 @@ public static class VariableManager
     }
 }
 
+#if EDITOR
 public static class ConfigWindows
 {
     public static int? portIndexToConfig = null;
@@ -277,3 +280,4 @@ public static void ShowEventPortConfigWindow() // Removed unused parameters
         portNameChangeBuffer = UTF8Encoding.UTF8.GetBytes(MainChip.ports[portIndexToConfig.Value].ToString());
     }
 }
+#endif

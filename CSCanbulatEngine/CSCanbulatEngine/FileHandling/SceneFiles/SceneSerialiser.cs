@@ -95,7 +95,9 @@ public class SceneSerialiser
             ComponentData = componentData
         };
     }
-
+    
+#endif
+    
     public static void SetGameObjectData(GameObject setToObj, SceneData.GameObjectData objData)
     {
         setToObj.Tags = objData.Tags ?? new List<string>();
@@ -217,12 +219,16 @@ public class SceneSerialiser
                 GameObject.FindGameObject(objData.ParentObjectID.Value).MakeParentOfObject(thisObj);
             }
         }
+        
+        EngineLog.Log("[SceneSerialiser] Loaded scene: " + sceneData.SceneName);
     }
-#endif
+    
     public void LoadScene(string filePath)
     {
         string json = File.ReadAllText(filePath);
 
+        EngineLog.Log($"[SceneSerialiser] Loading scene {filePath}");
+        
         LoadSceneFromString(json);
     }
 }

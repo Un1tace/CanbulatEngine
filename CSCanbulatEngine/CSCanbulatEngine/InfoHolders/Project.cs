@@ -17,6 +17,8 @@ public class Project
     
     public string LastOpenedScenePath { get; set; }
 
+    public string StartupSceneName { get; set; } = "ExampleScene.cbs";
+
     public Project(string ProjectName, string ProjectPath)
     {
         this.ProjectName = ProjectName;

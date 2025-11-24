@@ -9,5 +9,7 @@ public class ProjectData
         
         public string? LastOpenedScene { get; set; }
         public string? LastOpenedScenePath { get; set; }
+        
+        public string StartupSceneName { get; set; } = "ExampleScene";
     }
 }

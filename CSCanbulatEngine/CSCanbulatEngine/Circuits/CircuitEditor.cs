@@ -821,14 +821,17 @@ public class Chip
 public static class CircuitEditor
 {
     public static List<Chip> chips = new List<Chip>();
+    
+    public static string CircuitScriptName = "";
+    public static string CircuitScriptDirPath = "";
+    
+    #if EDITOR
     public static Vector2 panning = Vector2.Zero;
     public static Chip? selectedChip = null;
     public static Chip? lastSelectedChip = null;
     private static ChipPort? _portDragSource = null;
     private static ChipPort? HoveredPort = null;
-    public static string CircuitScriptName = "";
-    public static string CircuitScriptDirPath = "";
-
+    
     public static float Zoom = 1f;
     public const float MinZoom = 0.3f;
     public const float MaxZoom = 2f;
@@ -839,6 +842,7 @@ public static class CircuitEditor
     public static string chipClipboard = "";
     public static Vector2 chipPosClipboard = Vector2.Zero;
     public static string chipUnconnectedPortClipboard = "";
+    
     public unsafe static void Render()
     {
         ImGui.SetWindowFontScale(CircuitEditor.Zoom);
@@ -1548,30 +1552,7 @@ public static class CircuitEditor
         
         chips.Remove(chipToDelete);
     }
-    
-    public static Chip? FindChip(int id)
-    {
-        foreach (var chip in CircuitEditor.chips)
-        {
-            if (chip.Id == id)
-            {
-                return chip;
-            }
-        }
 
-        return null;
-    }
-
-    public static Chip? FindChip(string name)
-    {
-        foreach (var chip in CircuitEditor.chips)
-        {
-            if (chip.Name == name) return chip;
-        }
-        
-        return null;
-    }
-    
     private static ChipPort? GetPortAt(Vector2 mousePos)
     {
         foreach (var chip in chips)
@@ -1595,6 +1576,40 @@ public static class CircuitEditor
         }
         return null;
     }
+    
+    // Inspector Stuff For Chips
+    public static void RenderChipInspector()
+    {
+        if (lastSelectedChip != null)
+        {
+            ImGui.ColorEdit4("Chip Color", ref lastSelectedChip.Color);
+            lastSelectedChip.ChipInspectorProperties();
+        }
+    }
+#endif
+    
+    public static Chip? FindChip(int id)
+    {
+        foreach (var chip in CircuitEditor.chips)
+        {
+            if (chip.Id == id)
+            {
+                return chip;
+            }
+        }
+
+        return null;
+    }
+
+    public static Chip? FindChip(string name)
+    {
+        foreach (var chip in CircuitEditor.chips)
+        {
+            if (chip.Name == name) return chip;
+        }
+        
+        return null;
+    }
 
     public static int GetNextAvaliableChipID()
     {
@@ -1614,17 +1629,6 @@ public static class CircuitEditor
         }
 
         return id;
-    }
-    
-    
-    // Inspector Stuff For Chips
-    public static void RenderChipInspector()
-    {
-        if (lastSelectedChip != null)
-        {
-            ImGui.ColorEdit4("Chip Color", ref lastSelectedChip.Color);
-            lastSelectedChip.ChipInspectorProperties();
-        }
     }
 }
 

@@ -18,6 +18,7 @@ namespace CSCanbulatEngine.Circuits;
 
 public class CircuitChips
 {
+    #if EDITOR
     private static Vector2 spawnPos = Vector2.Zero;
     
     private static Chip? hoveredChip = null;
@@ -1089,6 +1090,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
     {
         spawnPos = pos;
     }
+#endif
 }
 
 
@@ -2673,7 +2675,9 @@ public class EventChip : Chip
                 AddPort(key, true, [typeof(MouseButton)], true);
         }
 
+        #if EDITOR
         Size = new Vector2(Size.X, ((CircuitEditor.portSpacing/CircuitEditor.Zoom) * (SelectedEvent.baseValues.bools.Count() + SelectedEvent.baseValues.floats.Count() + SelectedEvent.baseValues.ints.Count() + SelectedEvent.baseValues.strings.Count() + SelectedEvent.baseValues.Vector2s.Count() + SelectedEvent.baseValues.GameObjects.Count())) + 75);
+        #endif
     }
 
     public override void OnExecute()
@@ -3025,7 +3029,9 @@ public class EventChip : Chip
         allPortTypes[portTypeIndex].RemoveAt(selectedIndex);
         allPortTypes[GetPortTypeIndex(type)].Add(portToChange);
         portSelectedIndex = ports.Count() - 1;
+        #if EDITOR
         ConfigWindows.portIndexToConfig = ports.Count() - 1;
+        #endif
         portTypes[portSelectedIndex] = type;
         ConfigureAllChipsToEvent();
     }
@@ -3238,10 +3244,6 @@ public class CreateList : Chip
         OutputPorts[0].Value.ValueFunction = ListFunction;
     }
 
-    public override void PortTypeChanged(ChipPort port)
-    {
-    }
-
     public override void ChildPortIsConnected(ChipPort childPort, ChipPort portConnectedTo)
     {
         if (ChipPortsType == null && childPort.PortType != null)
@@ -3305,7 +3307,9 @@ public class CreateList : Chip
             typeof(string), typeof(Vector2),
             typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder)], false);
         InputPorts.Last().PortType = ChipPortsType;
+        #if EDITOR
         Size = new Vector2(Size.X, (CircuitEditor.portSpacing / CircuitEditor.Zoom) * InputPorts.Count() + 75);
+#endif
         return thePort;
     }
 
@@ -3320,7 +3324,9 @@ public class CreateList : Chip
             InputPorts.Last().DisconnectPort();
         }
         InputPorts.RemoveAt(InputPorts.Count - 1);
+        #if EDITOR
         Size = new Vector2(Size.X, (CircuitEditor.portSpacing / CircuitEditor.Zoom) * InputPorts.Count() + 75);
+#endif
     }
 
     public Values ListFunction(ChipPort? chipPort)
@@ -3558,7 +3564,9 @@ public class Vector2Create : Chip
 
     public Values OutputVector(ChipPort? chipPort)
     {
-        Vector2 vector = new Vector2(InputPorts[0].Value.GetValue().Float, InputPorts[1].Value.GetValue().Float);
+        float x = InputPorts[0].Value.GetValue().Float;
+        float y = InputPorts[1].Value.GetValue().Float;
+        Vector2 vector = new Vector2(x, y);
         Values theValues = new Values();
         theValues.Vector2 = vector;
 
@@ -3600,6 +3608,7 @@ public class SetWorldPositionChip : Chip
     {
         try
         {
+            GameConsole.Log($"[SetWorldPositionChip] Been Executed to {InputPorts[1].Value.GetValue().Vector2} for {InputPorts[0].Value.GetValue().GameObject.Name}");
             GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
             Vector2? targetPosition = InputPorts[1].Value.GetValue().Vector2;
 
@@ -3962,6 +3971,7 @@ public class AudioConstant : Chip
         return theValue;
     }
 
+    #if EDITOR
     public override void ChipInspectorProperties()
     {
         if (ImGui.ImageButton("SearchImage", (IntPtr)LoadIcons.icons["MagnifyingGlass.png"], new Vector2(20, 20)))
@@ -4004,6 +4014,7 @@ public class AudioConstant : Chip
             ImGui.End();
         }
     }
+#endif
 }
 
 public class PlayAudioChip : Chip

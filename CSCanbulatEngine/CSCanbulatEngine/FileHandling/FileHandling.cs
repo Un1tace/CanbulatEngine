@@ -31,4 +31,13 @@ public class FileHandling
             throw;
         }
     }
+
+    public static string GetPath(string relativePath)
+    {
+        string basePath = AppDomain.CurrentDomain.BaseDirectory;
+
+        string fullPath = Path.Combine(basePath, relativePath);
+        
+        return fullPath;
+    }
 }

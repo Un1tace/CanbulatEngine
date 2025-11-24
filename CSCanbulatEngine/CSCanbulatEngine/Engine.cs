@@ -135,6 +135,9 @@ public class Engine
     public static bool _isViewportFocused { get; private set; } = false;
     public static string gameObjectClipBoard = "";
     
+    //Build menu
+    public static bool buildMenuOpen = false;
+    
 #endif
 
     public void Run()
@@ -288,9 +291,8 @@ public class Engine
             EngineLog.Log($"[Engine] Failed to load logo texture: {e.Message}");
         }
 
-        LoadIcons.PreloadIcons();
-        LoadIcons.LoadImageIcons();
         _gizmo = new Gizmo();
+        LoadIcons.PreloadIcons();
 #endif
 
         shader = new Shader(gl, "Shaders/shader.vert", "Shaders/shader.frag");
@@ -327,6 +329,16 @@ public class Engine
         var gameObject2 = new GameObject(_squareMesh);
         gameObject2.GetComponent<Transform>().WorldPosition = new Vector2(-0.75f, 0.5f);
         gameObject1.MakeParentOfObject(gameObject2);
+        
+        #if GAME
+        LoadIcons.LoadImageIcons();
+        
+        
+
+       BuildManager.LoadGameConfig();
+
+        CurrentState = EngineState.Play;
+#endif
 
     }
     
@@ -641,6 +653,11 @@ public class Engine
             }
             ImGui.EndPopup();
         }
+
+        if (buildMenuOpen)
+        {
+            BuildManager.BuildWindow();
+        }
         
         ProjectSerialiser.CreateProjectPopUp();
         
@@ -655,6 +672,7 @@ public class Engine
             currentProject.ProjectName = " ";
             ProjectSerialiser.CreateOrLoadProjectFile();
         }
+        
 
         
 #else
@@ -703,6 +721,11 @@ public class Engine
                 if (ImGui.MenuItem("Open Project"))
                 {
                     ProjectSerialiser.LoadProject();
+                }
+
+                if (ImGui.MenuItem("Build Project"))
+                {
+                    buildMenuOpen = true;
                 }
                 if (ImGui.MenuItem("Load Scene"))
                 {

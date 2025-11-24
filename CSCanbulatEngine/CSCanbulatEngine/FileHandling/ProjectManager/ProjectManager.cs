@@ -7,18 +7,18 @@ using Silk.NET.Maths;
 
 namespace CSCanbulatEngine.FileHandling.ProjectManager;
 
+
 public static class ProjectManager
 {
     private static readonly string[] _ignoredFileTypes = new[] { ".DS_Store" };
     
-#if EDITOR
-
     public static string selectedDir = "";
 
     public static float maxZoom = -1f;
     
     private static string selectedFileToRename = "";
 
+#if EDITOR
     
     public static float zoom
     {
@@ -283,5 +283,5 @@ public static class ProjectManager
         }
         
     }
-    #endif
+#endif
 }

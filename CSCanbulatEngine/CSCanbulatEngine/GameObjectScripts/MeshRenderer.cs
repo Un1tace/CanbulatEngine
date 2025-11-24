@@ -74,8 +74,8 @@ public class MeshRenderer : Component
             Matrix4x4 modelMatrix = AttachedGameObject.GetComponent<Transform>().GetModelMatrix();
             //Set model uniform in the shader for the object
             Engine.shader.SetUniform("model", modelMatrix);
-
-            Mesh.Draw();
+            
+            if (Mesh != null) Mesh.Draw();
         }
     }
 

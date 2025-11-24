@@ -11,7 +11,10 @@ public static class GameConsole
     public static void Log(string log, LogType type = LogType.Normal)
     {
         logs.Add(new LogInfo(log, type));
+        
+        #if EDITOR
         Engine._forceSetConsoleTab = true;
+        #endif
     }
 
     public static void ClearLog()

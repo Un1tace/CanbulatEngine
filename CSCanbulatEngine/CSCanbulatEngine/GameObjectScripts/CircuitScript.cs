@@ -120,6 +120,7 @@ public class CircuitScript : Component
     
     bool searchButtonClicked = false;
 
+    #if EDITOR
     public override void RenderInspector()
     {
         if (ImGui.ImageButton("SearchCircuitScript", (IntPtr)LoadIcons.icons["MagnifyingGlass.png"], new Vector2(20)))
@@ -172,6 +173,7 @@ public class CircuitScript : Component
         
         return circuitProperties;
     }
+#endif
 
     public override void SetCustomProperties(Dictionary<string, string> properties)
     {
