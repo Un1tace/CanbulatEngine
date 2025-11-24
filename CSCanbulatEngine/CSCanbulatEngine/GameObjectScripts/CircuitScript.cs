@@ -32,22 +32,7 @@ public class CircuitScript : Component
         
         foreach (var chip in circuitInfo.Chips)
         {
-            Type chipType = Type.GetType(chip.ChipType);
-
-            if (chipType != null)
-            {
-                Chip newChip = (Chip)Activator.CreateInstance(chipType, chip.id, chip.Name, chip.Position);
-                newChip.SetCustomProperties(chip.CustomProperties);
-                newChip.Color = chip.Color;
-                chips.Add(newChip);
-                newChip.LoadedInBackground = true;
-
-                if (chipType == typeof(thisChip))
-                {
-                    var theChip = (thisChip)newChip;
-                    theChip.theThisGameObject = AttachedGameObject;
-                }
-            }
+            CreateChipFromData(chip);
         }
 
         foreach (var portValueData in circuitInfo.UnconnectedPortValues)
@@ -55,23 +40,7 @@ public class CircuitScript : Component
             var chip = FindChip(portValueData.ChipId);
             var port = chip?.InputPorts.FirstOrDefault(p => p.Id == portValueData.PortId);
 
-            if (port != null)
-            {
-                Type? type = Type.GetType(portValueData.ValueType);
-                if (type != null)
-                {
-                    if (type == typeof(bool)) port.Value.SetValue(bool.Parse(portValueData.Value));
-                    else if (type == typeof(int)) port.Value.SetValue(int.Parse(portValueData.Value));
-                    else if (type == typeof(float)) port.Value.SetValue(float.Parse(portValueData.Value));
-                    else if (type == typeof(string)) port.Value.SetValue(portValueData.Value);
-                    else if (type == typeof(Vector2))
-                    {
-                        var parts = portValueData.Value.Split(',');
-                        port.Value.SetValue(new Vector2(float.Parse(parts[0], CultureInfo.InvariantCulture),
-                            float.Parse(parts[1], CultureInfo.InvariantCulture)));
-                    }
-                }
-            }
+            CircuitSerialiser.ParseAndSetPortData(portValueData, port);
         }
         
         foreach (var connectionData in circuitInfo.Connections)
@@ -91,8 +60,49 @@ public class CircuitScript : Component
             }
             
         }
-        
-        EngineLog.Log($"Loaded circuit script: {filePath}");
+        EngineLog.Log($"Loaded circuit script: {filePath} in object {AttachedGameObject.Name}");
+    }
+    
+    public Chip? CreateChipFromData(CircuitData.ChipData data, bool setID = true)
+    {
+        Type chipType = Type.GetType(data.ChipType);
+
+        if (chipType != null)
+        {
+            Chip newChip = (Chip)Activator.CreateInstance(chipType, setID? data.id : GetNextAvaliableChipID(), data.Name, data.Position);
+            newChip.SetCustomProperties(data.CustomProperties);
+            newChip.Color = data.Color;
+            newChip.LoadedInBackground = true;
+            if (newChip.GetType() == typeof(thisChip))
+            {
+                thisChip theChip = (thisChip)newChip;
+                theChip.theThisGameObject = AttachedGameObject;
+            }
+            chips.Add(newChip);
+            return newChip;
+        }
+
+        return null;
+    }
+    
+    public int GetNextAvaliableChipID()
+    {
+        bool found = false;
+        int id = 0;
+        while (!found)
+        {
+            if (FindChip(id) == null)
+            {
+                return id;
+                found = true;
+            }
+            else
+            {
+                id++;
+            }
+        }
+
+        return id;
     }
     
     public Chip? FindChip(int id)

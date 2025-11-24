@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Numerics;
 using CSCanbulatEngine.Circuits;
+using CSCanbulatEngine.GameObjectScripts;
 using Newtonsoft.Json;
 using Silk.NET.Input;
 
@@ -93,6 +94,15 @@ public static class CircuitSerialiser
                         Value = valueStr
                     });
                 }
+            }
+        }
+
+        foreach (var theObject in Engine.currentScene.GameObjects)
+        {
+            if (theObject.HasComponent<CircuitScript>() &&
+                theObject.GetComponent<CircuitScript>().CircuitScriptName == Path.GetFileNameWithoutExtension(circuitName))
+            {
+                theObject.GetComponent<CircuitScript>().LoadCircuit(Path.Combine(filePath, circuitName + ".ccs"));
             }
         }
 
