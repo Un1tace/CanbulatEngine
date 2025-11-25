@@ -175,24 +175,20 @@ public class GameObject
             component.DestroyComponent();
             Components.Remove(component);
         }
-
-        EngineLog.Log($"Component ({component.name}) cannot be removed");
+        else
+        {
+            EngineLog.Log($"Component ({component.name}) cannot be removed");
+        }
     }
     
 
     public void DeleteObject()
     {
-        while (Components.Count > 0)
-        {
-            Components[0].DestroyComponent();
-            Components.RemoveAt(0);
-        }
-
         if (ParentObject != null)
         {
             RemoveParentObject();
         }
-
+        
         if (ChildObjects.Count > 0)
         {
             while (ChildObjects.Count > 0)
@@ -200,10 +196,16 @@ public class GameObject
                 RemoveChildObject(ChildObjects[0]);
             }
         }
-
+        
+        while (Components.Count > 0)
+        {
+            Components[0].DestroyComponent();
+            Components.RemoveAt(0);
+        }
+        
         Engine.currentScene.GameObjects.Remove(this);
 #if EDITOR
-        if (Engine._selectedGameObject.gameObject == this)
+        if (Engine._selectedGameObject != null && Engine._selectedGameObject.gameObject == this)
         {
             Engine._selectedGameObject = null;
         }
@@ -352,6 +354,8 @@ public class GameObject
                             // Engine._selectedGameObject.gameObject.RemoveComponent(component);
                             nextInstruction._component = component;
                             nextInstruction._instructionType = InstructionType.Remove;
+
+                            ImGui.PopID();
                             continue;
                         }
 

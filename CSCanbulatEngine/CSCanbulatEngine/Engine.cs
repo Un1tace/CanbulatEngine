@@ -941,7 +941,7 @@ public class Engine
         // -- Hierarchy --
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[2]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[2]);
-        ImGui.Begin((circuitEditorIsOpen? "Circuit Editor" : "Hierarchy") + $" - {currentScene.SceneName}", editorPanelFlags);
+        ImGui.Begin((circuitEditorIsOpen? "Circuit Editor" : "Hierarchy") + $" - {(circuitEditorIsOpen? CircuitEditor.CircuitScriptName : currentScene.SceneName)}", editorPanelFlags);
 
         if (!circuitEditorIsOpen)
         {

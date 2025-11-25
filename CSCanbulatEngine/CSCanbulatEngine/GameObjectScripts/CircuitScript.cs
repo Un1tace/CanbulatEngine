@@ -191,4 +191,15 @@ public class CircuitScript : Component
         CircuitScriptName = properties["CircuitScriptName"];
         LoadCircuit(Path.Combine(CircuitScriptDirPath, CircuitScriptName) + ".ccs");
     }
+
+    public override void DestroyComponent()
+    {
+        foreach (var chip in chips)
+        {
+            chip.OnDestroy();
+        }
+
+        chips.Clear();
+        base.DestroyComponent();
+    }
 }
