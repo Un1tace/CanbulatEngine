@@ -4,6 +4,7 @@ class Program
 {
     static void Main(string[] args)
     {
+        Directory.SetCurrentDirectory(AppContext.BaseDirectory);
         AppDomain.CurrentDomain.UnhandledException += HandleCrash;
         EngineLog.OnStart();
         Console.SetOut(new ConsoleOutputCapturer());

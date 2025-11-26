@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "5LzxtjkPdKs=",
+  "dgSpecHash": "SQLKpUIx7TY=",
   "success": true,
   "projectFilePath": "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/CSCanbulatEngine.csproj",
   "expectedPackageFiles": [
@@ -68,6 +68,7 @@
     "/Users/kaiafful/.nuget/packages/microsoft.aspnetcore.app.runtime.win-x64/9.0.5/microsoft.aspnetcore.app.runtime.win-x64.9.0.5.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/microsoft.aspnetcore.app.runtime.osx-x64/9.0.5/microsoft.aspnetcore.app.runtime.osx-x64.9.0.5.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/microsoft.aspnetcore.app.runtime.osx-arm64/9.0.5/microsoft.aspnetcore.app.runtime.osx-arm64.9.0.5.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.crossgen2.osx-arm64/9.0.5/microsoft.netcore.app.crossgen2.osx-arm64.9.0.5.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.host.win-x64/9.0.5/microsoft.netcore.app.host.win-x64.9.0.5.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.host.osx-x64/9.0.5/microsoft.netcore.app.host.osx-x64.9.0.5.nupkg.sha512"
   ],

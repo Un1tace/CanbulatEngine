@@ -19,6 +19,18 @@
       <DefineConstants>TRACE;GAME</DefineConstants>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <EnableCodeSigning>true</EnableCodeSigning>
+        <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
+        <UseHardenedRuntime>true</UseHardenedRuntime>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+        <Content Include="Templates\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
     <ItemGroup>
       <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
       <PackageReference Include="JAJ.Packages.MiniAudioEx" Version="2.6.5" />
@@ -129,6 +141,18 @@
       <None Update="Assets\Sounds\roblox-sword.wav">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Templates\Mac\CSCanbulatEngine">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Templates\Mac\CSCanbulatEngine.pdb">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Templates\Windows\CSCanbulatEngine.exe">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Templates\Windows\CSCanbulatEngine.pdb">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -136,5 +160,42 @@
       <Folder Include="EditorAssets\Images\" />
       <Folder Include="Resources\Icons\" />
     </ItemGroup>
+
+    <Target Name="BundleMacOSApp" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)' == 'osx-arm64' Or '$(RuntimeIdentifier)' == 'osx-x64'">
+        <PropertyGroup>
+            <AppBundleDir>$(PublishDir)/$(AssemblyName).app</AppBundleDir>
+        </PropertyGroup>
+
+        <MakeDir Directories="$(AppBundleDir)/Contents/MacOS" />
+        <MakeDir Directories="$(AppBundleDir)/Contents/Resources" />
+
+        <ItemGroup>
+            <PublishFiles Include="$(PublishDir)/**/*.*" Exclude="$(AppBundleDir)/**/*.*" />
+        </ItemGroup>
+        <Move SourceFiles="@(PublishFiles)" DestinationFolder="$(AppBundleDir)/Contents/MacOS/%(RecursiveDir)" />
+
+        <WriteLinesToFile File="$(AppBundleDir)/Contents/Info.plist" Overwrite="true" Lines="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;
+&lt;plist version=&quot;1.0&quot;&gt;
+&lt;dict&gt;
+    &lt;key&gt;CFBundleName&lt;/key&gt;
+    &lt;string&gt;$(AssemblyName)&lt;/string&gt;
+    &lt;key&gt;CFBundleDisplayName&lt;/key&gt;
+    &lt;string&gt;$(AssemblyName)&lt;/string&gt;
+    &lt;key&gt;CFBundleIdentifier&lt;/key&gt;
+    &lt;string&gt;com.company.$(AssemblyName)&lt;/string&gt;
+    &lt;key&gt;CFBundleVersion&lt;/key&gt;
+    &lt;string&gt;1.0&lt;/string&gt;
+    &lt;key&gt;CFBundlePackageType&lt;/key&gt;
+    &lt;string&gt;APPL&lt;/string&gt;
+    &lt;key&gt;CFBundleExecutable&lt;/key&gt;
+    &lt;string&gt;$(AssemblyName)&lt;/string&gt;
+    &lt;key&gt;CFBundleIconFile&lt;/key&gt;
+    &lt;string&gt;AppIcon&lt;/string&gt;
+&lt;/dict&gt;
+&lt;/plist&gt;" />
+
+        <Message Text="macOS App Bundle created at: $(AppBundleDir)" Importance="high" />
+    </Target>
 
 </Project>

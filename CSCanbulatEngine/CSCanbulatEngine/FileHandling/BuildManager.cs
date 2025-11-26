@@ -1,23 +1,31 @@
 using System.Diagnostics;
+using System.Net.Mime;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using CSCanbulatEngine.Circuits;
 using CSCanbulatEngine.FileHandling.Game;
 using CSCanbulatEngine.InfoHolders;
 using ImGuiNET;
+using Microsoft.SqlServer.Server;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace CSCanbulatEngine.FileHandling;
 
     public static class BuildManager
     {
+        private static string buildForOS = "";
         #if EDITOR
-        public static void BuildGame()
+        public static void BuildGame(string OS)
         {
             string sourceProjectFolder = Engine.currentProject.ProjectFolderPath;
             string sourceAssetsFolder = Path.Combine(sourceProjectFolder, "Assets");
             
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             string outputFolder = FileDialogHelper.ShowSelectFolderDialog(documentsPath, "Select Build Output Folder");
+
+            string templateFolder = "";
 
             if (string.IsNullOrEmpty(outputFolder))
             {
@@ -26,83 +34,63 @@ namespace CSCanbulatEngine.FileHandling;
                 return;
             }
 
-            string projectPath = FindProjectFile();
-            if (string.IsNullOrEmpty(projectPath))
+            string templatePath = Path.Combine(AppContext.BaseDirectory, "Templates",
+                ((OS == "MacOS-arm64") ? "Mac" : "Windows"));
+
+            if (!Directory.Exists(templatePath))
             {
-                GameConsole.Log("[Build] Error: Could not find 'CSCanbulatEngine.csproj'. Make sure to run from bin folder");
-                EngineLog.Log("[Build] Error: Could not find 'CSCanbulatEngine.csproj'. Make sure to run from bin folder");
+                GameConsole.Log("[Build] Error: GameTemplate not found! Do you have the templates?");
+                EngineLog.Log("[Build] Game Template not found! Do you have the templates?");
                 return;
             }
             
             GameConsole.Log($"[Build] Starting build... Output: {outputFolder}");
             EngineLog.Log($"[Build] Starting build... Output: {outputFolder}");
 
-            string rid = "win-x64";
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) rid = "osx-x64";
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) rid = "linux-x64";
-
-            var startInfo = new ProcessStartInfo
+            try
             {
-                FileName = "dotnet",
-                Arguments = $"publish \"{projectPath}\" -c Release -r {rid} --self-contained -o \"{outputFolder}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
-
-            Task.Run(() =>
-            {
-                try
+                bool isMac = (OS == "MacOS-arm64");
+                CopyDirectory(templatePath, outputFolder, true);
+        
+                string appBundlePath = isMac ? Path.Combine(outputFolder, "CSCanbulatEngine.app") : outputFolder;
+                string destMacOsFolder = isMac ? Path.Combine(appBundlePath, "Contents", "MacOS") : outputFolder;
+                string destAssetsFolder = isMac ? Path.Combine(destMacOsFolder, "Assets") : Path.Combine(outputFolder, "Assets");
+                string destConfigPath = isMac ? Path.Combine(destMacOsFolder, "Game.config") : Path.Combine(outputFolder, "Game.config");
+        
+                string projectAssets = ProjectSerialiser.GetAssetsFolder();
+        
+                Directory.CreateDirectory(destAssetsFolder); 
+                CopyDirectory(projectAssets, destAssetsFolder, true);
+        
+                string configJson = JsonConvert.SerializeObject(Engine.currentProject, Formatting.Indented);
+                File.WriteAllText(destConfigPath, configJson);
+        
+                if (isMac)
                 {
-                    using (Process process = Process.Start(startInfo))
+                     string exeName = "CSCanbulatEngine"; 
+                    string exePath = Path.Combine(destMacOsFolder, exeName);
+            
+                    if (File.Exists(exePath))
                     {
-                        string output = process.StandardOutput.ReadToEnd();
-                        string error = process.StandardError.ReadToEnd();
-                        process.WaitForExit();
-
-                        if (process.ExitCode == 0)
-                        {
-                            CreateGameConfig(outputFolder, Engine.currentProject.StartupSceneName);
-
-                            if (Directory.Exists(Path.Combine(sourceProjectFolder, "Assets")))
-                            {
-                                Console.WriteLine("Copying Assets...");
-                                try 
-                                {
-                                    CopyDirectory(Path.Combine(sourceProjectFolder, "Assets"), Path.Combine(outputFolder, "Assets"), true);
-                                    Console.WriteLine("Assets copied successfully.");
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine($"Error copying assets: {ex.Message}");
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine("Warning: No 'Assets' folder found to copy!");
-                            }
-                            
-                            GameConsole.Log("[Build] Build Successful!");
-                            EngineLog.Log("[Build] Build completed successfully.");
-                            
-                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) Process.Start("explorer.exe", outputFolder);
-                            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) Process.Start("open", outputFolder);
-                            
-                        }
-                        else
-                        {
-                            GameConsole.Log($"[Build] Failed: \n{error}\n{output}");
-                            EngineLog.Log($"[Build] Failed: \n{error}\n{output}");
-                        }
+                        Process.Start("chmod", $"+x \"{exePath}\"");
+                    }
+                    else 
+                    {
+                         GameConsole.Log($"[Build] Warning: Could not find executable at {exePath} to set permissions.");
                     }
                 }
-                catch (Exception e)
-                {
-                    GameConsole.Log($"[Build] Error: {e.Message}. Do you have the .NET SDK installed?");
-                    EngineLog.Log($"[Build] Error: {e.Message}");
-                }
-            });
+
+                GameConsole.Log($"[Build] Build finished");
+        
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) 
+                    Process.Start("explorer.exe", outputFolder);
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) 
+                    Process.Start("open", outputFolder);
+            }
+            catch (Exception e)
+            {
+                GameConsole.Log($"[Build] Error: {e.Message}");
+            }
         }
 
         public static string FindProjectFile()
@@ -155,14 +143,37 @@ namespace CSCanbulatEngine.FileHandling;
                 ImGui.EndCombo();
             }
 
+            ImGui.Text("Operating System");
+            ImGui.SameLine();
+
+            if (buildForOS == "")
+            {
+                buildForOS = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)? "Windows-x64" : "MacOS-arm64";
+            }
+
+            if (ImGui.BeginCombo("OSPicker", buildForOS))
+            {
+                if (ImGui.Selectable("Windows-x64", buildForOS == "Windows-x64"))
+                {
+                    buildForOS = "Windows-x64";
+                }
+
+                if (ImGui.Selectable("MacOS-arm64", buildForOS == "MacOS-arm64"))
+                {
+                    buildForOS = "MacOS-arm64";
+                }
+
+                ImGui.EndCombo();
+            }
+
             ImGui.Separator();
 
-            ImGui.BeginDisabled(Engine.currentProject.StartupSceneName == null || !projectFiles.Contains(Engine.currentProject.StartupSceneName));
+            ImGui.BeginDisabled(Engine.currentProject.StartupSceneName == null || !projectFiles.Contains(Engine.currentProject.StartupSceneName) || (buildForOS != "Windows-x64" && buildForOS != "MacOS-arm64"));
 
             if (ImGui.Button("Build!"))
             {
                 Engine.buildMenuOpen = false;
-                BuildGame();
+                BuildGame(buildForOS);
             }
             
             ImGui.EndDisabled();
@@ -231,7 +242,14 @@ namespace CSCanbulatEngine.FileHandling;
         
         public static void LoadGameConfig()
         {
-            string configPath = Path.Combine(AppContext.BaseDirectory, "Game.config");
+            string exePath = Process.GetCurrentProcess().MainModule?.FileName;
+            string baseDirectory = Path.GetDirectoryName(exePath);
+            
+            EngineLog.Log($"Base directory: {baseDirectory}");
+
+            string configPath = Path.Combine(baseDirectory, "Game.config");
+            
+            if (string.IsNullOrEmpty(baseDirectory)) baseDirectory = AppContext.BaseDirectory;
 
             if (File.Exists(configPath))
             {
@@ -242,7 +260,7 @@ namespace CSCanbulatEngine.FileHandling;
 
                     if (!string.IsNullOrEmpty(config.StartupSceneName))
                     {
-                        string scenePath = Path.Combine(AppContext.BaseDirectory, "Assets", "Scenes", config.StartupSceneName);
+                        string scenePath = Path.Combine(baseDirectory, "Assets", "Scenes", config.StartupSceneName);
                         Console.WriteLine($"[Engine] Loading startup scene: {scenePath}");
 
                         SceneSerialiser ss = new SceneSerialiser(Engine.gl, Engine._squareMesh);
@@ -256,7 +274,8 @@ namespace CSCanbulatEngine.FileHandling;
             }
             else
             {
-                Console.WriteLine("[Engine] No Game.config found. Loading default scene...");
+                Console.WriteLine("[Engine] No Game.config found! Closing program...");
+                System.Environment.Exit(0);
             }
         }
     }
