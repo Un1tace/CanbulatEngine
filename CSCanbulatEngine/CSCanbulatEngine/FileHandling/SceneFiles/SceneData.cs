@@ -1,5 +1,6 @@
 using System.Numerics;
 using CSCanbulatEngine.Circuits;
+using CSCanbulatEngine.GameObjectScripts;
 
 namespace CSCanbulatEngine.FileHandling;
 
@@ -65,6 +66,7 @@ public class SceneData
         public int? ObjectID  { get; set; }
         public int? ParentObjectID { get; set; }
         public List<string>? Tags { get; set; }
+        public ObjectType? ObjectType { get; set; }
     }
 
     public class EventData

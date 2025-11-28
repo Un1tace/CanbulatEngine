@@ -7,6 +7,7 @@ using CSCanbulatEngine.FileHandling.CircuitHandling;
 using CSCanbulatEngine.FileHandling.ProjectManager;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.InfoHolders;
+using CSCanbulatEngine.Mesh;
 using CSCanbulatEngine.UIHelperScripts;
 using CSCanbulatEngine.Utilities;
 using Newtonsoft.Json;
@@ -38,7 +39,7 @@ public class Engine
 
     public static GL gl;
 
-    public static Mesh _squareMesh;
+    public static GameObjectScripts.Mesh _squareMesh;
 
     //--- Core Resources ---
     // Variables for rendering
@@ -300,16 +301,17 @@ public class Engine
         //Format: X, Y, Z, U, V
         float[] squareVertices =
         {
-            // Position         //UV Coords
-            0.5f, 0.5f, 0f,     1.0f, 0.0f, //Top Right
-            0.5f, -0.5f, 0f,    1.0f, 1.0f, //Bottom Right
-            - 0.5f, -0.5f, 0f,  0.0f, 1.0f, //Bottom Left
-            - 0.5f, 0.5f, 0f,    0.0f, 0.0f //Top Left
+            // Position           // UV
+            0.5f,  0.5f, 0.0f,   1.0f, 0.0f, // Top Right (0)
+            0.5f, -0.5f, 0.0f,   1.0f, 1.0f, // Bottom Right (1)
+            -0.5f, -0.5f, 0.0f,   0.0f, 1.0f, // Bottom Left (2)
+            -0.5f,  0.5f, 0.0f,   0.0f, 0.0f  // Top Left (3)
         };
-        uint[] squareIndices = { 0, 1, 2, 2, 3, 0 };
+        uint[] squareIndices = {0, 3, 2, 
+            2, 1, 0};
         
         //Create our example mesh resource
-        _squareMesh = new Mesh(gl, squareVertices, squareIndices);
+        _squareMesh = new GameObjectScripts.Mesh(gl, squareVertices, squareIndices);
         
         // If no texture assigned use 1x1 white texture
         _whiteTexture = gl.GenTexture();
@@ -321,12 +323,12 @@ public class Engine
         }
         gl.BindTexture(TextureTarget.Texture2D, 0);
         
-        var gameObject1 = new GameObject(_squareMesh);
+        var gameObject1 = new GameObject(_squareMesh, ObjectType.Quad);
         gameObject1.GetComponent<Transform>().WorldPosition = new Vector2(-0.75f, 0f);
         var renderer1 = gameObject1.GetComponent<MeshRenderer>();
         if (renderer1 != null) renderer1.Color = new Vector4(1, 0, 0, 1); // <- Red
         
-        var gameObject2 = new GameObject(_squareMesh);
+        var gameObject2 = new GameObject(_squareMesh, ObjectType.Quad);
         gameObject2.GetComponent<Transform>().WorldPosition = new Vector2(-0.75f, 0.5f);
         gameObject1.MakeParentOfObject(gameObject2);
         
@@ -404,7 +406,7 @@ public class Engine
                 }
                 else if (InputManager.IsKeyPressed(Key.A) && !renamePopupOpen && !circuitEditorIsOpen)
                 {
-                    new GameObject(_squareMesh);
+                    new GameObject(ChunFactory.CreateQuad(), ObjectType.Quad);
                 }
                 else if (InputManager.IsKeyPressed(Key.A) && !renamePopupOpen && circuitEditorIsOpen)
                 {
@@ -770,7 +772,7 @@ public class Engine
                     _selectedGameObject.gameObject.RenderObjectOptionBar(superKey);
                 }
 
-                RenderObjectMenu(superKey);
+                GameObject.RenderCreateObjectMenu(superKey);
 
                 if (ImGui.BeginMenu("Debug"))
                 {
@@ -982,6 +984,39 @@ public class Engine
 
                 if (!HierarchyNeedsRefresh) break;
 
+            }
+
+
+            Vector2 remainingSpace = ImGui.GetContentRegionAvail();
+            
+            if (remainingSpace.Y < 0) remainingSpace.Y = 0;
+            if (remainingSpace.X < 1) remainingSpace.X = 1;
+            
+            ImGui.InvisibleButton("###HierarchyEmptySpace", remainingSpace);
+            
+            if (ImGui.BeginDragDropTarget())
+            {
+                var payload = ImGui.AcceptDragDropPayload("HIERARCHY_GAMEOBJECT");
+
+                if (payload.NativePtr != null && payload.Data != IntPtr.Zero)
+                {
+                    int draggedId = *(int*)payload.Data;
+
+                    GameObject draggedObject = GameObject.FindGameObject(draggedId);
+
+                    if (draggedObject != null)
+                    {
+                        draggedObject.RemoveParentObject();
+                    }
+                }
+
+                ImGui.EndDragDropTarget();
+            }
+
+            if (ImGui.BeginPopupContextItem())
+            {
+                GameObject.RenderCreateObjectMenu(RuntimeInformation.IsOSPlatform(OSPlatform.OSX)? "CMD" : "CTRL");
+                ImGui.EndPopup();
             }
         }
         else
@@ -1336,21 +1371,7 @@ public class Engine
         EngineLog.Log("File drop detected by OS, pending processing");
     }
     #endif
-
-    #if EDITOR
-    private void RenderObjectMenu(string superKey)
-    {
-        if (ImGui.BeginMenu("Object"))
-        {
-            if (ImGui.MenuItem("Create GameObject", superKey + "+A"))
-            {
-                new GameObject(_squareMesh);
-                
-            }
-            ImGui.EndMenu();
-        }
-    }
-#endif
+    
     private unsafe void DrawGameScene(Vector2D<int> currentViewportSize, float cameraZoom)
     {
         gl.ClearColor(Color.CornflowerBlue);

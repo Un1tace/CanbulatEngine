@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using CSCanbulatEngine.InfoHolders;
+using CSCanbulatEngine.Mesh;
 using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
 
@@ -17,13 +18,16 @@ public class GameObject
     public int ID { get; set; }
     public GameObject? ParentObject { get; set; }
     public List<GameObject> ChildObjects { get; set; }
+    
+    public ObjectType objectType { get; set; }
 
-    public GameObject(Mesh mesh, string name = "GameObject", bool addCoreComponents = true)
+    public GameObject(Mesh mesh, ObjectType objectType, string name = "GameObject", bool addCoreComponents = true)
     {
         Name = name;
         Components = new List<Component>();
         Tags = new List<string>();
         Tags.Add("GameObject");
+        this.objectType = objectType;
         
         ChildObjects = new List<GameObject>();
         
@@ -59,13 +63,14 @@ public class GameObject
 #endif
     }
     
-    public GameObject(string name, int id)
+    public GameObject(string name, int id, Mesh meshToUse, ObjectType objectType)
     {
         Name = name;
         ID = id;
         Components = new List<Component>();
         Tags = new List<string>();
         ChildObjects = new List<GameObject>();
+        this.objectType = objectType;
     
         // Add this new object to the scene
         if (!Engine.currentScene.GameObjects.Contains(this))
@@ -234,6 +239,28 @@ public class GameObject
                 }
                 // ImGui.OpenPopup("Rename Object");
                 
+            }
+            ImGui.EndMenu();
+        }
+    }
+    
+    public static void RenderCreateObjectMenu(string superKey)
+    {
+        if (ImGui.BeginMenu("Object"))
+        {
+            if (ImGui.MenuItem("Create Square", superKey + "+A"))
+            {
+                new GameObject(ChunFactory.CreateQuad(), ObjectType.Quad);
+            }
+
+            if (ImGui.MenuItem("Create Circle"))
+            {
+                new GameObject(ChunFactory.CreateCircle(32), ObjectType.Circle);
+            }
+
+            if (ImGui.MenuItem("Create Triangle"))
+            {
+                new GameObject(ChunFactory.CreateTriangle(), ObjectType.Triangle);
             }
             ImGui.EndMenu();
         }
@@ -441,4 +468,9 @@ public class ComponentInstruction
 public enum InstructionType
 {
     Remove, Add
+}
+
+public enum ObjectType
+{
+    Quad, Triangle, Circle
 }

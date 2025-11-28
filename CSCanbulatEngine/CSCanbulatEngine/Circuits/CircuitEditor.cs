@@ -293,9 +293,20 @@ public class ChipPort
         }
         set
         {
+            if (_PortType == value) return;
+            
             _PortType = value;
             UpdateColor();
             Parent.PortTypeChanged(this);
+
+            if (ConnectedPort != null && ConnectedPort.acceptedTypes.Contains(value))
+            {
+                ConnectedPort.PortType = value;
+            }
+            else if (ConnectedPort != null)
+            {
+                DisconnectPort();
+            }
         }}
     public Type? _PortType;
     public List<Type> acceptedTypes;
@@ -325,14 +336,15 @@ public class ChipPort
         Value = new ChipPortValue(this);
         acceptedTypes = acceptedValueTypes;
         ShowName = showName;
+        
+        if (!isInput)
+        {
+            outputConnectedPorts = new List<ChipPort>();
+        }
 
         if (acceptedValueTypes.Count == 1)
         {
             PortType = acceptedValueTypes[0];
-        }
-        if (!isInput)
-        {
-            outputConnectedPorts = new List<ChipPort>();
         }
         
         UpdateColor();
@@ -346,17 +358,18 @@ public class ChipPort
         IsInput = isInput;
         Value = new ChipPortValue(this);
         ShowName = showName;
+        
+        if (!isInput)
+        {
+            outputConnectedPorts = new List<ChipPort>();
+        }
+
         if (portType != null)
         {
             PortType = portType;
 
             acceptedTypes = new List<Type>() { portType };
         }
-        if (!isInput)
-        {
-            outputConnectedPorts = new List<ChipPort>();
-        }
-        
         UpdateColor();
     }
 
@@ -403,6 +416,7 @@ public class ChipPort
             if (port.acceptedTypes.Contains(this.PortType))
             {
                 typeToSet = this.PortType;
+                port.PortType = this.PortType;
             }
             else return false;
         }
@@ -411,6 +425,7 @@ public class ChipPort
             if (this.acceptedTypes.Contains(port.PortType))
             {
                 typeToSet = port.PortType;
+                PortType = port.PortType;
             }
             else return false;
         }
@@ -428,6 +443,7 @@ public class ChipPort
             Parent.PortTypeChanged(this);
             UpdateColor();
             Parent.ChildPortIsDisconnected(this);
+            port.Parent.ChildPortIsDisconnected(port);
             disconnectedPortBuffer.Parent.ChildPortIsDisconnected(disconnectedPortBuffer);
         }
         else
@@ -437,6 +453,7 @@ public class ChipPort
             port.outputConnectedPorts.Add(this);
             UpdateColor();
             Parent.ChildPortIsConnected(this, port);
+            port.Parent.ChildPortIsConnected(port, this);
         }
         Parent.UpdateChipConfig();
         return true;

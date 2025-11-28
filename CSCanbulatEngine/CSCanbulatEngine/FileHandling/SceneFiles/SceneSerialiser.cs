@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using CSCanbulatEngine.Circuits;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.InfoHolders;
+using CSCanbulatEngine.Mesh;
 using Silk.NET.OpenGL;
 using Newtonsoft.Json;
 
@@ -10,9 +11,9 @@ namespace CSCanbulatEngine.FileHandling;
 public class SceneSerialiser
 {
     private readonly GL _gl;
-    private readonly Mesh _defaultMesh;
+    private readonly GameObjectScripts.Mesh _defaultMesh;
 
-    public SceneSerialiser(GL gl, Mesh defaultMesh)
+    public SceneSerialiser(GL gl, GameObjectScripts.Mesh defaultMesh)
     {
         _gl = gl;
         _defaultMesh = defaultMesh;
@@ -92,13 +93,13 @@ public class SceneSerialiser
         return new SceneData.GameObjectData()
         {
             Name = obj.Name, ObjectID = obj.ID, Tags = obj.Tags, ParentObjectID = obj.ParentObject?.ID,
-            ComponentData = componentData
+            ComponentData = componentData, ObjectType = obj.objectType
         };
     }
     
 #endif
     
-    public static void SetGameObjectData(GameObject setToObj, SceneData.GameObjectData objData)
+    public static void SetGameObjectData(GameObject setToObj, SceneData.GameObjectData objData, GameObjectScripts.Mesh meshToUse)
     {
         setToObj.Tags = objData.Tags ?? new List<string>();
 
@@ -115,7 +116,7 @@ public class SceneSerialiser
 
             if (componentType == typeof(MeshRenderer))
             {
-                newComponent = new MeshRenderer(Engine._squareMesh);
+                newComponent = new MeshRenderer(meshToUse);
             }
             else
             {
@@ -131,16 +132,36 @@ public class SceneSerialiser
     public static GameObject CreateGameObjectFromData(SceneData.GameObjectData objData, bool useNextAvaliableID = true)
     {
         GameObject obj;
+        GameObjectScripts.Mesh meshToUse;
         if (useNextAvaliableID)
         {
-            obj = new GameObject(Engine._squareMesh, objData.Name, false);
+            
+            if (objData.ObjectType == ObjectType.Circle)
+            {
+                meshToUse = ChunFactory.CreateCircle(32);
+            }
+            else if (objData.ObjectType == ObjectType.Triangle)
+            {
+                meshToUse = ChunFactory.CreateTriangle();
+            }
+            else meshToUse = ChunFactory.CreateQuad();
+            obj = new GameObject(meshToUse, objData.ObjectType?? ObjectType.Quad, objData.Name, false);
         }
         else
         {
-            obj = new GameObject(objData.Name, objData.ObjectID.Value);
+            if (objData.ObjectType == ObjectType.Circle)
+            {
+                meshToUse = ChunFactory.CreateCircle(32);
+            }
+            else if (objData.ObjectType == ObjectType.Triangle)
+            {
+                meshToUse = ChunFactory.CreateTriangle();
+            }
+            else meshToUse = ChunFactory.CreateQuad();
+            obj = new GameObject(objData.Name, objData.ObjectID.Value, meshToUse, objData.ObjectType?? ObjectType.Quad);
         }
             
-        SetGameObjectData(obj, objData);
+        SetGameObjectData(obj, objData, meshToUse);
 
         return obj;
     }
