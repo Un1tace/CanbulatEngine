@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net.Mime;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using CSCanbulatEngine.Circuits;
 using CSCanbulatEngine.FileHandling.Game;
@@ -16,8 +17,12 @@ namespace CSCanbulatEngine.FileHandling;
     public static class BuildManager
     {
         private static string buildForOS = "";
+        public static byte[] BuildNameBuffer = new byte[128];
+        
+        private const string EngineName = "CSCanbulatEngine";
+        
         #if EDITOR
-        public static void BuildGame(string OS)
+        public static void BuildGame(string OS, string Name, string startupStringName)
         {
             string sourceProjectFolder = Engine.currentProject.ProjectFolderPath;
             string sourceAssetsFolder = Path.Combine(sourceProjectFolder, "Assets");
@@ -62,12 +67,20 @@ namespace CSCanbulatEngine.FileHandling;
                 Directory.CreateDirectory(destAssetsFolder); 
                 CopyDirectory(projectAssets, destAssetsFolder, true);
         
-                string configJson = JsonConvert.SerializeObject(Engine.currentProject, Formatting.Indented);
-                File.WriteAllText(destConfigPath, configJson);
+                // string configJson = JsonConvert.SerializeObject(Engine.currentProject, Formatting.Indented);
+                // File.WriteAllText(destConfigPath, configJson);
+
+                CreateGameConfig(destMacOsFolder, startupStringName, Name);
+
+                string targetDir = outputFolder;
+                
+                string originalAppPath = Path.Combine(outputFolder, EngineName + ".app");
+                string newAppPath = Path.Combine(outputFolder, Name + ".app");
         
                 if (isMac)
                 {
                      string exeName = "CSCanbulatEngine"; 
+                    
                     string exePath = Path.Combine(destMacOsFolder, exeName);
             
                     if (File.Exists(exePath))
@@ -77,6 +90,27 @@ namespace CSCanbulatEngine.FileHandling;
                     else 
                     {
                          GameConsole.Log($"[Build] Warning: Could not find executable at {exePath} to set permissions.");
+                    }
+                }
+                
+                // MacOS Changing Name
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && Directory.Exists(originalAppPath))
+                {
+                    if (Name != EngineName)
+                    {
+                        if (Directory.Exists(newAppPath)) Directory.Delete(newAppPath, true);
+                        Directory.Move(originalAppPath, newAppPath);
+                    }
+
+                    targetDir = Path.Combine(newAppPath, "Contents", "MacOS");
+                    
+                    string plistPath = Path.Combine(newAppPath, "Contents", "Info.plist");
+                    if (File.Exists(plistPath))
+                    {
+                        string plistContent = File.ReadAllText(originalAppPath);
+
+                        plistContent = plistContent.Replace(EngineName, Name);
+                        File.WriteAllText(plistPath, plistContent);
                     }
                 }
 
@@ -90,6 +124,40 @@ namespace CSCanbulatEngine.FileHandling;
             catch (Exception e)
             {
                 GameConsole.Log($"[Build] Error: {e.Message}");
+            }
+        }
+
+        private static void RenameGameFiles(string folder, string name)
+        {
+            string[] childDirs = Directory.GetDirectories(folder);
+            string[] extensions = { "", ".exe", ".dll", ".pdb", ".deps.json", ".runtimeconfig.json" };
+
+            foreach (var ext in extensions)
+            {
+                string oldFile = Path.Combine(folder, $"{EngineName}.{ext}");
+                string newFile = Path.Combine(folder, $"{name}.{ext}");
+
+                if (File.Exists(oldFile))
+                {
+                    if (File.Exists(newFile)) File.Delete(newFile);
+                    
+                    File.Move(oldFile, newFile);
+                    EngineLog.Log($"[Build] File {oldFile} renamed to {newFile}");
+                }
+            }
+            
+            string depsFile = Path.Combine(folder, name + ".deps.json");
+            if (File.Exists(depsFile))
+            {
+                string content =  File.ReadAllText(depsFile);
+
+                content.Replace(EngineName, name);
+                File.WriteAllText(depsFile, content);
+            }
+
+            foreach (string childDir in childDirs)
+            {
+                RenameGameFiles(childDir, name);
             }
         }
 
@@ -119,6 +187,10 @@ namespace CSCanbulatEngine.FileHandling;
             ImGui.SetNextWindowSize(new Vector2(400, 500), ImGuiCond.Appearing);
 
             ImGui.Begin("Build Window");
+            
+            ImGui.Text("Build Name");
+            ImGui.SameLine();
+            ImGui.InputText("##GameName", BuildNameBuffer, (uint)BuildNameBuffer.Length);
 
             string[] projectFiles = ProjectSerialiser.ScanAssetsForFilesWithExtension([".cbs"]).ToArray<string>();
 
@@ -172,8 +244,13 @@ namespace CSCanbulatEngine.FileHandling;
 
             if (ImGui.Button("Build!"))
             {
-                Engine.buildMenuOpen = false;
-                BuildGame(buildForOS);
+                string gameName = Encoding.UTF8.GetString(BuildNameBuffer).TrimEnd('\0');
+                if (!String.IsNullOrWhiteSpace(gameName))
+                {
+                    Engine.buildMenuOpen = false;
+                    BuildGame(buildForOS, gameName, Engine.currentProject.StartupSceneName);
+                    ImGui.CloseCurrentPopup();
+                }
             }
             
             ImGui.EndDisabled();
@@ -183,17 +260,18 @@ namespace CSCanbulatEngine.FileHandling;
             if (ImGui.Button("Cancel"))
             {
                 Engine.buildMenuOpen = false;
+                ImGui.CloseCurrentPopup();
             }
             
             ImGui.End();
         }
 
-        public static void CreateGameConfig(string buildDirectory, string startupSceneName)
+        public static void CreateGameConfig(string buildDirectory, string startupSceneName, string buildName)
         {
             GameConfig config = new GameConfig
             {
                 StartupSceneName = startupSceneName,
-                GameName = Engine.currentProject.ProjectName
+                GameName = buildName
             };
 
             var options = new JsonSerializerOptions { WriteIndented = true };
@@ -240,7 +318,7 @@ namespace CSCanbulatEngine.FileHandling;
 #endif
         
         
-        public static void LoadGameConfig()
+        public static string? LoadGameConfig()
         {
             string exePath = Process.GetCurrentProcess().MainModule?.FileName;
             string baseDirectory = Path.GetDirectoryName(exePath);
@@ -264,18 +342,23 @@ namespace CSCanbulatEngine.FileHandling;
                         Console.WriteLine($"[Engine] Loading startup scene: {scenePath}");
 
                         SceneSerialiser ss = new SceneSerialiser(Engine.gl, Engine._squareMesh);
-                        ss.LoadScene(scenePath); 
+                        ss.LoadScene(scenePath);
+                        return config.GameName;
                     }
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine($"[Engine] Failed to load Game.config: {e.Message}");
+                    return null;
+                    throw;
                 }
             }
             else
             {
                 Console.WriteLine("[Engine] No Game.config found! Closing program...");
                 System.Environment.Exit(0);
+                return null;
             }
+            return null;
         }
     }

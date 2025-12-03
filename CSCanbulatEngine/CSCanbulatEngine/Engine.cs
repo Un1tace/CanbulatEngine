@@ -335,9 +335,7 @@ public class Engine
         #if GAME
         LoadIcons.LoadImageIcons();
         
-        
-
-       BuildManager.LoadGameConfig();
+        window.Title = BuildManager.LoadGameConfig()?? "CSCanbulatEngine";
 
         CurrentState = EngineState.Play;
 #endif
@@ -727,6 +725,10 @@ public class Engine
 
                 if (ImGui.MenuItem("Build Project"))
                 {
+                    Array.Clear(BuildManager.BuildNameBuffer, 0, BuildManager.BuildNameBuffer.Length);
+                    byte[] nameBytes = Encoding.UTF8.GetBytes(currentProject.ProjectName);
+                    Array.Copy(nameBytes, BuildManager.BuildNameBuffer, Math.Min(nameBytes.Length, BuildManager.BuildNameBuffer.Length));
+                    
                     buildMenuOpen = true;
                 }
                 if (ImGui.MenuItem("Load Scene"))
