@@ -4,6 +4,7 @@ using CSCanbulatEngine.Audio;
 using CSCanbulatEngine.Circuits;
 using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.FileHandling.CircuitHandling;
+using CSCanbulatEngine.FileHandling.Game;
 using CSCanbulatEngine.FileHandling.ProjectManager;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.InfoHolders;
@@ -150,7 +151,11 @@ public class Engine
         #if EDITOR
         string title = "Canbulat Engine";
         #else
-        string title = "Game";
+        GameConfig? gameConfig = BuildManager.GetGameConfig();
+        string title = "";
+        if (gameConfig != null) title = gameConfig.GameName;
+        else title = "Game";
+        
         #endif
         options.Title = title;
         window = Window.Create(options);

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net.Mime;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 using CSCanbulatEngine.Circuits;
@@ -30,119 +31,146 @@ namespace CSCanbulatEngine.FileHandling;
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             string outputFolder = FileDialogHelper.ShowSelectFolderDialog(documentsPath, "Select Build Output Folder");
 
-            string templateFolder = "";
-
             if (string.IsNullOrEmpty(outputFolder))
             {
-                GameConsole.Log("[Build] Build cancelled: No folder selected.");
-                EngineLog.Log("[Build] Build cancelled: No folder selected.");
+                GameConsole.Log("[Build] Build cancelled: No folder selected");
                 return;
             }
-
-            string templatePath = Path.Combine(AppContext.BaseDirectory, "Templates",
-                ((OS == "MacOS-arm64") ? "Mac" : "Windows"));
+            
+            string templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", OS == "MacOS-arm64"? "Mac" : "Windows");
 
             if (!Directory.Exists(templatePath))
             {
-                GameConsole.Log("[Build] Error: GameTemplate not found! Do you have the templates?");
-                EngineLog.Log("[Build] Game Template not found! Do you have the templates?");
-                return;
+                GameConsole.Log($"[Build] Error: GameTemplate folder not found at {templatePath}");
             }
             
-            GameConsole.Log($"[Build] Starting build... Output: {outputFolder}");
-            EngineLog.Log($"[Build] Starting build... Output: {outputFolder}");
+            GameConsole.Log($"[Build] Building '{Name}' for {OS} to: {outputFolder}...");
 
             try
             {
-                bool isMac = (OS == "MacOS-arm64");
+                // if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                // {
+                //     RunShellCommand($"cp -a \"{templatePath}/.\" \"{outputFolder}\"");
+                //     RunShellCommand($"chmod -R 777 \"{outputFolder}\"");
+                // }
+                // else
+                // {
+                //     CopyDirectory(templatePath, outputFolder, true);
+                // }
                 CopyDirectory(templatePath, outputFolder, true);
-        
-                string appBundlePath = isMac ? Path.Combine(outputFolder, "CSCanbulatEngine.app") : outputFolder;
-                string destMacOsFolder = isMac ? Path.Combine(appBundlePath, "Contents", "MacOS") : outputFolder;
-                string destAssetsFolder = isMac ? Path.Combine(destMacOsFolder, "Assets") : Path.Combine(outputFolder, "Assets");
-                string destConfigPath = isMac ? Path.Combine(destMacOsFolder, "Game.config") : Path.Combine(outputFolder, "Game.config");
-        
-                string projectAssets = ProjectSerialiser.GetAssetsFolder();
-        
-                Directory.CreateDirectory(destAssetsFolder); 
-                CopyDirectory(projectAssets, destAssetsFolder, true);
-        
-                // string configJson = JsonConvert.SerializeObject(Engine.currentProject, Formatting.Indented);
-                // File.WriteAllText(destConfigPath, configJson);
-
-                CreateGameConfig(destMacOsFolder, startupStringName, Name);
 
                 string targetDir = outputFolder;
-                
-                string originalAppPath = Path.Combine(outputFolder, EngineName + ".app");
-                string newAppPath = Path.Combine(outputFolder, Name + ".app");
-        
-                if (isMac)
+
+                if (OS == "MacOS-arm64")
                 {
-                     string exeName = "CSCanbulatEngine"; 
+                    string appBundlePath = Path.Combine(outputFolder, EngineName + ".app");
+                    string newAppBundlePath = Path.Combine(outputFolder, Name + ".app");
+
+                    if (Directory.Exists(appBundlePath))
+                    {
+                        if (Name != EngineName)
+                        {
+                            if (Directory.Exists(newAppBundlePath)) Directory.Delete(newAppBundlePath, true);
+                            Directory.Move(appBundlePath, newAppBundlePath);
+                            GameConsole.Log($"[Build] Renamed Bundle to {Name}.app");
+                        }
+
+                        targetDir = Path.Combine(newAppBundlePath, "Contents", "MacOS");
+                        
+                        string plistPath = Path.Combine(newAppBundlePath, "Contents", "Info.plist");
+
+                        if (File.Exists(plistPath))
+                        {
+                            string content = File.ReadAllText(plistPath);
+                            content = content.Replace(EngineName, Name);
+                            content = content.Replace("com.company.CSCanbulatEngine", $"com.company.{Name.Replace(" ", "")}");
+                            File.WriteAllText(plistPath, content);
+                            GameConsole.Log("[Build] Patched Info.plist");
+                        }
+                    }
+                    else
+                    {
+                        GameConsole.Log("[Build] Warning: .app bundle not found in template. Building as flat file?");
+                    }
+                }
+                else if (OS == "Windows-x64")
+                {
+                    GameConsole.Log("[Build] Configuring for Windows-x64 structure");
+                }
+
+                string outputAssets = Path.Combine(targetDir, "Assets");
+                Directory.CreateDirectory(outputAssets);
+
+                // if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                // {
+                //     RunShellCommand($"cp -a \"{sourceAssetsFolder}/.\" \"{outputAssets}\"");
+                // }
+                // else
+                // {
+                //     CopyDirectory(sourceAssetsFolder, outputAssets, true);
+                // }
+                CopyDirectory(sourceAssetsFolder, outputAssets, true);
+
+                if (Name != EngineName)
+                {
+                    RenameGameFiles(targetDir, Name, OS);
+                }
+                
+                Engine.currentProject.StartupSceneName = startupStringName;
+                string configJson = JsonConvert.SerializeObject(Engine.currentProject, Formatting.Indented);
+                File.WriteAllText(Path.Combine(targetDir, "Game.config"),configJson);
+
+
+                if (OS == "MacOS-arm64" && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    string newAppBundlePath = Path.Combine(outputFolder, Name + ".app");
+                    string appRoot = Directory.Exists(newAppBundlePath) ? newAppBundlePath : targetDir;
+                    string exePath = Path.Combine(targetDir, Name);
                     
-                    string exePath = Path.Combine(destMacOsFolder, exeName);
-            
+                    RunShellCommand($"xattr -cr \"{appRoot}\"");
+                    
+                    RunShellCommand($"find \"{appRoot}\" -type f -name \"._*\" -delete");
+                    RunShellCommand($"find \"{appRoot}\" -type f -name \".DS_Store\" -delete");
+
                     if (File.Exists(exePath))
                     {
-                        Process.Start("chmod", $"+x \"{exePath}\"");
-                    }
-                    else 
-                    {
-                         GameConsole.Log($"[Build] Warning: Could not find executable at {exePath} to set permissions.");
+                        RunShellCommand($"chmod +x \"{exePath}\"");
+                        RunShellCommand($"codesign --force --deep -s - \"{appRoot}\"");
+                        GameConsole.Log("[Build] App Signed & Quarantines Removed.");
                     }
                 }
+                else if (OS == "MacOS-arm64") GameConsole.Log("[Build] Warning: Build files will need to be signed");
                 
-                // MacOS Changing Name
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && Directory.Exists(originalAppPath))
-                {
-                    if (Name != EngineName)
-                    {
-                        if (Directory.Exists(newAppPath)) Directory.Delete(newAppPath, true);
-                        Directory.Move(originalAppPath, newAppPath);
-                    }
-
-                    targetDir = Path.Combine(newAppPath, "Contents", "MacOS");
-                    
-                    string plistPath = Path.Combine(newAppPath, "Contents", "Info.plist");
-                    if (File.Exists(plistPath))
-                    {
-                        string plistContent = File.ReadAllText(originalAppPath);
-
-                        plistContent = plistContent.Replace(EngineName, Name);
-                        File.WriteAllText(plistPath, plistContent);
-                    }
-                }
-
-                GameConsole.Log($"[Build] Build finished");
-        
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) 
-                    Process.Start("explorer.exe", outputFolder);
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) 
-                    Process.Start("open", outputFolder);
+                GameConsole.Log("[Build] SUCCESS!");
+                
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) Process.Start("explorer.exe", outputFolder);
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) Process.Start("open", outputFolder);
             }
             catch (Exception e)
             {
-                GameConsole.Log($"[Build] Error: {e.Message}");
+                GameConsole.Log($"[Build] Failed: {e.Message}");
             }
         }
 
-        private static void RenameGameFiles(string folder, string name)
+        private static void RenameGameFiles(string folder, string name, string OS)
         {
             string[] childDirs = Directory.GetDirectories(folder);
-            string[] extensions = { "", ".exe", ".dll", ".pdb", ".deps.json", ".runtimeconfig.json" };
+            List<string> extensions = new List<String>() {".pdb", ".deps.json", ".runtimeconfig.json" };
 
+            if (OS == "Windows-x64") extensions.Add(".exe");
+            else if (OS == "MacOS-arm64") extensions.Add("");
+            
             foreach (var ext in extensions)
             {
-                string oldFile = Path.Combine(folder, $"{EngineName}.{ext}");
-                string newFile = Path.Combine(folder, $"{name}.{ext}");
+                string oldFile = Path.Combine(folder, $"{EngineName}{ext}");
+                string newFile = Path.Combine(folder, $"{name}{ext}");
 
                 if (File.Exists(oldFile))
                 {
                     if (File.Exists(newFile)) File.Delete(newFile);
                     
                     File.Move(oldFile, newFile);
-                    EngineLog.Log($"[Build] File {oldFile} renamed to {newFile}");
+                    GameConsole.Log($"[Build] Renamed: {Path.GetFileName(oldFile)} -> {Path.GetFileName(newFile)}");
                 }
             }
             
@@ -153,11 +181,12 @@ namespace CSCanbulatEngine.FileHandling;
 
                 content.Replace(EngineName, name);
                 File.WriteAllText(depsFile, content);
+                GameConsole.Log("[Build] Patched .deps.json references");
             }
 
             foreach (string childDir in childDirs)
             {
-                RenameGameFiles(childDir, name);
+                RenameGameFiles(childDir, name, OS);
             }
         }
 
@@ -179,6 +208,23 @@ namespace CSCanbulatEngine.FileHandling;
             }
 
             return null;
+        }
+        
+        private static void RunShellCommand(string command)
+        {
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/bash",
+                    Arguments = $"-c \"{command}\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+            process.Start();
+            process.WaitForExit();
         }
 
         public static void BuildWindow()
@@ -345,6 +391,42 @@ namespace CSCanbulatEngine.FileHandling;
                         ss.LoadScene(scenePath);
                         return config.GameName;
                     }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"[Engine] Failed to load Game.config: {e.Message}");
+                    return null;
+                    throw;
+                }
+            }
+            else
+            {
+                Console.WriteLine("[Engine] No Game.config found! Closing program...");
+                System.Environment.Exit(0);
+                return null;
+            }
+            return null;
+        }
+
+        public static GameConfig? GetGameConfig()
+        {
+            string exePath = Process.GetCurrentProcess().MainModule?.FileName;
+            string baseDirectory = Path.GetDirectoryName(exePath);
+            
+            EngineLog.Log($"Base directory: {baseDirectory}");
+
+            string configPath = Path.Combine(baseDirectory, "Game.config");
+            
+            if (string.IsNullOrEmpty(baseDirectory)) baseDirectory = AppContext.BaseDirectory;
+
+            if (File.Exists(configPath))
+            {
+                try 
+                {
+                    string jsonString = File.ReadAllText(configPath);
+                    GameConfig config = JsonSerializer.Deserialize<GameConfig>(jsonString);
+
+                    return config;
                 }
                 catch (Exception e)
                 {
