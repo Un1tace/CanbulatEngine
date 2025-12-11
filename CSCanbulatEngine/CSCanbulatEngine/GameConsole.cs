@@ -17,11 +17,17 @@ public static class GameConsole
         #endif
     }
 
+    /// <summary>
+    /// Clears all logs.
+    /// </summary>
     public static void ClearLog()
     {
         logs.Clear();
     }
 
+    /// <summary>
+    /// Renders Console In ImGui
+    /// </summary>
     public static void RenderConsole()
     {
         ImGui.Text("Console Logs");

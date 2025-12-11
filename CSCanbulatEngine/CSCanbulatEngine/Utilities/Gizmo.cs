@@ -10,6 +10,9 @@ namespace CSCanbulatEngine.Utilities;
 public enum GizmoAxis {None, X, Y, XY, Z}
 public enum GizmoFunction {Position, Rotation, Scale}
 
+/// <summary>
+/// Visual handles for changing position, scale and rotation
+/// </summary>
 public class Gizmo
 {
     private GizmoAxis _hoveredAxis = GizmoAxis.None;

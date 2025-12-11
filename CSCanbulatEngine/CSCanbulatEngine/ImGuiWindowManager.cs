@@ -4,7 +4,9 @@ using ImGuiNET;
 namespace CSCanbulatEngine;
 
 #if EDITOR
-// Entire script manages how the windows are placed in the application
+/// <summary>
+/// Entire script manages how the windows are placed in the application
+/// </summary>
 public class ImGuiWindowManager
 {
     //Values for engine.cs to take

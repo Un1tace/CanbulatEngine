@@ -15,6 +15,9 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace CSCanbulatEngine.FileHandling;
 
+/// <summary>
+/// Manages building and loading built games
+/// </summary>
     public static class BuildManager
     {
         private static string buildForOS = "";

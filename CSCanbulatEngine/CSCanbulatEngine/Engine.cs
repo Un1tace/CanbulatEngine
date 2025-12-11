@@ -28,6 +28,9 @@ using Silk.NET.OpenGL.Extensions.ImGui;
 
 //Using if editor to check if they are running the editor or the game for when they build it
 
+/// <summary>
+/// The Game Engine
+/// </summary>
 public class Engine
 {
     int minWidth = 1024;
@@ -814,6 +817,11 @@ public class Engine
                 if (ImGui.MenuItem("Console Open", "", ref _consoleTabActive))
                 {
                 }
+
+                if (ImGui.MenuItem("Project Settings Window Open", "", ref ProjectSettings.isOpen))
+                {
+                    
+                }
                 
                 ImGui.EndMenu();
             }
@@ -863,6 +871,11 @@ public class Engine
             ImGui.Text($"FPS: {ImGui.GetIO().Framerate:F1}");
 
             ImGui.End();
+        }
+
+        if (ProjectSettings.isOpen)
+        {
+            ProjectSettings.ProjectSettingsWindow();
         }
         
         // Render the editor UI
@@ -1536,6 +1549,10 @@ public class Engine
         {
             SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);
             ss.SaveScene(currentScene.SceneName);
+            if (currentProject.ProjectFolderPath != null && currentProject.ProjectName != null)
+            {
+                ProjectSerialiser.SaveProjectFile(currentProject.ProjectFolderPath, currentProject.ProjectName);
+            }
         }
         else
         {

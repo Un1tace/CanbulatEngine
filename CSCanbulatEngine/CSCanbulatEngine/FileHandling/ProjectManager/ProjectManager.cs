@@ -7,7 +7,9 @@ using Silk.NET.Maths;
 
 namespace CSCanbulatEngine.FileHandling.ProjectManager;
 
-
+/// <summary>
+/// Window for the project manager to show files in the game
+/// </summary>
 public static class ProjectManager
 {
     private static readonly string[] _ignoredFileTypes = new[] { ".DS_Store" };

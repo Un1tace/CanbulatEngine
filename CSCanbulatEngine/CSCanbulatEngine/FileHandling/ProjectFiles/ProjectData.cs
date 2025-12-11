@@ -11,5 +11,6 @@ public class ProjectData
         public string? LastOpenedScenePath { get; set; }
         
         public string StartupSceneName { get; set; } = "ExampleScene";
+        public Dictionary<string, string>? ProjectSettings { get; set; } = new Dictionary<string, string>();
     }
 }

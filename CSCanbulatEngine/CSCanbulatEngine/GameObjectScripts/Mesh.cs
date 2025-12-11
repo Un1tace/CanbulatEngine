@@ -2,7 +2,9 @@ using Silk.NET.OpenGL;
 
 namespace CSCanbulatEngine.GameObjectScripts;
 
-//Holds information about the mesh, vertex data and openGl buffer objects
+/// <summary>
+/// Holds information about the mesh, vertex data and openGl buffer objects
+/// </summary>
 public class Mesh
 {
     private readonly GL _gl;

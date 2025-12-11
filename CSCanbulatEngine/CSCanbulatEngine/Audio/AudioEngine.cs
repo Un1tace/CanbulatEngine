@@ -29,6 +29,12 @@ public class AudioEngine : IDisposable
         }
     }
 
+    /// <summary>
+    /// Louds sound into engine
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="path"></param>
+    /// <param name="streamFromFile"></param>
     public void LoadSound(string name, string path, bool streamFromFile = false)
     {
         if (_loadedClips.ContainsKey(name))
@@ -52,6 +58,10 @@ public class AudioEngine : IDisposable
         }
     }
 
+    /// <summary>
+    /// Plays the sound through the default device.
+    /// </summary>
+    /// <param name="name"></param>
     public void PlaySound(string name)
     {
         if (!_loadedClips.TryGetValue(name, out var clip))
@@ -92,6 +102,9 @@ public class AudioEngine : IDisposable
         AudioContext.Update();
     }
 
+    /// <summary>
+    /// Deinitialise and Dispose the Audio Engine
+    /// </summary>
     public void Dispose()
     {
         foreach (var clip in _loadedClips.Values)

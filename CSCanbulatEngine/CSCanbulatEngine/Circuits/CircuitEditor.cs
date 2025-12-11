@@ -12,6 +12,9 @@ using SixLabors.ImageSharp.ColorSpaces.Companding;
 
 namespace CSCanbulatEngine.Circuits;
 
+/// <summary>
+/// Holds information of the different types of items.
+/// </summary>
 public class Values()
 {
     public bool Bool = false;
@@ -42,6 +45,9 @@ public class Values()
 }
 
 // Rules
+/// <summary>
+/// Holds the values of items for the ChipPort
+/// </summary>
 public class ChipPortValue
 {
     public ChipPort AssignedChipPort;
@@ -93,9 +99,14 @@ public class ChipPortValue
         
         var lengthToCopy = Math.Min(bytes.Length, S_bufer.Length - 1);
         Array.Copy(bytes, S_bufer, lengthToCopy);
+        var stuff = SetValue("stuff");
     }
     
-    //Returns if value is accepted or not
+    /// <summary>
+    /// Sets the value of the argument onto the chip ports value
+    /// </summary>
+    /// <param name="value">To set</param>
+    /// <returns>If value has been set</returns>
     public bool SetValue<T>(T value)
     {
         if (AssignedChipPort.acceptedTypes.Contains(typeof(T)))
@@ -235,6 +246,10 @@ public class ChipPortValue
         return false;
     }
     
+    /// <summary>
+    /// Gets all types of values from chip port values
+    /// </summary>
+    /// <returns>The Values in the chip port</returns>
     public Values GetValue()
     {
         if (AssignedChipPort.IsInput)
@@ -280,6 +295,9 @@ public class ChipPortValue
     
 }
 
+/// <summary>
+/// The port of a chip and allows the transfer of values between connected ports in the circuit editor
+/// </summary>
 public class ChipPort
 {
     public int Id { get; set; }
@@ -373,6 +391,9 @@ public class ChipPort
         UpdateColor();
     }
 
+    /// <summary>
+    /// Updates color of port in CircuitEditor
+    /// </summary>
     public void UpdateColor()
     {
         if (this is ExecPort)
@@ -393,7 +414,11 @@ public class ChipPort
         }
     }
 
-    // !! Need to check if they are the same type
+    /// <summary>
+    /// Connect two ports together
+    /// </summary>
+    /// <param name="port">Port to connect this port to</param>
+    /// <returns>If the connection is successful</returns>
     public virtual bool ConnectPort(ChipPort port)
     {
         if (!IsInput)
@@ -459,11 +484,18 @@ public class ChipPort
         return true;
     }
 
+    /// <summary>
+    /// Gets if the port is connected to another port
+    /// </summary>
+    /// <returns>If port is connected to another port</returns>
     public virtual bool PortIsConnected()
     {
         return this.ConnectedPort != null || this.outputConnectedPorts.Count() != 0;
     }
 
+    /// <summary>
+    /// Disconnect port from the connected port if there are any
+    /// </summary>
     public virtual void DisconnectPort()
     {
         if (ConnectedPort == null) return;
@@ -485,6 +517,9 @@ public class ChipPort
         UpdateColor();
     }
 
+    /// <summary>
+    /// Renders the wire between two ports
+    /// </summary>
     public virtual void RenderWire()
     {
         if (ConnectedPort == null)
@@ -514,6 +549,9 @@ public class ChipPort
         }
     }
 
+    /// <summary>
+    /// Renders wire between port selected and mouse position
+    /// </summary>
     public void RenderFakeWire()
     {
         var drawList = ImGui.GetWindowDrawList();
@@ -535,6 +573,13 @@ public class ChipPort
         }
     }
 
+    /// <summary>
+    /// Smoothing function for between two values
+    /// </summary>
+    /// <param name="start">Starting Value</param>
+    /// <param name="end">End Value</param>
+    /// <param name="t">Percentage</param>
+    /// <returns>Smoothed Lerp function between start and end</returns>
     public float SineLerpFunction(float start, float end, float t)
     {
         float tInPi = MathF.PI * float.Clamp(t, 0, 1);
@@ -543,6 +588,9 @@ public class ChipPort
     }
 }
 
+/// <summary>
+/// Port of a chip that allows the flow of executions between chips.
+/// </summary>
 public class ExecPort : ChipPort
 {
     public List<ExecPort> InputConnections;
@@ -554,6 +602,11 @@ public class ExecPort : ChipPort
         if (isInput) InputConnections = new();
     }
 
+    /// <summary>
+    /// Connect Exec port to another Exec port
+    /// </summary>
+    /// <param name="port">Port to connect to</param>
+    /// <returns>If connection was successful</returns>
     public override bool ConnectPort(ChipPort port)
     {
         if (!IsInput)
@@ -583,6 +636,9 @@ public class ExecPort : ChipPort
         return true;
     }
     
+    /// <summary>
+    /// Render wire between two exec ports
+    /// </summary>
     public override void RenderWire()
     {
         if (!IsInput) return;
@@ -612,6 +668,9 @@ public class ExecPort : ChipPort
         }
     }
 
+    /// <summary>
+    /// Executes chip if inputs or executes connected port if output.
+    /// </summary>
     public void Execute()
     {
         if (IsInput)
@@ -643,6 +702,10 @@ public class ExecPort : ChipPort
         }
     }
 
+    /// <summary>
+    /// Returns if the port is connected to another port
+    /// </summary>
+    /// <returns>If connected to another port</returns>
     public override bool PortIsConnected()
     {
         if (IsInput)
@@ -655,6 +718,9 @@ public class ExecPort : ChipPort
         }
     }
     
+    /// <summary>
+    /// Disconnect port from another connected port
+    /// </summary>
     public override void DisconnectPort()
     {
         if (IsInput)
@@ -681,6 +747,9 @@ public class ExecPort : ChipPort
     }
 }
 
+/// <summary>
+/// A class for hold functions for the circuits logic and in the editor
+/// </summary>
 public class Chip
 {
     public bool LoadedInBackground = false;
@@ -716,6 +785,14 @@ public class Chip
         OnInstantiation();
     }
 
+    /// <summary>
+    /// Add port to chip
+    /// </summary>
+    /// <param name="name">Name of port</param>
+    /// <param name="isInput">Choose if input of output</param>
+    /// <param name="acceptedValueTypes">Types of values which are accepted</param>
+    /// <param name="showName">Choose to show name on chip or not</param>
+    /// <returns>The port that's been added to the chip</returns>
     public ChipPort AddPort(string name, bool isInput, List<Type> acceptedValueTypes, bool showName = false)
     {
         int nextAvaliableID = -1;
@@ -741,6 +818,13 @@ public class Chip
         return port;
     }
 
+    /// <summary>
+    /// Add Execution port to a chip
+    /// </summary>
+    /// <param name="name">Name of the port</param>
+    /// <param name="isInput">Choose if port is an input or output</param>
+    /// <param name="showName">Choose to show name of the port</param>
+    /// <returns>The Execution port that has been added to the chip</returns>
     public ExecPort AddExecPort(string name, bool isInput, bool showName = false)
     {
         int nextAvaliableID = -1;
@@ -760,11 +844,17 @@ public class Chip
         return port;
     }
     
+    /// <summary>
+    /// Function to add do logic of the chip when executed
+    /// </summary>
     public virtual void OnExecute()
     {
         OutputExecPorts[0].Execute();
     }
     
+    /// <summary>
+    /// Update chip configuration
+    /// </summary>
     public virtual void UpdateChipConfig()
     {
         foreach (var port in InputPorts)
@@ -773,12 +863,21 @@ public class Chip
         }
     }
 
+    /// <summary>
+    /// Executed when port type has been changed
+    /// </summary>
+    /// <param name="port">Port with changed port type</param>
     public virtual void PortTypeChanged(ChipPort? port)
     {
         if (port == null) return;
         port.UpdateColor();
     }
 
+    /// <summary>
+    /// Find port on chip
+    /// </summary>
+    /// <param name="id">Id of port on chip</param>
+    /// <returns>Port found</returns>
     public ChipPort? FindPort(int id)
     {
         foreach (var port in new List<ChipPort>().Concat(InputPorts).Concat(OutputPorts).Concat(InputExecPorts).Concat(OutputExecPorts))
@@ -792,6 +891,10 @@ public class Chip
         return null;
     }
 
+    /// <summary>
+    /// Get next available ID for the port on a chip
+    /// </summary>
+    /// <returns>ID</returns>
     private int NextAvaliablePortIDFunc()
     {
         int nextAvaliableID = -1;
@@ -808,33 +911,58 @@ public class Chip
         return nextAvaliableID;
     }
 
-    // Used for displaying custom stuff on chips, used in override on chips
+    /// <summary>
+    /// Used for displaying custom stuff on chips, used in override on chips
+    /// </summary>
     public virtual void DisplayCustomItem() {}
 
-    // Renders custom inspector options on the inspector if the chip is selected and needed
+    /// <summary>
+    /// Renders custom inspector options on the inspector if the chip is selected and needed
+    /// </summary>
     public virtual void ChipInspectorProperties() {}
 
-    // Any clean up that is needed before the chip is deleted
+    /// <summary>
+    /// Any clean up that is needed before the chip is deleted
+    /// </summary>
     public virtual void OnDestroy() {}
     
-    // Executed when any child port is connected
+    /// <summary>
+    /// Executed when any child port is connected
+    /// </summary>
+    /// <param name="childPort">Port on chip that has been connected</param>
+    /// <param name="portConnectedTo">Port connected to</param>
     public virtual void ChildPortIsConnected(ChipPort childPort, ChipPort portConnectedTo) {}
     
-    // Executed when any child port is disconnected
+    /// <summary>
+    /// Executed when any child port is disconnected
+    /// </summary>
+    /// <param name="childPort">Port that has been disconnected</param>
     public virtual void ChildPortIsDisconnected(ChipPort childPort) {}
     
-    // Used for saving custom properties on the specific chip that will be needed in the circuit editor
+    /// <summary>
+    /// Used for saving custom properties on the specific chip that will be needed in the circuit editor
+    /// </summary>
+    /// <returns>Properties to be saved on the chip</returns>
     public virtual Dictionary<string, string> GetCustomProperties()
     {
         return new Dictionary<string, string>();
     }
 
-    // Used for setting custom properties on the specific chip when loaded
+    /// <summary>
+    /// Used for setting custom properties on the specific chip when loaded
+    /// </summary>
+    /// <param name="properties">Properties to be set onto the chip</param>
     public virtual void SetCustomProperties(Dictionary<string, string> properties) {}
 
+    /// <summary>
+    /// Executed when chip is created
+    /// </summary>
     public virtual void OnInstantiation() {}
 }
 
+/// <summary>
+/// Class for the entirety of the circuit editor for the game engine
+/// </summary>
 public static class CircuitEditor
 {
     public static List<Chip> chips = new List<Chip>();
@@ -860,6 +988,9 @@ public static class CircuitEditor
     public static Vector2 chipPosClipboard = Vector2.Zero;
     public static string chipUnconnectedPortClipboard = "";
     
+    /// <summary>
+    /// Render entire circuit editor
+    /// </summary>
     public unsafe static void Render()
     {
         ImGui.SetWindowFontScale(CircuitEditor.Zoom);
@@ -956,6 +1087,12 @@ public static class CircuitEditor
         RenderStatusBar();
     }
 
+    /// <summary>
+    /// Render the individual chip in the circuit editor
+    /// </summary>
+    /// <param name="chip">The chip to render</param>
+    /// <param name="canvasPos">Canvas position</param>
+    /// <param name="drawList">Draw List</param>
     private static unsafe void RenderChip(Chip chip, Vector2 canvasPos, ImDrawListPtr drawList)
     {
         ImGui.PushID(chip.Id);
@@ -1467,6 +1604,9 @@ public static class CircuitEditor
         ImGui.PopID();
     }
     
+    /// <summary>
+    /// Render the status bar at bottom of circuit editor
+    /// </summary>
     private static void RenderStatusBar()
     {
         float statusBarHeight = ImGui.GetFrameHeight();
@@ -1500,6 +1640,9 @@ public static class CircuitEditor
         ImGui.EndChild();
     }
 
+    /// <summary>
+    /// Render the main menu bar at top for circuit editor
+    /// </summary>
     public static void MainMenuBar()
     {
         string superKey = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "CMD" : "CTRL";
@@ -1530,6 +1673,10 @@ public static class CircuitEditor
 
     }
 
+    /// <summary>
+    /// Function to delete a chip in circuit editor
+    /// </summary>
+    /// <param name="chipToDelete">The chip to be erased</param>
     public static void DeleteChip(Chip chipToDelete)
     {
         if (chipToDelete == null) return;
@@ -1570,6 +1717,11 @@ public static class CircuitEditor
         chips.Remove(chipToDelete);
     }
 
+    /// <summary>
+    /// Get port at position
+    /// </summary>
+    /// <param name="mousePos">The position to check for ports</param>
+    /// <returns>Port that has been found at that location</returns>
     private static ChipPort? GetPortAt(Vector2 mousePos)
     {
         foreach (var chip in chips)
@@ -1594,7 +1746,9 @@ public static class CircuitEditor
         return null;
     }
     
-    // Inspector Stuff For Chips
+    /// <summary>
+    /// Render the inspector for chips
+    /// </summary>
     public static void RenderChipInspector()
     {
         if (lastSelectedChip != null)
@@ -1605,6 +1759,11 @@ public static class CircuitEditor
     }
 #endif
     
+    /// <summary>
+    /// Find the chips in the circuit editor by ID
+    /// </summary>
+    /// <param name="id">ID to find chip with</param>
+    /// <returns>The chip found at that ID</returns>
     public static Chip? FindChip(int id)
     {
         foreach (var chip in CircuitEditor.chips)
@@ -1618,6 +1777,11 @@ public static class CircuitEditor
         return null;
     }
 
+    /// <summary>
+    /// Find first chip by name
+    /// </summary>
+    /// <param name="name">Name to search for</param>
+    /// <returns>Chip found</returns>
     public static Chip? FindChip(string name)
     {
         foreach (var chip in CircuitEditor.chips)
@@ -1628,6 +1792,10 @@ public static class CircuitEditor
         return null;
     }
 
+    /// <summary>
+    /// Get the next avaliable ID for the chips inside the circuit edior
+    /// </summary>
+    /// <returns>Next ID Avaliable</returns>
     public static int GetNextAvaliableChipID()
     {
         bool found = false;
@@ -1644,16 +1812,21 @@ public static class CircuitEditor
                 id++;
             }
         }
-
         return id;
     }
 }
 
+/// <summary>
+/// Different types for values that are accepted by ports
+/// </summary>
 public enum ChipTypes
 {
     Default, Bool, Int, Float, String, Vector2, GameObject, Exec, BoolList, IntList, FloatList, StringList, Vector2List, GameObjectList, AudioInfo, AudioInfoList, ComponentHolder, ComponentHolderList, Key, KeyList, MouseButton, MouseButtonList
 }
 
+/// <summary>
+/// Helps with converting types between each other
+/// </summary>
 public static class TypeHelper
 {
     public static string GetName(Type type)

@@ -8,6 +8,9 @@ using Newtonsoft.Json;
 
 namespace CSCanbulatEngine.FileHandling;
 
+/// <summary>
+/// Class to load and save scenes into the game
+/// </summary>
 public class SceneSerialiser
 {
     private readonly GL _gl;

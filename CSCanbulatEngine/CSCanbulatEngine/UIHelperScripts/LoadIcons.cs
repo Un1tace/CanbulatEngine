@@ -3,6 +3,9 @@ using Silk.NET.Maths;
 
 namespace CSCanbulatEngine.UIHelperScripts;
 
+/// <summary>
+/// Class to handle loading icons and hold icons for the game engine
+/// </summary>
 public class LoadIcons
 {
     public static Dictionary<string, uint> icons = new Dictionary<string, uint>();

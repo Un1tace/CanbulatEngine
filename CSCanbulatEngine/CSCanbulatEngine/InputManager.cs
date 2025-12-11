@@ -8,6 +8,9 @@ namespace CSCanbulatEngine;
 using Silk.NET.Input;
 using System.Collections.Generic;
 
+/// <summary>
+/// Manages and executes information for inputs from default keyboard and mouse
+/// </summary>
 public class InputManager
 {
     private static IKeyboard _primaryKeyboard;

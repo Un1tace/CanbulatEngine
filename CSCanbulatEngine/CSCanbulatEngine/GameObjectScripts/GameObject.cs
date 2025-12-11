@@ -9,7 +9,9 @@ using ImGuiNET;
 
 namespace CSCanbulatEngine.GameObjectScripts;
 
-//Represents object in game world, with transform and mesh
+/// <summary>
+/// Represents object in game world, with transform and mesh
+/// </summary>
 public class GameObject
 {
     public string Name { get; set; }

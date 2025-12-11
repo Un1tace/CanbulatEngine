@@ -10,6 +10,9 @@ using Newtonsoft.Json;
 
 namespace CSCanbulatEngine.GameObjectScripts;
 
+/// <summary>
+/// Load circuit script to do logic on an object within the game engine
+/// </summary>
 public class CircuitScript : Component
 {
     public List<Chip> chips = new List<Chip>();
@@ -21,6 +24,10 @@ public class CircuitScript : Component
         
     }
     
+    /// <summary>
+    /// Load circuit script into a component
+    /// </summary>
+    /// <param name="filePath">File path to circuit script</param>
     public void LoadCircuit(string filePath)
     {
         string json = File.ReadAllText(filePath);
@@ -63,6 +70,12 @@ public class CircuitScript : Component
         EngineLog.Log($"Loaded circuit script: {filePath} in object {AttachedGameObject.Name}");
     }
     
+    /// <summary>
+    /// Create chip from data
+    /// </summary>
+    /// <param name="data">Chip data</param>
+    /// <param name="setID">Set ID of chip</param>
+    /// <returns>Chip created</returns>
     public Chip? CreateChipFromData(CircuitData.ChipData data, bool setID = true)
     {
         Type chipType = Type.GetType(data.ChipType);
@@ -85,6 +98,10 @@ public class CircuitScript : Component
         return null;
     }
     
+    /// <summary>
+    /// Get next available chip ID in circuit script
+    /// </summary>
+    /// <returns>ID</returns>
     public int GetNextAvaliableChipID()
     {
         bool found = false;
@@ -105,6 +122,11 @@ public class CircuitScript : Component
         return id;
     }
     
+    /// <summary>
+    /// Finds chip with ID in circuit script
+    /// </summary>
+    /// <param name="id">Chip ID</param>
+    /// <returns>Chip</returns>
     public Chip? FindChip(int id)
     {
         foreach (var chip in chips)
@@ -118,6 +140,11 @@ public class CircuitScript : Component
         return null;
     }
 
+    /// <summary>
+    /// Find first chip with name
+    /// </summary>
+    /// <param name="name">Chip name</param>
+    /// <returns>Chip</returns>
     public Chip? FindChip(string name)
     {
         foreach (var chip in chips)
@@ -131,6 +158,9 @@ public class CircuitScript : Component
     bool searchButtonClicked = false;
 
     #if EDITOR
+    /// <summary>
+    /// Render the inspector for the circuit script component
+    /// </summary>
     public override void RenderInspector()
     {
         if (ImGui.ImageButton("SearchCircuitScript", (IntPtr)LoadIcons.icons["MagnifyingGlass.png"], new Vector2(20)))
@@ -173,6 +203,10 @@ public class CircuitScript : Component
         ImGui.Text($"Circuit Script Loaded: {CircuitScriptName}");
     }
 
+    /// <summary>
+    /// Get properties of circuit script component
+    /// </summary>
+    /// <returns>Properties of the component</returns>
     public override Dictionary<string, string> GetCustomProperties()
     {
         var circuitProperties = new Dictionary<string, string>
@@ -185,6 +219,10 @@ public class CircuitScript : Component
     }
 #endif
 
+    /// <summary>
+    /// Set properties of the component
+    /// </summary>
+    /// <param name="properties">Properties to set</param>
     public override void SetCustomProperties(Dictionary<string, string> properties)
     {
         CircuitScriptDirPath = properties["CircuitPath"];
@@ -192,6 +230,9 @@ public class CircuitScript : Component
         LoadCircuit(Path.Combine(CircuitScriptDirPath, CircuitScriptName) + ".ccs");
     }
 
+    /// <summary>
+    /// Destroy and clean up component
+    /// </summary>
     public override void DestroyComponent()
     {
         foreach (var chip in chips)

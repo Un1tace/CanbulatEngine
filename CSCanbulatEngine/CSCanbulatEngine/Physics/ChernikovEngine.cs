@@ -3,9 +3,12 @@ using CSCanbulatEngine.GameObjectScripts;
 
 namespace CSCanbulatEngine.Physics;
 
+/// <summary>
+/// The physics engine for the Canbulat Engine
+/// </summary>
 public static class ChernikovEngine
 {
-    public static Vector2 Gravity = new Vector2(0f, -9.81f);
+    public static Vector2 Gravity => ProjectSettings.Gravity;
 
     private static readonly List<Rigidbody> _rigidbodies = new();
 

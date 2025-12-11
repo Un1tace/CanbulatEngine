@@ -27,6 +27,9 @@ public static class EventManager
         PredefineMainEvents();
     }
 
+    /// <summary>
+    /// Predefines already defined events for circuit editor
+    /// </summary>
     public static void PredefineMainEvents()
     {
         RegisterEvent(new Event("OnStart", false, true, false, "Executes when the game first loads."));
@@ -57,6 +60,10 @@ public static class EventManager
         RegisterEvent(new Event("OnMouseScrolled", false, true, false, "Executes when the mouse is scrolling."));
     }
     
+    /// <summary>
+    /// Register an event
+    /// </summary>
+    /// <param name="values"></param>
     public static void RegisterEvent(Event values)
     {
         if (RegisteredEvents.Any(e => e.EventName == values.EventName)) return;
@@ -68,6 +75,10 @@ public static class EventManager
         }
     }
 
+    /// <summary>
+    /// Remove an event
+    /// </summary>
+    /// <param name="values"></param>
     public static void DeleteEvent(Event values)
     {
         if (values == null || !values.CanConfig) return;
@@ -91,6 +102,12 @@ public static class EventManager
         }
     }
     
+    
+    /// <summary>
+    /// Adds event listener onto an event
+    /// </summary>
+    /// <param name="theEvent"></param>
+    /// <param name="listener"></param>
     public static void Subscribe(Event theEvent, Action<EventValues> listener)
     {
         if (!s_eventListeners.ContainsKey(theEvent.EventName))
@@ -100,6 +117,11 @@ public static class EventManager
         s_eventListeners[theEvent.EventName].Add(listener);
     }
 
+    /// <summary>
+    /// Removes an event listener from an event
+    /// </summary>
+    /// <param name="theEvent"></param>
+    /// <param name="listener"></param>
     public static void Unsubscribe(Event theEvent, Action<EventValues> listener)
     {
         if (theEvent == null || !s_eventListeners.ContainsKey(theEvent.EventName)) return;
@@ -118,6 +140,9 @@ public static class EventManager
         }
     }
 
+    /// <summary>
+    /// Clears all events and event listeners
+    /// </summary>
     public static void Clear()
     { 
         var eventsToDelete = new List<Event>(RegisteredEvents);

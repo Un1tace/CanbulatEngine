@@ -6,7 +6,9 @@ using Silk.NET.OpenGL;
 using System;
 using System.IO;
 
-// Shader, needed code to put on gpu to show cool stuff on screen
+/// <summary>
+/// Shader, needed code to put on gpu to show cool stuff on screen
+/// </summary>
 public class Shader
 {
     // Identifiers for shader program

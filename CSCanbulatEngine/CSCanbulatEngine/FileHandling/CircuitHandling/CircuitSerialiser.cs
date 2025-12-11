@@ -10,6 +10,11 @@ namespace CSCanbulatEngine.FileHandling.CircuitHandling;
 public static class CircuitSerialiser
 {
     #if EDITOR
+    /// <summary>
+    /// Save the circuit in file at location
+    /// </summary>
+    /// <param name="circuitName">Name of circuit file</param>
+    /// <param name="filePath">Path to file</param>
     public static void SaveCircuit(string circuitName, string filePath = "")
     {
         if (filePath == "")
@@ -112,6 +117,11 @@ public static class CircuitSerialiser
         Engine.ReloadAllCircuitScripts();
     }
 
+    /// <summary>
+    /// Get the ports value as a string
+    /// </summary>
+    /// <param name="port">The port to get the value of</param>
+    /// <returns>String value</returns>
     public static string GetPortValueAsString(ChipPort port)
     {
         var portValue = port.Value;
@@ -128,6 +138,11 @@ public static class CircuitSerialiser
     }
 #endif
 
+    /// <summary>
+    /// Parse the string value and set it onto the port value
+    /// </summary>
+    /// <param name="portValueData">The value to set</param>
+    /// <param name="portToSet">The port to set it to</param>
     public static void ParseAndSetPortData(CircuitData.UnconnectedPortValueData portValueData, ChipPort portToSet)
     {
         if (portToSet != null)
@@ -157,6 +172,11 @@ public static class CircuitSerialiser
         }
     }
     
+    /// <summary>
+    /// Get chip information
+    /// </summary>
+    /// <param name="chip">Chip to get information of</param>
+    /// <returns>Chipdata</returns>
     public static CircuitData.ChipData GetChipData(Chip chip)
     {
         var theChip = new CircuitData.ChipData
@@ -172,6 +192,12 @@ public static class CircuitSerialiser
         return theChip;
     }
 
+    /// <summary>
+    /// Create a chip from chip data
+    /// </summary>
+    /// <param name="data">Information for chip</param>
+    /// <param name="setID">Choose to set ID in circuit editor</param>
+    /// <returns>Created chip</returns>
     public static Chip? CreateChipFromData(CircuitData.ChipData data, bool setID = true)
     {
         Type chipType = Type.GetType(data.ChipType);
@@ -188,6 +214,10 @@ public static class CircuitSerialiser
         return null;
     }
 
+    /// <summary>
+    /// Load circuit from filepath
+    /// </summary>
+    /// <param name="filePath">file path to file</param>
     public static void LoadCircuit(string filePath)
     {
         string json = File.ReadAllText(filePath);

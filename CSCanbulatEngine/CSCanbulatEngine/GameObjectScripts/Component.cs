@@ -3,6 +3,9 @@ using ImGuiNET;
 
 namespace CSCanbulatEngine.GameObjectScripts;
 
+/// <summary>
+/// Add-ons to an object to make it do functions.
+/// </summary>
 public class Component
 {
     public static readonly List<(string, Type)> AllComponents = new()

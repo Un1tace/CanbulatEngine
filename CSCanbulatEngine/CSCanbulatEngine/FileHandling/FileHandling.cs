@@ -3,8 +3,16 @@ using System.Runtime.InteropServices;
 
 namespace CSCanbulatEngine.FileHandling;
 
+/// <summary>
+/// Class to help with file handling
+/// </summary>
 public class FileHandling
 {
+    /// <summary>
+    /// Get name of file with extension from entire filePath
+    /// </summary>
+    /// <param name="entireDirectory">File path</param>
+    /// <returns>Name</returns>
     public static string GetNameOfFile(string entireDirectory)
     {
         return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -12,6 +20,10 @@ public class FileHandling
             : entireDirectory.Split("/").Last();
     }
 
+    /// <summary>
+    /// Open filepath to where its stored
+    /// </summary>
+    /// <param name="path">Path to file</param>
     public static void ShowInFileManager(string path)
     {
         try

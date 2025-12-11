@@ -1,8 +1,14 @@
 namespace CSCanbulatEngine.Mesh;
 
-//MeshFactory >.<
+/// <summary>
+/// Mesh Factory for the Canbulat Engine. Makes multiple shapes for meshes.
+/// </summary>
 public class ChunFactory
 {
+    /// <summary>
+    /// Creates a triangle mesh
+    /// </summary>
+    /// <returns></returns>
     public static GameObjectScripts.Mesh CreateTriangle()
     {
         // float[] vertices = {
@@ -17,6 +23,10 @@ public class ChunFactory
         return CreateCircle(3);
     }
 
+    /// <summary>
+    /// Creates a Quad Mesh
+    /// </summary>
+    /// <returns></returns>
     public static GameObjectScripts.Mesh CreateQuad()
     {
         float[] vertices =
@@ -31,7 +41,12 @@ public class ChunFactory
         uint[] indices = { 0, 1, 2, 2, 3, 0 };
         return new GameObjectScripts.Mesh(Engine.gl, vertices, indices);
     }
-
+    
+    /// <summary>
+    /// Creates a circle with an amount of segments
+    /// </summary>
+    /// <param name="segments"></param>
+    /// <returns></returns>
     public static GameObjectScripts.Mesh CreateCircle(int segments)
     {
         float radius = 1;
