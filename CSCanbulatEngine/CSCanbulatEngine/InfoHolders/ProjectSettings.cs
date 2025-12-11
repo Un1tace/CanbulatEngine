@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Numerics;
+using CSCanbulatEngine.FileHandling;
 using ImGuiNET;
 
 namespace CSCanbulatEngine;
@@ -25,6 +26,18 @@ public static class ProjectSettings
          ImGui.Text("Gravity");
          ImGui.SameLine();
          ImGui.DragFloat2("Gravity", ref Gravity);
+
+         ImGui.BeginDisabled(Engine.currentProject.ProjectFolderPath == null && Engine.currentProject.ProjectName == null);
+         if (ImGui.Button("Save"))
+         {
+             ProjectSerialiser.SaveProjectFile(Engine.currentProject.ProjectFolderPath, Engine.currentProject.ProjectName);
+         }
+         ImGui.EndDisabled();
+         
+         if (ImGui.Button("Reset To Defaults"))
+         {
+             ResetToDefaults();
+         }
          
          ImGui.End();
     }
@@ -57,6 +70,9 @@ public static class ProjectSettings
         Gravity.Y = float.Parse(settings["Gravity.Y"], CultureInfo.InvariantCulture);
     }
 
+    /// <summary>
+    /// Reset project settings to default project settings.
+    /// </summary>
     public static void ResetToDefaults()
     {
         Gravity = new Vector2(0, -9.81f);
