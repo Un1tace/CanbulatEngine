@@ -9,6 +9,7 @@ using CSCanbulatEngine.FileHandling.ProjectManager;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.InfoHolders;
 using CSCanbulatEngine.Mesh;
+using CSCanbulatEngine.Physics;
 using CSCanbulatEngine.UIHelperScripts;
 using CSCanbulatEngine.Utilities;
 using Newtonsoft.Json;
@@ -142,6 +143,9 @@ public class Engine
     
 #endif
 
+    /// <summary>
+    /// Initialisation of CanbulatEngine
+    /// </summary>
     public void Run()
     {
         currentScene = new Scene("ExampleScene");
@@ -173,6 +177,9 @@ public class Engine
         window.Run();
     }
 
+    /// <summary>
+    /// Ran when ImGui, Silk.Net and OpenGL loads
+    /// </summary>
     private unsafe void OnLoad()
     {
         gl = GL.GetApi(window);
@@ -347,7 +354,10 @@ public class Engine
 
     }
     
-
+    /// <summary>
+    /// Executes Every Frame
+    /// </summary>
+    /// <param name="deltaTime"></param>
     private void OnUpdate(double deltaTime)
     {
         if (window.Size.X < minWidth || window.Size.Y < minHeight)
@@ -477,6 +487,8 @@ public class Engine
                 payload.floats["Delta Time"] = (float)deltaTime;
                 EventManager.Trigger(updateEvent, payload);
             }
+            
+            ChernikovEngine.Step((float)deltaTime);
         }
 
         Audio?.Update();
@@ -485,6 +497,10 @@ public class Engine
         InputManager.LateUpdate();
     }
 
+    /// <summary>
+    /// Renders GUI Elements
+    /// </summary>
+    /// <param name="deltaTime"></param>
     private unsafe void OnRender(double deltaTime)
     {
 #if EDITOR
@@ -1341,6 +1357,7 @@ public class Engine
             if (ImGui.ImageButton("Play", (IntPtr)LoadIcons.icons["Play.png"], new Vector2(buttonSize)))
             {
                 CurrentState = EngineState.Play;
+                ChernikovEngine.ResetRigidbodyValues();
                 var sceneData = SceneSerialiser.SceneDataFromCurrentScene();
                 _sceneSnapshotBeforePlay = JsonConvert.SerializeObject(sceneData, Formatting.Indented);
 

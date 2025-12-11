@@ -9,7 +9,8 @@ public class Component
     {
         ("Transform", typeof(Transform)),
         ("MeshRenderer", typeof(MeshRenderer)),
-        ("CircuitScript", typeof(CircuitScript))
+        ("CircuitScript", typeof(CircuitScript)),
+        ("Rigidbody", typeof(Rigidbody))
     };
     
     public bool _isEnabled = true;

@@ -426,6 +426,15 @@ public class GameObject
                     var circuitScript = new CircuitScript();
                     Engine._selectedGameObject.gameObject.AddComponent(circuitScript);
                 }
+
+                if (!Engine._selectedGameObject.gameObject.HasComponent<Rigidbody>())
+                {
+                    if (ImGui.MenuItem("Rigidbody"))
+                    {
+                        var rigidbody = new Rigidbody();
+                        Engine._selectedGameObject.gameObject.AddComponent(rigidbody);
+                    }
+                }
                     
                 ImGui.EndPopup();
             }
