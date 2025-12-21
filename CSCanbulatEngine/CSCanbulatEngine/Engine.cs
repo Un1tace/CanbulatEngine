@@ -66,7 +66,19 @@ public class Engine
     public static uint _whiteTexture;
     
     //Engine state config
-    public static EngineState CurrentState = EngineState.Editor;
+    private static EngineState _currentState = EngineState.Editor;
+    public static EngineState CurrentState { get {return _currentState; }
+        set
+        {
+            EngineState oldValue = _currentState;
+            _currentState = value;
+            if (oldValue == EngineState.Pause && value == EngineState.Play) ExecuteOnResume();
+            else if (value == EngineState.Play) ExecuteOnPlay();
+            else if (value == EngineState.Pause) ExecuteOnPause();
+            else if (value == EngineState.Editor) ExecuteOnStop();
+        }
+
+    }
     private static string _sceneSnapshotBeforePlay;
     
     //Audio Engine
@@ -86,7 +98,7 @@ public class Engine
     private static Silk.NET.Maths.Vector2D<int> ViewportSize;
     
     // Font
-    public static ImFontPtr _customFont;
+    private static ImFontPtr _customFont;
     public static ImFontPtr _extraThickFont;
 
     private bool showInfoWindow = false;
@@ -99,21 +111,21 @@ public class Engine
     public static Byte[] _nameBuffer = new Byte[128];
     
     public static bool renamePopupOpen = false;
-    public static bool nameScenePopupOpen = false;
-    public static bool nameSceneAsPopup = false;
+    private static bool nameScenePopupOpen = false;
+    private static bool nameSceneAsPopup = false;
     public static bool createProjectPopup = false;
     public static bool projectFoundPopup = false;
     public static bool renameFilePopupOpen = false;
 
     //Ciruit editor popups
-    public static bool renameCircuitFileAsPopup = false;
+    private static bool renameCircuitFileAsPopup = false;
     
     // Circuit Editor Port Config
     public static bool portConfigWindowOpen = false;
     public static Vector2? portConfigWindowPosition = null;
     public static Vector2? portConfigWindowSize = null;
     
-    public static bool openSpawnMenuNextFrame = false;
+    private static bool openSpawnMenuNextFrame = false;
     
     //Project Manager
     public static string projectFilePath = "";
@@ -121,7 +133,7 @@ public class Engine
     
     
     //Hierarchy stuff
-    public bool HierarchyNeedsRefresh = false;
+    private bool HierarchyNeedsRefresh = false;
     
     //Gizmo
     private Gizmo _gizmo;
@@ -139,7 +151,7 @@ public class Engine
     
     //Viewport
     public static bool _isViewportFocused { get; private set; } = false;
-    public static string gameObjectClipBoard = "";
+    private static string gameObjectClipBoard = "";
     
     //Build menu
     public static bool buildMenuOpen = false;
@@ -1365,6 +1377,15 @@ public class Engine
         // ImGui.Begin("Toolbar", flags);
         float buttonSize = ImGui.GetContentRegionAvail().X - 5f;
 
+        bool twoButtonsPerRow = buttonSize >= 50f;
+
+        if (twoButtonsPerRow) buttonSize = (buttonSize / 2f) - 2.5f;
+        
+        if (twoButtonsPerRow)
+        {
+            ImGui.SameLine();
+        }
+
         if (CurrentState == EngineState.Editor)
         {
             if (ImGui.ImageButton("Play", (IntPtr)LoadIcons.icons["Play.png"], new Vector2(buttonSize)))
@@ -1386,8 +1407,6 @@ public class Engine
                 CurrentState = CurrentState == EngineState.Play ? EngineState.Pause : EngineState.Play;
             }
         }
-
-        // ImGui.SameLine();
 
         if (CurrentState != EngineState.Editor)
         {
@@ -1645,6 +1664,62 @@ public class Engine
                 if (component is CircuitScript circuitScript)
                 {
                     circuitScript.LoadCircuit(Path.Combine(circuitScript.CircuitScriptDirPath, circuitScript.CircuitScriptName) + ".ccs");
+                }
+            }
+        }
+    }
+
+    public static void ExecuteOnPlay()
+    {
+        foreach (var gameObject in Engine.currentScene.GameObjects)
+        {
+            if (gameObject.HasComponent<CircuitScript>())
+            {
+                foreach (var chip in gameObject.GetComponent<CircuitScript>().chips)
+                {
+                    chip.OnPlay();
+                }
+            }
+        }
+    }
+
+    public static void ExecuteOnPause()
+    {
+        foreach (var gameObject in Engine.currentScene.GameObjects)
+        {
+            if (gameObject.HasComponent<CircuitScript>())
+            {
+                foreach (var chip in gameObject.GetComponent<CircuitScript>().chips)
+                {
+                    chip.OnPause();
+                }
+            }
+        }
+    }
+
+    public static void ExecuteOnResume()
+    {
+        foreach (var gameObject in Engine.currentScene.GameObjects)
+        {
+            if (gameObject.HasComponent<CircuitScript>())
+            {
+                foreach (var chip in gameObject.GetComponent<CircuitScript>().chips)
+                {
+                    chip.OnResume();
+                }
+            }
+        }
+    }
+
+    public static void ExecuteOnStop()
+    {
+        foreach (var gameObject in Engine.currentScene.GameObjects)
+        {
+            if (gameObject.HasComponent<CircuitScript>())
+            {
+                foreach (var chip in gameObject.GetComponent<CircuitScript>().chips)
+                {
+                    chip.OnStop();
                 }
             }
         }

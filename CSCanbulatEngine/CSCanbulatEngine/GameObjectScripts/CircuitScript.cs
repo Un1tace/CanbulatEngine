@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Numerics;
+using System.Text;
 using CSCanbulatEngine.Circuits;
 using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.FileHandling.CircuitHandling;
@@ -18,6 +19,9 @@ public class CircuitScript : Component
     public List<Chip> chips = new List<Chip>();
     public string CircuitScriptName;
     public string CircuitScriptDirPath;
+
+    private SerialisationChip[] allSerialisedChips =>
+        chips.FindAll(e => e.GetType() == typeof(SerialisationChip)).Cast<SerialisationChip>().ToArray();
     
     public CircuitScript() : base("CircuitScript")
     {
@@ -35,7 +39,7 @@ public class CircuitScript : Component
         
         chips.Clear();
         CircuitScriptName = Path.GetFileNameWithoutExtension(filePath);
-        CircuitScriptDirPath = Path.GetDirectoryName(filePath);
+        CircuitScriptDirPath = filePath.TrimEnd(CircuitScriptName.ToCharArray());
         
         foreach (var chip in circuitInfo.Chips)
         {
@@ -68,6 +72,14 @@ public class CircuitScript : Component
             
         }
         EngineLog.Log($"Loaded circuit script: {filePath} in object {AttachedGameObject.Name}");
+
+        foreach (var chip in allSerialisedChips)
+        {
+            chip.valuesHeld = chip.defaultValues;
+            chip.originalValuesHeld = chip.valuesHeld;
+        }
+        
+        EngineLog.Log($"Loaded serialised chip values into circuit script: {CircuitScriptName}");
     }
     
     /// <summary>
@@ -139,6 +151,23 @@ public class CircuitScript : Component
 
         return null;
     }
+    
+    /// <summary>
+    /// Find all chips by type of chip
+    /// </summary>
+    /// <param name="typeOfChip">Chip type to look for</param>
+    /// <returns>Chips of that type in script</returns>
+    public static Chip[]? FindAllChipsByType(Type typeOfChip)
+    {
+        List<Chip> chips = new List<Chip>();
+
+        foreach (var chip in chips)
+        {
+            if (chip.GetType() == typeOfChip) chips.Add(chip);
+        }
+        
+        return chips.ToArray();
+    }
 
     /// <summary>
     /// Find first chip with name
@@ -201,6 +230,51 @@ public class CircuitScript : Component
 
         ImGui.Separator();
         ImGui.Text($"Circuit Script Loaded: {CircuitScriptName}");
+
+        if (allSerialisedChips.Any())
+        {
+            ImGui.Separator();
+            ImGui.Text("Serialisation Values");
+
+            foreach (var chip in allSerialisedChips)
+            {
+                ImGui.Text(chip.Name);
+
+                ImGui.SameLine();
+                
+                if (chip.serialisationType == typeof(bool))
+                {
+                    if (ImGui.Checkbox("Value", ref chip.valuesHeld.Bool))
+                    {
+                    }
+                }
+                else if (chip.serialisationType == typeof(float))
+                {
+                    if (ImGui.InputFloat("Value", ref chip.valuesHeld.Float))
+                    {
+                    }
+                }
+                else if (chip.serialisationType == typeof(int))
+                {
+                    if (ImGui.InputInt("Value", ref chip.valuesHeld.Int))
+                    {
+                    }
+                }
+                else if (chip.serialisationType == typeof(string))
+                {
+                    if (ImGui.InputText("Value", chip.stringSerialisationValue, (uint)chip.stringSerialisationValue.Count()))
+                    {
+                        chip.valuesHeld.String = Encoding.UTF8.GetString(chip.stringSerialisationValue).TrimEnd('\0');
+                    }
+                }
+                else if (chip.serialisationType == typeof(Vector2))
+                {
+                    if (ImGui.InputFloat2("Value", ref chip.valuesHeld.Vector2))
+                    {
+                    }
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -211,9 +285,14 @@ public class CircuitScript : Component
     {
         var circuitProperties = new Dictionary<string, string>
         {
-            { "CircuitPath", CircuitScriptDirPath },
+            { "CircuitScriptDirPath", CircuitScriptDirPath },
             {"CircuitScriptName", CircuitScriptName}
         };
+
+        foreach (var chip in allSerialisedChips)
+        {
+            circuitProperties[$"SER:{chip.Id.ToString()}"] = chip.GetValuesAsString(chip.valuesHeld);
+        }
         
         return circuitProperties;
     }
@@ -225,9 +304,25 @@ public class CircuitScript : Component
     /// <param name="properties">Properties to set</param>
     public override void SetCustomProperties(Dictionary<string, string> properties)
     {
-        CircuitScriptDirPath = properties["CircuitPath"];
-        CircuitScriptName = properties["CircuitScriptName"];
-        LoadCircuit(Path.Combine(CircuitScriptDirPath, CircuitScriptName) + ".ccs");
+        if (properties.TryGetValue("CircuitScriptName", out var n)) CircuitScriptName = n;
+        if (properties.TryGetValue("CircuitScriptDirPath", out var p)) CircuitScriptDirPath = p;
+
+        if (!string.IsNullOrWhiteSpace(CircuitScriptDirPath) && !string.IsNullOrWhiteSpace(CircuitScriptName))
+        {
+            var path = Path.Combine(CircuitScriptDirPath, CircuitScriptName + ".ccs");
+            if (File.Exists(path)) LoadCircuit(path);
+            CircuitScriptDirPath = p;
+            CircuitScriptName = n;
+        }
+
+        foreach (var chip in allSerialisedChips)
+        {
+            if (properties.TryGetValue($"SER:{chip.Id.ToString()}", out var v))
+            {
+                chip.valuesHeld = chip.ParseValues(v);
+            }
+            else chip.valuesHeld = chip.defaultValues;
+        }
     }
 
     /// <summary>

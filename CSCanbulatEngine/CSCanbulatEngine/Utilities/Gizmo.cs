@@ -340,18 +340,28 @@ public class Gizmo
 
     public static void RenderToolbar()
     {
+
+        float buttonSize = ImGui.GetContentRegionAvail().X - 5f;
+
+        bool twoButtons = buttonSize >= 50f;
+
+        if (twoButtons) buttonSize = (buttonSize / 2f) - 2.5f;;
+        
         if (ImGui.ImageButton("Move", (IntPtr)LoadIcons.icons["Move.png"],
-                new Vector2(ImGui.GetContentRegionAvail().X - 5f, ImGui.GetContentRegionAvail().X - 5f)))
+                new Vector2(buttonSize)))
         {
             _selectedFunction = GizmoFunction.Position;
         }
+
+        if (twoButtons) ImGui.SameLine();
+        
         if (ImGui.ImageButton("Scale", (IntPtr)LoadIcons.icons["Scale.png"],
-                new Vector2(ImGui.GetContentRegionAvail().X - 5f, ImGui.GetContentRegionAvail().X - 5f)))
+                new Vector2(buttonSize)))
         {
             _selectedFunction = GizmoFunction.Scale;   
         }
         if (ImGui.ImageButton("Rotate", (IntPtr)LoadIcons.icons["Rotate.png"],
-                new Vector2(ImGui.GetContentRegionAvail().X - 5f, ImGui.GetContentRegionAvail().X - 5f)))
+                new Vector2(buttonSize)))
         {
             _selectedFunction = GizmoFunction.Rotation;
         }

@@ -756,7 +756,27 @@ public class Chip
     public int Id { get; }
     public string Name { get; set; }
     public Vector2 Position { get; set; }
-    public Vector2 Size { get; set; }
+
+    public Vector2 _size = Vector2.Zero;
+
+    public Vector2 Size
+    {
+        get
+        {
+            return _size;
+        } 
+        set
+        {
+            if (OriginalSize == Vector2.NegativeInfinity)
+            {
+                OriginalSize = value;
+            }
+
+            _size = value;
+        }
+    }
+
+    public Vector2 OriginalSize = Vector2.NegativeInfinity;
     public Action CircuitFunction { get; set; }
     public bool ShowCustomItemOnChip { get; set; }
 
@@ -958,6 +978,26 @@ public class Chip
     /// Executed when chip is created
     /// </summary>
     public virtual void OnInstantiation() {}
+    
+    /// <summary>
+    /// Executed when the game starts
+    /// </summary>
+    public virtual void OnPlay() {}
+    
+    /// <summary>
+    /// Executes when the game ends
+    /// </summary>
+    public virtual void OnStop() {}
+    
+    /// <summary>
+    /// Executes when the game is paused
+    /// </summary>
+    public virtual void OnPause() {}
+    
+    /// <summary>
+    /// Executes when the game is resumed from pause state
+    /// </summary>
+    public virtual void OnResume() {}
 }
 
 /// <summary>
@@ -1098,13 +1138,24 @@ public static class CircuitEditor
         ImGui.PushID(chip.Id);
         
         var chipPos = canvasPos + (chip.Position * Zoom) + panning;
-        var chipSize = chip.Size * Zoom;
+        float chipNameWidth = ImGui.CalcTextSize(chip.Name).X + 10f;
+
+        Vector2 newSize = Vector2.Zero;
+
+        if (chipNameWidth > chip.OriginalSize.X)
+        {
+            newSize = new Vector2(chipNameWidth, chip.OriginalSize.Y);
+        }
+        else newSize = chip.OriginalSize;
+        
+        var chipSize = newSize * Zoom;
         var titleBarHeight = 30f * Zoom;
+        
+        
         
         drawList.AddRectFilled(chipPos, chipPos + chipSize, ImGui.GetColorU32(new Vector4(0.2f, 0.2f, 0.2f, 1.0f)));
         drawList.AddRectFilled(chipPos, chipPos + new Vector2(chipSize.X, titleBarHeight), ImGui.GetColorU32(chip.Color), 5f * Zoom, ImDrawFlags.RoundCornersTop);
         drawList.AddText(chipPos + new Vector2(5f, 5f), ImGui.GetColorU32(new Vector4(1f, 1f, 1f, 1.0f)), chip.Name);
-        
         ImGui.SetCursorScreenPos(chipPos);
         ImGui.InvisibleButton("chip_drag_area", new Vector2(chipSize.X-5f, titleBarHeight));
         if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left))
@@ -1793,6 +1844,23 @@ public static class CircuitEditor
     }
 
     /// <summary>
+    /// Find all chips by type of chip
+    /// </summary>
+    /// <param name="typeOfChip">Chip type to look for</param>
+    /// <returns>Chips of that type in editor</returns>
+    public static Chip[]? FindAllChipsByType(Type typeOfChip)
+    {
+        List<Chip> chips = new List<Chip>();
+
+        foreach (var chip in CircuitEditor.chips)
+        {
+            if (chip.GetType() == typeOfChip) chips.Add(chip);
+        }
+        
+        return chips.ToArray();
+    }
+
+    /// <summary>
     /// Get the next avaliable ID for the chips inside the circuit edior
     /// </summary>
     /// <returns>Next ID Avaliable</returns>
@@ -1829,6 +1897,8 @@ public enum ChipTypes
 /// </summary>
 public static class TypeHelper
 {
+    public static Type[] AllNonListTypes = [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton)];
+    public static Type[] AllListTypes = [typeof(List<bool>), typeof(List<float>), typeof(List<int>), typeof(List<string>), typeof(List<Vector2>), typeof(List<GameObject>), typeof(List<AudioInfo>), typeof(List<ComponentHolder>), typeof(List<Key>), typeof(List<MouseButton>)];
     public static string GetName(Type type)
     {
             if (type == typeof(bool))

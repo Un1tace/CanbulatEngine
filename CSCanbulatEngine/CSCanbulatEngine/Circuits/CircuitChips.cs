@@ -1,11 +1,13 @@
 using System.Data.SqlTypes;
 using System.Drawing;
+using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Windows.Markup;
 using CSCanbulatEngine.Audio;
 using CSCanbulatEngine.FileHandling;
+using CSCanbulatEngine.FileHandling.CircuitHandling;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
@@ -101,6 +103,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Miscellaneous/Audio/Play Audio", PlayAudioChip.Description, (pos) => new PlayAudioChip(CircuitEditor.GetNextAvaliableChipID(), "Play Audio", pos)),
         ("Miscellaneous/To String", Circuits.ToString.Description, (pos) => new ToString(CircuitEditor.GetNextAvaliableChipID(), "To String", pos)),
         ("Miscellaneous/String Format", Circuits.StringFormatChip.Description, (pos) => new StringFormatChip(CircuitEditor.GetNextAvaliableChipID(), "String Format Chip", pos)),
+        ("Miscellaneous/Serialisation Chip", Circuits.SerialisationChip.Description, (pos) => new SerialisationChip(CircuitEditor.GetNextAvaliableChipID(), "Serialisation Chip", pos)),
     };
     
     
@@ -1052,6 +1055,20 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("String Format Chip");
                         ImGui.Separator();
                         ImGui.Text(Circuits.StringFormatChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Serialisation Chip"))
+                    {
+                        CircuitEditor.chips.Add(new SerialisationChip(CircuitEditor.GetNextAvaliableChipID(), "Serialisation Chip",
+                            spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Serialisation Chip");
+                        ImGui.Separator();
+                        ImGui.Text(Circuits.SerialisationChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -2763,11 +2780,6 @@ public class EventChip : Chip
         {
             if (ImGui.InputText("Name", nameBuffer,128))
             {
-            
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Set"))
-            {
                 string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
                 string oldName = Name;
             
@@ -2921,11 +2933,8 @@ public class EventChip : Chip
                 ImGui.Separator();
 
                 ImGui.PushItemWidth(200);
-                ImGui.InputText("Name", portNameChangeBuffer,128);
-                ImGui.PopItemWidth();
-                ImGui.SameLine();
 
-                if (ImGui.Button("Set"))
+                if (ImGui.InputText("Name", portNameChangeBuffer,128))
                 {
                     string newName = Encoding.UTF8.GetString(portNameChangeBuffer).TrimEnd('\0');
                     string oldName = ports[portIndexToConfig.Value];
@@ -2948,7 +2957,7 @@ public class EventChip : Chip
 
                 if (ImGui.BeginCombo("Type", TypeHelper.GetName(portTypes[index])))
                 {
-                    List<Type> availableTypes = [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton)];
+                    List<Type> availableTypes = TypeHelper.AllNonListTypes.ToList();
 
                     foreach (var type in availableTypes)
                     {
@@ -4380,5 +4389,184 @@ public class StringFormatChip : Chip
         {
             RemoveArgumentPort();
         }
+    }
+}
+
+public class SerialisationChip : Chip
+{
+    public static string Description = "Add serialisation to your chips to change values within the editor.";
+    
+    public Type? serialisationType = typeof(bool);
+    private string _nameOfValue = "Serialised Value";
+
+    public Values defaultValues = new Values();
+
+    public Values originalValuesHeld = new Values();
+    public Values valuesHeld = new Values();
+    
+    public byte[] stringSerialisationValue = new byte[128];
+    private byte[] editorStringDefValue = new byte[128];
+    
+    private string NameOfValue
+    {
+        get { return _nameOfValue;} set
+        {
+            _nameOfValue = value.ToString();
+            Name = _nameOfValue;
+        }
+    }
+    
+    private byte[] portNameChangeBuffer = new byte[128];
+
+    private Type[] avaliableTypes = [typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2)];
+    public SerialisationChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        ConfigurePorts();
+        ShowCustomItemOnChip = true;
+    }
+
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.InputText("Name", portNameChangeBuffer, 128))
+        {
+            string newName = Encoding.UTF8.GetString(portNameChangeBuffer).TrimEnd('\0');
+            NameOfValue = newName;
+            
+        }
+        if (ImGui.BeginCombo("Type", serialisationType != null? TypeHelper.GetName(serialisationType) : "Null"))
+        {
+            foreach (var type in avaliableTypes)
+            {
+                if (ImGui.Selectable(TypeHelper.GetName(type), type == serialisationType))
+                {
+                    serialisationType = type;
+                    ConfigurePorts();
+                }
+            }
+
+            ImGui.EndCombo();
+        }
+        base.ChipInspectorProperties();
+    }
+
+    public void ConfigurePorts()
+    {
+        OutputPorts.Clear();
+
+        if (serialisationType != null)
+        {
+            AddPort("Value", false, [serialisationType], true);
+            OutputPorts[0].Value.ValueFunction = OutputFunction;
+        }
+    }
+
+    public override void DisplayCustomItem()
+    {
+        if (serialisationType == typeof(float))
+        {
+            ImGui.PushItemWidth(60 * CircuitEditor.Zoom);
+            if (ImGui.InputFloat($"##{Id}", ref defaultValues.Float, 0, 0, "%.2f"))
+            {
+            }
+        }
+        else if (serialisationType == typeof(int))
+        {
+            ImGui.PushItemWidth(90 * CircuitEditor.Zoom);
+            if (ImGui.InputInt($"##{Id}", ref defaultValues.Int))
+            {
+            }
+        }
+        else if (serialisationType == typeof(bool))
+        {
+            ImGui.PushItemWidth(60 * CircuitEditor.Zoom);
+            if (ImGui.Checkbox($"##{Id}", ref defaultValues.Bool))
+            {
+            }
+        }
+        else if (serialisationType == typeof(Vector2))
+        {
+            ImGui.PushItemWidth(90 * CircuitEditor.Zoom);
+            if (ImGui.InputFloat2($"##{Id}", ref defaultValues.Vector2))
+            {
+            }
+        }
+        else if (serialisationType == typeof(string))
+        {
+            ImGui.PushItemWidth(60 * CircuitEditor.Zoom);
+            {
+                if (ImGui.InputText($"##{Id}", editorStringDefValue, (uint)editorStringDefValue.Length))
+                {
+                    defaultValues.String = Encoding.UTF8.GetString(editorStringDefValue).TrimEnd('\0');
+                }
+            }
+        }
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        return new Values();
+    }
+
+    public override void OnPlay()
+    {
+        originalValuesHeld = valuesHeld;
+        base.OnPlay();
+    }
+
+    public override void OnStop()
+    {
+        valuesHeld = originalValuesHeld;
+    }
+
+    // Use to save serialisation values and original values
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        return new Dictionary<string, string>()
+        {
+            { "SerialisationType", TypeHelper.GetName(serialisationType) },
+            { "DefaultValueStr", GetValuesAsString(defaultValues) },
+            {"NameOfSerialiser", NameOfValue}
+        };
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.ContainsKey("SerialisationType")) serialisationType = TypeHelper.GetType(properties["SerialisationType"]);
+        if (properties.ContainsKey("DefaultValueStr")) defaultValues = ParseValues(properties["DefaultValueStr"]);
+        if (properties.ContainsKey("NameOfSerialiser")) NameOfValue = properties["NameOfSerialiser"];
+    }
+
+    public string GetValuesAsString(Values values)
+    {
+        string valueStr = "";
+        if (serialisationType == typeof(bool)) valueStr = values.Bool.ToString();
+        else if (serialisationType == typeof(int)) valueStr = values.Int.ToString();
+        else if (serialisationType == typeof(float)) valueStr = values.Float.ToString(CultureInfo.InvariantCulture);
+        else if (serialisationType == typeof(string)) valueStr = values.String;
+        else if (serialisationType == typeof(Vector2)) valueStr = $"{values.Vector2.X},{values.Vector2.Y}";
+
+        return valueStr;
+    }
+    
+    public Values ParseValues(string valueStr)
+    {
+        Values newValues = new Values();
+        if (serialisationType == typeof(bool)) newValues.Bool = bool.Parse(valueStr);
+        else if (serialisationType == typeof(int)) newValues.Int = int.Parse(valueStr);
+        else if (serialisationType == typeof(float)) newValues.Float = float.Parse(valueStr);
+        else if (serialisationType == typeof(string)) newValues.String = valueStr;
+        else if (serialisationType == typeof(Vector2)) 
+        { 
+            var parts = valueStr.Split(','); 
+            newValues.Vector2 = (new Vector2(float.Parse(parts[0], CultureInfo.InvariantCulture), 
+                float.Parse(parts[1], CultureInfo.InvariantCulture)));
+        }
+
+        return newValues;
+    }
+
+    public override void OnInstantiation()
+    {
+        base.OnInstantiation();
     }
 }
