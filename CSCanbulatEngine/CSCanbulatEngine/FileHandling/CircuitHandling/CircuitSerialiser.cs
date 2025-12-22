@@ -225,7 +225,7 @@ public static class CircuitSerialiser
         
         CircuitEditor.chips.Clear();
         CircuitEditor.CircuitScriptName = Path.GetFileNameWithoutExtension(filePath);
-        CircuitEditor.CircuitScriptDirPath = Path.GetDirectoryName(filePath);
+        CircuitEditor.CircuitScriptDirPath = filePath.TrimEnd((CircuitEditor.CircuitScriptName + ".ccs").ToCharArray());
         
         foreach (var chip in circuitInfo.Chips)
         {

@@ -241,38 +241,40 @@ public class CircuitScript : Component
                 ImGui.Text(chip.Name);
 
                 ImGui.SameLine();
-                
+                ImGui.PushID(chip.Id);
                 if (chip.serialisationType == typeof(bool))
                 {
-                    if (ImGui.Checkbox("Value", ref chip.valuesHeld.Bool))
+                    if (ImGui.Checkbox("##Value", ref chip.valuesHeld.Bool))
                     {
                     }
                 }
                 else if (chip.serialisationType == typeof(float))
                 {
-                    if (ImGui.InputFloat("Value", ref chip.valuesHeld.Float))
+                    if (ImGui.InputFloat("##Value", ref chip.valuesHeld.Float))
                     {
                     }
                 }
                 else if (chip.serialisationType == typeof(int))
                 {
-                    if (ImGui.InputInt("Value", ref chip.valuesHeld.Int))
+                    if (ImGui.InputInt("##Value", ref chip.valuesHeld.Int))
                     {
                     }
                 }
                 else if (chip.serialisationType == typeof(string))
                 {
-                    if (ImGui.InputText("Value", chip.stringSerialisationValue, (uint)chip.stringSerialisationValue.Count()))
+                    if (ImGui.InputText("##Value", chip.stringSerialisationValue, (uint)chip.stringSerialisationValue.Count()))
                     {
                         chip.valuesHeld.String = Encoding.UTF8.GetString(chip.stringSerialisationValue).TrimEnd('\0');
                     }
                 }
                 else if (chip.serialisationType == typeof(Vector2))
                 {
-                    if (ImGui.InputFloat2("Value", ref chip.valuesHeld.Vector2))
+                    if (ImGui.InputFloat2("##Value", ref chip.valuesHeld.Vector2))
                     {
                     }
                 }
+
+                ImGui.PopID();
             }
         }
     }
