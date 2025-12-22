@@ -363,6 +363,7 @@ public class GameObject
             for (int i = 0; i < Engine._selectedGameObject.gameObject.Components.Count(); i++)
             {
                 var component = Engine._selectedGameObject.gameObject.Components[i];
+                ImGui.PushID(Engine._selectedGameObject.gameObject.Components.FindIndex(theComponent => theComponent == component));
                 if (ImGui.CollapsingHeader(component.name, ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     if (component.canBeDisabled)
@@ -378,7 +379,7 @@ public class GameObject
                     if (component.canBeRemoved)
                     {
                         ImGui.PushID(Engine._selectedGameObject.gameObject.Components.FindIndex(theComponent => theComponent == component));
-                        if (ImGui.Button("Remove Component", new (ImGui.GetContentRegionAvail().X, ImGui.CalcTextSize("Add Component").Y)))
+                        if (ImGui.Button("Remove Component", new (ImGui.GetContentRegionAvail().X, ImGui.CalcTextSize("Add Component").Y + 5f)))
                         {
                             // Engine._selectedGameObject.gameObject.RemoveComponent(component);
                             nextInstruction._component = component;
@@ -392,6 +393,8 @@ public class GameObject
                     }
                     component.RenderInspector();
                 }
+
+                ImGui.PopID();
             }
 
             if (nextInstruction._instructionType == InstructionType.Remove && nextInstruction._component != null)

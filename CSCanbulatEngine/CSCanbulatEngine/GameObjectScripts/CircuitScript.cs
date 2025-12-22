@@ -192,10 +192,14 @@ public class CircuitScript : Component
     /// </summary>
     public override void RenderInspector()
     {
+        int id = AttachedGameObject.Components.FindIndex(e => e == this);
+        
+        ImGui.PushID(id);
         if (ImGui.ImageButton("SearchCircuitScript", (IntPtr)LoadIcons.icons["MagnifyingGlass.png"], new Vector2(20)))
         {
             searchButtonClicked = true;
         }
+        ImGui.PopID();
         
         Vector2 buttonPos = ImGui.GetItemRectMin();
         
