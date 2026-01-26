@@ -42,7 +42,7 @@ public class Gizmo
         //Turning the objects world position into the screen position in the viewport
         Vector2 objectScreenPos = WorldToScreen(selectedObject.GetComponent<Transform>().WorldPosition, viewMatrix,
             projectionMatrix, viewportPos, viewportSize);
-        float rotation = selectedObject.GetComponent<Transform>().Rotation;
+        float rotation = selectedObject.GetComponent<Transform>().WorldRotation;
         
         float cos = MathF.Cos(-rotation);
         float sin = MathF.Sin(-rotation);
@@ -84,8 +84,8 @@ public class Gizmo
             _draggedAxis = _hoveredAxis;
             _dragStartMousePos = io.MousePos;
             _dragStartObjectPos = selectedObject.GetComponent<Transform>().WorldPosition;
-            _dragStartObjectSize = selectedObject.GetComponent<Transform>().Scale;
-            _dragStartObjectRotation = selectedObject.GetComponent<Transform>().Rotation;
+            _dragStartObjectSize = selectedObject.GetComponent<Transform>().WorldScale;
+            _dragStartObjectRotation = selectedObject.GetComponent<Transform>().WorldRotation;
 
             if (_selectedFunction == GizmoFunction.Rotation)
             {
@@ -143,7 +143,7 @@ public class Gizmo
                         }
                     }
 
-                    selectedObject.GetComponent<Transform>().Scale = newScale;
+                    selectedObject.GetComponent<Transform>().WorldScale = newScale;
                 }
                 else if (_draggedAxis == GizmoAxis.Y)
                 {
@@ -157,7 +157,7 @@ public class Gizmo
                         newScale.X = newScale.Y * ((float)resolution.X / (float)resolution.Y);
                     }
 
-                    selectedObject.GetComponent<Transform>().Scale = newScale;
+                    selectedObject.GetComponent<Transform>().WorldScale = newScale;
                 }
                 else if (_draggedAxis == GizmoAxis.X)
                 {
@@ -170,7 +170,7 @@ public class Gizmo
                         newScale.Y = newScale.X * ((float)resolution.Y / (float)resolution.X);
                     }
                     
-                    selectedObject.GetComponent<Transform>().Scale = newScale;
+                    selectedObject.GetComponent<Transform>().WorldScale = newScale;
 
                 }
             }
@@ -182,7 +182,7 @@ public class Gizmo
                 
                 float deltaAngle = currentAngle - _dragStartAngle;
                 
-                selectedObject.GetComponent<Transform>().Rotation = _dragStartObjectRotation - deltaAngle;
+                selectedObject.GetComponent<Transform>().WorldRotation = _dragStartObjectRotation - deltaAngle;
                 
                 
                 // selectedObject.GetComponent<Transform>().Rotation =

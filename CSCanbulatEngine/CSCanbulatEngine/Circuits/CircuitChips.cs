@@ -100,6 +100,12 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Miscellaneous/Transform/Set Local Position", SetLocalPositionChip.Description, (pos) => new SetLocalPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Set Local Position", pos)),
         ("Miscellaneous/Transform/Get World Position", GetWorldPositionChip.Description, (pos) => new GetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Get World Position", pos)),
         ("Miscellaneous/Transform/Get Local Position", GetLocalPositionChip.Description, (pos) => new GetLocalPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Get Local Position", pos)),
+        ("Miscellaneous/Transform/Get World Rotation", GetWorldRotationChip.Description, (pos) => new GetWorldRotationChip(CircuitEditor.GetNextAvaliableChipID(), "Get World Rotation", pos)),
+        ("Miscellaneous/Transform/Get Local Rotation", GetLocalRotationChip.Description, (pos) => new GetLocalRotationChip(CircuitEditor.GetNextAvaliableChipID(), "Get Local Rotation", pos)),
+        ("Miscellaneous/Transform/Get World Rotation In Degrees", GetWorldRotationInDegreesChip.Description, (pos) => new GetWorldRotationInDegreesChip(CircuitEditor.GetNextAvaliableChipID(), "Get World Rotation In Degrees", pos)),
+        ("Miscellaneous/Transform/Get Local Rotation In Degrees", GetLocalRotationInDegreesChip.Description, (pos) => new GetLocalRotationInDegreesChip(CircuitEditor.GetNextAvaliableChipID(), "Get Local Rotation In Degrees", pos)),
+        ("Miscellaneous/Transform/Get World Scale", GetWorldScaleChip.Description, (pos) => new GetWorldScaleChip(CircuitEditor.GetNextAvaliableChipID(), "Get World Scale", pos)),
+        ("Miscellaneous/Transform/Get Local Scale", GetLocalScaleChip.Description, (pos) => new GetLocalScaleChip(CircuitEditor.GetNextAvaliableChipID(), "Get Local Scale", pos)),
         ("Miscellaneous/Audio/Play Audio", PlayAudioChip.Description, (pos) => new PlayAudioChip(CircuitEditor.GetNextAvaliableChipID(), "Play Audio", pos)),
         ("Miscellaneous/To String", Circuits.ToString.Description, (pos) => new ToString(CircuitEditor.GetNextAvaliableChipID(), "To String", pos)),
         ("Miscellaneous/String Format", Circuits.StringFormatChip.Description, (pos) => new StringFormatChip(CircuitEditor.GetNextAvaliableChipID(), "String Format Chip", pos)),
@@ -1013,6 +1019,90 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Get Local Position Chip");
                         ImGui.Separator();
                         ImGui.Text(GetLocalPositionChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get World Rotation Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetWorldRotationChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Get World Position", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get World Rotation Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetWorldRotationChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get Local Rotation Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetLocalRotationChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Get Local Position", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Local Rotation Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetLocalRotationChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get World Rotation In Degrees Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetWorldRotationInDegreesChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Get World Rotation In Degrees", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get World Rotation In Degrees Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetWorldRotationInDegreesChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get Local Rotation In Degrees Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetLocalRotationInDegreesChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Get Local Rotation In Degrees", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Local Rotation In Degrees Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetLocalRotationInDegreesChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get World Scale Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetWorldScaleChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Get World Scale", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get World Scale Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetWorldScaleChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get Local Scale Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetLocalScaleChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Get Local Scale", spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Local Scale Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetLocalScaleChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -4169,7 +4259,7 @@ public class GetWorldPositionChip : Chip
 
 public class GetLocalPositionChip : Chip
 {
-    public static string Description = "Gets the world-space position (as a Vector2) of the input GameObject.";
+    public static string Description = "Gets the local position (as a Vector2) of the input GameObject.";
     public GetLocalPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("GameObject", true, [typeof(GameObject)], false);
@@ -4185,6 +4275,150 @@ public class GetLocalPositionChip : Chip
         if (theGameObject != null)
         {
             theValue.Vector2 = theGameObject.GetComponent<Transform>().LocalPosition;
+        }
+        
+        return theValue;
+    }
+}
+
+public class GetWorldRotationChip : Chip
+{
+    public static string Description = "Gets the world-space rotation (as a Float) of the input GameObject.";
+    public GetWorldRotationChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], false);
+        AddPort("Rotation", false, [typeof(float)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        GameObject? theGameObject = InputPorts[0].Value.GetValue().GameObject;
+
+        Values theValue = new Values();
+        if (theGameObject != null)
+        {
+            theValue.Float = theGameObject.GetComponent<Transform>().WorldRotation;
+        }
+        
+        return theValue;
+    }
+}
+
+public class GetLocalRotationChip : Chip
+{
+    public static string Description = "Gets the local rotation (as a Float) of the input GameObject.";
+    public GetLocalRotationChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], false);
+        AddPort("Rotation", false, [typeof(float)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        GameObject? theGameObject = InputPorts[0].Value.GetValue().GameObject;
+
+        Values theValue = new Values();
+        if (theGameObject != null)
+        {
+            theValue.Float = theGameObject.GetComponent<Transform>().LocalRotation;
+        }
+        
+        return theValue;
+    }
+}
+
+public class GetWorldRotationInDegreesChip : Chip
+{
+    public static string Description = "Gets the world-space rotation in degrees (as a Float) of the input GameObject.";
+    public GetWorldRotationInDegreesChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], false);
+        AddPort("Rotation In Degrees", false, [typeof(float)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        GameObject? theGameObject = InputPorts[0].Value.GetValue().GameObject;
+
+        Values theValue = new Values();
+        if (theGameObject != null)
+        {
+            theValue.Float = theGameObject.GetComponent<Transform>().WorldRotationInDegrees;
+        }
+        
+        return theValue;
+    }
+}
+
+public class GetLocalRotationInDegreesChip : Chip
+{
+    public static string Description = "Gets the local rotation in degrees (as a Float) of the input GameObject.";
+    public GetLocalRotationInDegreesChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], false);
+        AddPort("Rotation In Degrees", false, [typeof(float)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        GameObject? theGameObject = InputPorts[0].Value.GetValue().GameObject;
+
+        Values theValue = new Values();
+        if (theGameObject != null)
+        {
+            theValue.Float = theGameObject.GetComponent<Transform>().LocalRotationInDegrees;
+        }
+        
+        return theValue;
+    }
+}
+
+public class GetWorldScaleChip : Chip
+{
+    public static string Description = "Gets the world-space scale (as a Vector2) of the input GameObject.";
+    public GetWorldScaleChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], false);
+        AddPort("Scale", false, [typeof(Vector2)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        GameObject? theGameObject = InputPorts[0].Value.GetValue().GameObject;
+
+        Values theValue = new Values();
+        if (theGameObject != null)
+        {
+            theValue.Vector2 = theGameObject.GetComponent<Transform>().WorldScale;
+        }
+        
+        return theValue;
+    }
+}
+
+public class GetLocalScaleChip : Chip
+{
+    public static string Description = "Gets the local scale (as a Vector2) of the input GameObject.";
+    public GetLocalScaleChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], false);
+        AddPort("Scale", false, [typeof(Vector2)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        GameObject? theGameObject = InputPorts[0].Value.GetValue().GameObject;
+
+        Values theValue = new Values();
+        if (theGameObject != null)
+        {
+            theValue.Vector2 = theGameObject.GetComponent<Transform>().LocalScale;
         }
         
         return theValue;
