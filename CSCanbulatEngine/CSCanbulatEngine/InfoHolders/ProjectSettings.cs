@@ -21,7 +21,7 @@ public static class ProjectSettings
          ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
          ImGui.SetNextWindowSize(new Vector2(400, 500), ImGuiCond.Appearing);
 
-         ImGui.Begin("Project Settings", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse);
+         ImGui.Begin("Project Settings", ref isOpen, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse);
          
          ImGui.Text("Gravity");
          ImGui.SameLine();
