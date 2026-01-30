@@ -6,6 +6,7 @@ using CSCanbulatEngine.InfoHolders;
 using CSCanbulatEngine.Mesh;
 using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CSCanbulatEngine.GameObjectScripts;
 
@@ -360,6 +361,31 @@ public class GameObject
 
             ComponentInstruction nextInstruction = new();
             
+            // <Component Required, Components Which Require It>
+            List<Type> requiredComponents = new();
+            List<List<Type>> componentsWhichRequireIt = new();
+
+            foreach (Component component in Engine._selectedGameObject.gameObject.Components)
+            {
+                if (!component.RequiredComponents.IsNullOrEmpty())
+                {
+                    foreach (Type type in component.RequiredComponents)
+                    {
+                        if (requiredComponents.Contains(type))
+                        {
+                            int index = requiredComponents.IndexOf(type);
+                            componentsWhichRequireIt[index].Add(type);
+                        }
+                        else
+                        {
+                            requiredComponents.Add(type);
+                            componentsWhichRequireIt.Add(new());
+                            componentsWhichRequireIt.Last().Add(type);
+                        }
+                    }
+                }
+            }
+            
             for (int i = 0; i < Engine._selectedGameObject.gameObject.Components.Count(); i++)
             {
                 var component = Engine._selectedGameObject.gameObject.Components[i];
@@ -369,16 +395,37 @@ public class GameObject
                     if (component.canBeDisabled)
                     {
                         ImGui.PushID(Engine._selectedGameObject.gameObject.Components.FindIndex(theComponent => theComponent == component));
+                        ImGui.BeginDisabled(requiredComponents.Any(c => c == component.GetType()));
+                        if (requiredComponents.Any(c => c == component.GetType())) component.isEnabled = true;
                         if (ImGui.Checkbox($"Is Enabled", ref component._isEnabled))
                         {
                             
                         }
-
+                        ImGui.EndDisabled();
+                        if (requiredComponents.Any(c => c == component.GetType()))
+                        {
+                            int requiredComponentIndex = requiredComponents.IndexOf(component.GetType());
+                            List<Type> componentsRequiringIt = componentsWhichRequireIt[requiredComponentIndex];
+                            string componentString = componentsRequiringIt[0].ToString().Split('.').Last();
+                            foreach (var componentRelyingUpon in componentsRequiringIt)
+                            {
+                                if (componentRelyingUpon == componentsRequiringIt[0]) continue;
+                                componentString += $", {componentRelyingUpon.ToString().Split('.').Last()}";
+                            }
+                            
+                            if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+                            {
+                                ImGui.BeginTooltip();
+                                ImGui.Text($"Cannot be disabled as components rely on it: {componentString}");
+                                ImGui.EndTooltip();
+                            }
+                        }
                         ImGui.PopID();
                     }
                     if (component.canBeRemoved)
                     {
                         ImGui.PushID(Engine._selectedGameObject.gameObject.Components.FindIndex(theComponent => theComponent == component));
+                        ImGui.BeginDisabled(requiredComponents.Any(c => c == component.GetType()));
                         if (ImGui.Button("Remove Component", new (ImGui.GetContentRegionAvail().X, ImGui.CalcTextSize("Add Component").Y + 5f)))
                         {
                             // Engine._selectedGameObject.gameObject.RemoveComponent(component);
@@ -386,9 +433,29 @@ public class GameObject
                             nextInstruction._instructionType = InstructionType.Remove;
 
                             ImGui.PopID();
+                            ImGui.PopID();
+                            ImGui.EndDisabled();
                             continue;
                         }
-
+                        ImGui.EndDisabled();
+                        if (requiredComponents.Any(c => c == component.GetType()))
+                        {
+                            int requiredComponentIndex = requiredComponents.IndexOf(component.GetType());
+                            List<Type> componentsRequiringIt = componentsWhichRequireIt[requiredComponentIndex];
+                            string componentString = componentsRequiringIt[0].ToString().Split('.').Last();
+                            foreach (var componentRelyingUpon in componentsRequiringIt)
+                            {
+                                if (componentRelyingUpon == componentsRequiringIt[0]) continue;
+                                componentString += $", {componentRelyingUpon}";
+                            }
+                            
+                            if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+                            {
+                                ImGui.BeginTooltip();
+                                ImGui.Text($"Cannot be removed as components rely on it: {componentString.Split('.').Last()}");
+                                ImGui.EndTooltip();
+                            }
+                        }
                         ImGui.PopID();
                     }
                     component.RenderInspector();
@@ -438,6 +505,21 @@ public class GameObject
                     {
                         var rigidbody = new Rigidbody();
                         Engine._selectedGameObject.gameObject.AddComponent(rigidbody);
+                    }
+                }
+
+                if (!Engine._selectedGameObject.gameObject.HasComponent<BoxCollider>())
+                {
+                    if (ImGui.MenuItem("BoxCollider"))
+                    {
+                        if (!Engine._selectedGameObject.gameObject.HasComponent<Rigidbody>())
+                        {
+                            var Rb = new Rigidbody();
+                            Engine._selectedGameObject.gameObject.AddComponent(Rb);
+                        }
+
+                        var boxCollider = new BoxCollider();
+                        Engine._selectedGameObject.gameObject.AddComponent(boxCollider);
                     }
                 }
                     

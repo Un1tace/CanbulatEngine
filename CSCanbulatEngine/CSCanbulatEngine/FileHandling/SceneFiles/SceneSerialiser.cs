@@ -201,37 +201,6 @@ public class SceneSerialiser
         foreach (var objData in sceneData.GameObjects)
         {
             CreateGameObjectFromData(objData, false);
-            
-            // GameObject obj = new GameObject(objData.Name, objData.ObjectID.Value);
-            //
-            // SetGameObjectData(obj, objData);
-
-            // obj.Tags = objData.Tags ?? new List<string>();
-            //
-            // foreach (var componentData in objData.ComponentData)
-            // {
-            //     var componentType = Type.GetType(componentData.ComponentType);
-            //     if (componentType is null)
-            //     {
-            //         EngineLog.Log($"[SceneSerialiser] Couldn't find component of type {componentData.ComponentType}");
-            //         continue;
-            //     }
-            //
-            //     Component newComponent;
-            //
-            //     if (componentType == typeof(MeshRenderer))
-            //     {
-            //         newComponent = new MeshRenderer(Engine._squareMesh);
-            //     }
-            //     else
-            //     {
-            //         newComponent = (Component)Activator.CreateInstance(componentType);
-            //     }
-            //     
-            //     obj.AddComponent(newComponent);
-            //     newComponent.isEnabled = componentData.Enabled;
-            //     newComponent.SetCustomProperties(componentData.CustomProperties);
-            // }
         }
 
         foreach (var objData in sceneData.GameObjects)

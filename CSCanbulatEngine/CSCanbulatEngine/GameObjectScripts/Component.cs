@@ -13,8 +13,11 @@ public class Component
         ("Transform", typeof(Transform)),
         ("MeshRenderer", typeof(MeshRenderer)),
         ("CircuitScript", typeof(CircuitScript)),
-        ("Rigidbody", typeof(Rigidbody))
+        ("Rigidbody", typeof(Rigidbody)),
+        ("BoxCollider", typeof(BoxCollider))
     };
+
+    public List<Type> RequiredComponents = new();
     
     public bool _isEnabled = true;
     public bool canBeDisabled = true;

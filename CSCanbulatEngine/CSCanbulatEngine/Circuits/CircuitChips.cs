@@ -82,6 +82,9 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Object/Find All With Tag", FindAllObjectsWithTag.Description, (pos) => new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", pos)),
         ("Object/Get Component", GetComponentChip.Description, (pos) => new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Get Component", pos)),
         ("Object/Has Component", HasComponentChip.Description, (pos) => new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Has Component", pos)),
+        ("Object/Velocity/Set Velocity", SetVelocityChip.Description, (pos) => new SetVelocityChip(CircuitEditor.GetNextAvaliableChipID(), "Set Velocity", pos)),
+        ("Object/Velocity/Add Velocity", AddVelocityChip.Description, (pos) => new AddVelocityChip(CircuitEditor.GetNextAvaliableChipID(), "Add Velocity", pos)),
+        ("Object/Velocity/Get Velocity", GetVelocityChip.Description, (pos) => new GetVelocityChip(CircuitEditor.GetNextAvaliableChipID(), "Get Velocity", pos)),
         ("Object/Position/Set World Position", SetWorldPositionChip.Description, (pos) => new SetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Set World Position", pos)),
         ("Object/Position/Set Local Position", SetLocalPositionChip.Description, (pos) => new SetLocalPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Set Local Position", pos)),
         ("Object/Position/Get World Position", GetWorldPositionChip.Description, (pos) => new GetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(), "Get World Position", pos)),
@@ -795,6 +798,53 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Separator();
                         ImGui.Text(HasComponentChip.Description);
                         ImGui.EndTooltip();
+                    }
+
+                    if (ImGui.BeginMenu("Velocity"))
+                    {
+                        if (ImGui.MenuItem("Create Set Velocity Chip"))
+                        {
+                            CircuitEditor.chips.Add(new SetVelocityChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Set Velocity", spawnPos));
+                        }
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Set Velocity Chip");
+                            ImGui.Separator();
+                            ImGui.Text(SetVelocityChip.Description);
+                            ImGui.EndTooltip();
+                        }
+                    
+                        if (ImGui.MenuItem("Create Add Velocity Chip"))
+                        {
+                            CircuitEditor.chips.Add(new AddVelocityChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Add Velocity", spawnPos));
+                        }
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Add Velocity Chip");
+                            ImGui.Separator();
+                            ImGui.Text(AddVelocityChip.Description);
+                            ImGui.EndTooltip();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Get Velocity Chip"))
+                        {
+                            CircuitEditor.chips.Add(new GetVelocityChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Get Velocity", spawnPos));
+                        }
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Get Velocity Chip");
+                            ImGui.Separator();
+                            ImGui.Text(GetVelocityChip.Description);
+                            ImGui.EndTooltip();
+                        }
+
+                        ImGui.EndMenu();
                     }
 
                     if (ImGui.BeginMenu("Position Chips"))
@@ -3839,7 +3889,7 @@ public class SetWorldPositionChip : Chip
     public static string Description = "Sets the world-space position of a GameObject when executed.";
     public SetWorldPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
-        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("GameObject", true, [typeof(GameObject), typeof(ComponentHolder)], true);
         AddPort("Position", true, [typeof(Vector2)], true);
     }
 
@@ -3848,11 +3898,12 @@ public class SetWorldPositionChip : Chip
         try
         {
             GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
             Vector2? targetPosition = InputPorts[1].Value.GetValue().Vector2;
 
-            if (targetObject == null)
+            if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
-                GameConsole.Log("[Set World Position Chip] GameObject is null or invalid", LogType.Error);
+                GameConsole.Log("[Set World Position Chip] GameObject/Component is null or invalid", LogType.Error);
             }
             else if (targetPosition == null)
             {
@@ -3860,7 +3911,22 @@ public class SetWorldPositionChip : Chip
             }
             else
             {
-                Transform? targetTransform = targetObject.GetComponent<Transform>();
+                bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
+
+                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                {
+                    GameConsole.Log("[Set World Position Chip] ComponentHolder is not a Transform", LogType.Error);
+                }
+
+                Transform? targetTransform;
+                if (usingComponent)
+                {
+                    targetTransform = componentHolder.Component as Transform;
+                }
+                else
+                { 
+                    targetTransform = targetObject.GetComponent<Transform>();
+                }
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set World Position Chip] Target Transform is null", LogType.Error);
@@ -3885,7 +3951,7 @@ public class SetLocalPositionChip : Chip
     public static string Description = "Sets the local-space position of a GameObject (relative to its parent) when executed.";
     public SetLocalPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
-        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("GameObject", true, [typeof(GameObject), typeof(ComponentHolder)], true);
         AddPort("Position", true, [typeof(Vector2)], true);
     }
     
@@ -3894,11 +3960,12 @@ public class SetLocalPositionChip : Chip
         try
         {
             GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
             Vector2? targetPosition = InputPorts[1].Value.GetValue().Vector2;
 
-            if (targetObject == null)
+            if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
-                GameConsole.Log("[Set Local Position Chip] GameObject is null or invalid", LogType.Error);
+                GameConsole.Log("[Set Local Position Chip] GameObject/Component is null or invalid", LogType.Error);
             }
             else if (targetPosition == null)
             {
@@ -3906,7 +3973,22 @@ public class SetLocalPositionChip : Chip
             }
             else
             {
-                Transform? targetTransform = targetObject.GetComponent<Transform>();
+                bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
+
+                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                {
+                    GameConsole.Log("[Set Local Position Chip] ComponentHolder is not a Transform", LogType.Error);
+                }
+
+                Transform? targetTransform;
+                if (usingComponent)
+                {
+                    targetTransform = componentHolder.Component as Transform;
+                }
+                else
+                { 
+                    targetTransform = targetObject.GetComponent<Transform>();
+                }
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set Local Position Chip] Target Transform is null", LogType.Error);
@@ -3931,7 +4013,7 @@ public class SetWorldRotationChip : Chip
     public static string Description = "Sets the world-space rotation (in radians) of a GameObject when executed.";
     public SetWorldRotationChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
-        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("GameObject", true, [typeof(GameObject), typeof(Component)], true);
         AddPort("Rotation", true, [typeof(float)], true);
     }
 
@@ -3940,11 +4022,12 @@ public class SetWorldRotationChip : Chip
         try
         {
             GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
             float? targetRotation = InputPorts[1].Value.GetValue().Float;
 
-            if (targetObject == null)
+            if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
-                GameConsole.Log("[Set World Rotation Chip] GameObject is null or invalid", LogType.Error);
+                GameConsole.Log("[Set World Rotation Chip] GameObject/Component is null or invalid", LogType.Error);
             }
             else if (targetRotation == null)
             {
@@ -3952,7 +4035,22 @@ public class SetWorldRotationChip : Chip
             }
             else
             {
-                Transform? targetTransform = targetObject.GetComponent<Transform>();
+                bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
+
+                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                {
+                    GameConsole.Log("[Set World Rotation Chip] ComponentHolder is not a Transform", LogType.Error);
+                }
+
+                Transform? targetTransform;
+                if (usingComponent)
+                {
+                    targetTransform = componentHolder.Component as Transform;
+                }
+                else
+                { 
+                    targetTransform = targetObject.GetComponent<Transform>();
+                }
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set World Rotation Chip] Target Transform is null", LogType.Error);
@@ -3977,7 +4075,7 @@ public class SetLocalRotationChip : Chip
     public static string Description = "Sets the local-space rotation (in radians) of a GameObject (relative to its parent) when executed.";
     public SetLocalRotationChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
-        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("GameObject", true, [typeof(GameObject), typeof(Component)], true);
         AddPort("Rotation", true, [typeof(float)], true);
     }
     
@@ -3986,11 +4084,12 @@ public class SetLocalRotationChip : Chip
         try
         {
             GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
             float? targetRotation = InputPorts[1].Value.GetValue().Float;
 
-            if (targetObject == null)
+            if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
-                GameConsole.Log("[Set Local Rotation Chip] GameObject is null or invalid", LogType.Error);
+                GameConsole.Log("[Set Local Rotation Chip] GameObject/Component is null or invalid", LogType.Error);
             }
             else if (targetRotation == null)
             {
@@ -3998,7 +4097,22 @@ public class SetLocalRotationChip : Chip
             }
             else
             {
-                Transform? targetTransform = targetObject.GetComponent<Transform>();
+                bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
+
+                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                {
+                    GameConsole.Log("[Set Local Rotation Chip] ComponentHolder is not a Transform", LogType.Error);
+                }
+
+                Transform? targetTransform;
+                if (usingComponent)
+                {
+                    targetTransform = componentHolder.Component as Transform;
+                }
+                else
+                { 
+                    targetTransform = targetObject.GetComponent<Transform>();
+                }
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set Local Rotation Chip] Target Transform is null", LogType.Error);
@@ -4023,7 +4137,7 @@ public class SetWorldRotationInDegreesChip : Chip
     public static string Description = "Sets the world-space Rotation (In Degrees) of a GameObject when executed.";
     public SetWorldRotationInDegreesChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
-        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("GameObject", true, [typeof(GameObject), typeof(Component)], true);
         AddPort("Rotation", true, [typeof(float)], true);
     }
 
@@ -4032,32 +4146,48 @@ public class SetWorldRotationInDegreesChip : Chip
         try
         {
             GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
-            float? targetRotationInDegrees = InputPorts[1].Value.GetValue().Float;
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
+            float? targetRotation = InputPorts[1].Value.GetValue().Float;
 
-            if (targetObject == null)
+            if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
-                GameConsole.Log("[Set World Rotation In Degrees Chip] GameObject is null or invalid", LogType.Error);
+                GameConsole.Log("[Set World In Degrees Rotation Chip] GameObject/Component is null or invalid", LogType.Error);
             }
-            else if (targetRotationInDegrees == null)
+            else if (targetRotation == null)
             {
-                GameConsole.Log("[Set World Rotation In Degrees Chip] Rotation is null", LogType.Error);
+                GameConsole.Log("[Set World In Degrees Rotation Chip] Rotation is null", LogType.Error);
             }
             else
             {
-                Transform? targetTransform = targetObject.GetComponent<Transform>();
+                bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
+
+                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                {
+                    GameConsole.Log("[Set World In Degrees Rotation Chip] ComponentHolder is not a Transform", LogType.Error);
+                }
+
+                Transform? targetTransform;
+                if (usingComponent)
+                {
+                    targetTransform = componentHolder.Component as Transform;
+                }
+                else
+                { 
+                    targetTransform = targetObject.GetComponent<Transform>();
+                }
                 if (targetTransform == null)
                 {
-                    GameConsole.Log("[Set World Rotation In Degrees Chip] Target Transform is null", LogType.Error);
+                    GameConsole.Log("[Set World In Degrees Rotation Chip] Target Transform is null", LogType.Error);
                 }
                 else
                 {
-                    targetTransform.WorldRotationInDegrees = targetRotationInDegrees.Value;
+                    targetTransform.WorldRotationInDegrees = targetRotation.Value;
                 }
             }
         }
         catch (Exception ex)
         {
-            GameConsole.Log($"[Set World Rotation In Degrees Chip] Error: {ex.Message}", LogType.Error);
+            GameConsole.Log($"[Set World In Degrees Rotation Chip] Error: {ex.Message}", LogType.Error);
         }
 
         base.OnExecute();
@@ -4069,7 +4199,7 @@ public class SetLocalRotationInDegreesChip : Chip
     public static string Description = "Sets the local-space Rotation (In Degrees) of a GameObject (relative to its parent) when executed.";
     public SetLocalRotationInDegreesChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
-        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("GameObject", true, [typeof(GameObject), typeof(Component)], true);
         AddPort("Rotation", true, [typeof(float)], true);
     }
     
@@ -4078,32 +4208,48 @@ public class SetLocalRotationInDegreesChip : Chip
         try
         {
             GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
-            float? targetRotationInDegrees = InputPorts[1].Value.GetValue().Float;
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
+            float? targetRotation = InputPorts[1].Value.GetValue().Float;
 
-            if (targetObject == null)
+            if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
-                GameConsole.Log("[Set Local Rotation In Degrees Chip] GameObject is null or invalid", LogType.Error);
+                GameConsole.Log("[Set Local In Degrees Rotation Chip] GameObject/Component is null or invalid", LogType.Error);
             }
-            else if (targetRotationInDegrees == null)
+            else if (targetRotation == null)
             {
-                GameConsole.Log("[Set Local Rotation In Degrees Chip] Rotation is null", LogType.Error);
+                GameConsole.Log("[Set Local In Degrees Rotation Chip] Rotation is null", LogType.Error);
             }
             else
             {
-                Transform? targetTransform = targetObject.GetComponent<Transform>();
+                bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
+
+                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                {
+                    GameConsole.Log("[Set Local In Degrees Rotation Chip] ComponentHolder is not a Transform", LogType.Error);
+                }
+
+                Transform? targetTransform;
+                if (usingComponent)
+                {
+                    targetTransform = componentHolder.Component as Transform;
+                }
+                else
+                { 
+                    targetTransform = targetObject.GetComponent<Transform>();
+                }
                 if (targetTransform == null)
                 {
-                    GameConsole.Log("[Set Local Rotation In Degrees Chip] Target Transform is null", LogType.Error);
+                    GameConsole.Log("[Set Local In Degrees Rotation Chip] Target Transform is null", LogType.Error);
                 }
                 else
                 {
-                    targetTransform.LocalRotationInDegrees = targetRotationInDegrees.Value;
+                    targetTransform.LocalRotationInDegrees = targetRotation.Value;
                 }
             }
         }
         catch (Exception ex)
         {
-            GameConsole.Log($"[Set Local Rotation In Degrees Chip] Error: {ex.Message}", LogType.Error);
+            GameConsole.Log($"[Set Local In Degrees Rotation Chip] Error: {ex.Message}", LogType.Error);
         }
 
         base.OnExecute();
@@ -4115,7 +4261,7 @@ public class SetWorldScaleChip : Chip
     public static string Description = "Sets the world-space scale of a GameObject when executed.";
     public SetWorldScaleChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
-        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("GameObject", true, [typeof(GameObject), typeof(Component)], true);
         AddPort("Scale", true, [typeof(Vector2)], true);
     }
 
@@ -4124,11 +4270,12 @@ public class SetWorldScaleChip : Chip
         try
         {
             GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
             Vector2? targetScale = InputPorts[1].Value.GetValue().Vector2;
 
-            if (targetObject == null)
+            if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
-                GameConsole.Log("[Set World Scale Chip] GameObject is null or invalid", LogType.Error);
+                GameConsole.Log("[Set World Scale Chip] GameObject/Component is null or invalid", LogType.Error);
             }
             else if (targetScale == null)
             {
@@ -4136,7 +4283,22 @@ public class SetWorldScaleChip : Chip
             }
             else
             {
-                Transform? targetTransform = targetObject.GetComponent<Transform>();
+                bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
+
+                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                {
+                    GameConsole.Log("[Set World Scale Chip] ComponentHolder is not a Transform", LogType.Error);
+                }
+
+                Transform? targetTransform;
+                if (usingComponent)
+                {
+                    targetTransform = componentHolder.Component as Transform;
+                }
+                else
+                { 
+                    targetTransform = targetObject.GetComponent<Transform>();
+                }
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set World Scale Chip] Target Transform is null", LogType.Error);
@@ -4161,7 +4323,7 @@ public class SetLocalScaleChip : Chip
     public static string Description = "Sets the local-space scale of a GameObject (relative to its parent) when executed.";
     public SetLocalScaleChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
-        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("GameObject", true, [typeof(GameObject), typeof(Component)], true);
         AddPort("Scale", true, [typeof(Vector2)], true);
     }
     
@@ -4170,11 +4332,12 @@ public class SetLocalScaleChip : Chip
         try
         {
             GameObject? targetObject = InputPorts[0].Value.GetValue().GameObject;
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
             Vector2? targetScale = InputPorts[1].Value.GetValue().Vector2;
 
-            if (targetObject == null)
+            if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
-                GameConsole.Log("[Set Local Scale Chip] GameObject is null or invalid", LogType.Error);
+                GameConsole.Log("[Set Local Scale Chip] GameObject/Component is null or invalid", LogType.Error);
             }
             else if (targetScale == null)
             {
@@ -4182,7 +4345,22 @@ public class SetLocalScaleChip : Chip
             }
             else
             {
-                Transform? targetTransform = targetObject.GetComponent<Transform>();
+                bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
+
+                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                {
+                    GameConsole.Log("[Set Local Scale Chip] ComponentHolder is not a Transform", LogType.Error);
+                }
+
+                Transform? targetTransform;
+                if (usingComponent)
+                {
+                    targetTransform = componentHolder.Component as Transform;
+                }
+                else
+                { 
+                    targetTransform = targetObject.GetComponent<Transform>();
+                }
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set Local Scale Chip] Target Transform is null", LogType.Error);
@@ -4199,6 +4377,160 @@ public class SetLocalScaleChip : Chip
         }
 
         base.OnExecute();
+    }
+}
+
+public class SetVelocityChip : Chip
+{
+    public static string Description = "Sets the velocity of a rigidbody acting upon an object.";
+    public SetVelocityChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Rigidbody", true, [typeof(Component)], true);
+        AddPort("Velocity", true, [typeof(Vector2)], true);
+    }
+
+    public override void OnExecute()
+    {
+        try
+        {
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
+            Vector2? targetVelocity = InputPorts[1].Value.GetValue().Vector2;
+
+            if (targetVelocity == null)
+            {
+                GameConsole.Log("[Set Velocity Chip] Velocity is null", LogType.Error);
+                return;
+            }
+
+            if (componentHolder == null)
+            {
+                GameConsole.Log("[Set Velocity Chip] ComponentHolder is null", LogType.Error);
+                return;
+            }
+            if (componentHolder.Component == null)
+            {
+                GameConsole.Log("[Set Velocity Chip] Component is null", LogType.Error);
+                return;
+            }
+
+            if (componentHolder.Component.GetType() != typeof(Rigidbody))
+            {
+                GameConsole.Log("[Set Velocity Chip] Component is not a Rigidbody", LogType.Error);
+                return;
+            }
+            
+            Rigidbody? rigidbody = componentHolder.Component as Rigidbody;
+
+            if (rigidbody == null)
+            {
+                GameConsole.Log("[Set Velocity Chip] Rigidbody is null", LogType.Error);
+                return;
+            }
+
+            rigidbody.Velocity = targetVelocity.Value;
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log($"[Set Velocity Chip] Error: {e.Message}", LogType.Error);
+        }
+    }
+}
+
+public class AddVelocityChip : Chip
+{
+    public static string Description = "Adds onto the velocity of a rigidbody acting upon an object.";
+    public AddVelocityChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Rigidbody", true, [typeof(Component)], true);
+        AddPort("Velocity", true, [typeof(Vector2)], true);
+    }
+
+    public override void OnExecute()
+    {
+        try
+        {
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
+            Vector2? targetVelocity = InputPorts[1].Value.GetValue().Vector2;
+
+            if (targetVelocity == null)
+            {
+                GameConsole.Log("[Add Velocity Chip] Velocity is null", LogType.Error);
+                return;
+            }
+
+            if (componentHolder == null)
+            {
+                GameConsole.Log("[Add Velocity Chip] ComponentHolder is null", LogType.Error);
+                return;
+            }
+            if (componentHolder.Component == null)
+            {
+                GameConsole.Log("[Add Velocity Chip] Component is null", LogType.Error);
+                return;
+            }
+
+            if (componentHolder.Component.GetType() != typeof(Rigidbody))
+            {
+                GameConsole.Log("[Add Velocity Chip] Component is not a Rigidbody", LogType.Error);
+                return;
+            }
+            
+            Rigidbody? rigidbody = componentHolder.Component as Rigidbody;
+
+            if (rigidbody == null)
+            {
+                GameConsole.Log("[Add Velocity Chip] Rigidbody is null", LogType.Error);
+                return;
+            }
+
+            rigidbody.Velocity += targetVelocity.Value;
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log($"[Add Velocity Chip] Error: {e.Message}", LogType.Error);
+        }
+    }
+}
+
+public class GetVelocityChip : Chip
+{
+    public static string Description = "Gets the velocity of a rigidbody acting upon an object.";
+    public GetVelocityChip(int id, string name, Vector2 pos) : base(id, name, pos)
+    {
+        AddPort("Rigidbody", true, [typeof(ComponentHolder)], true);
+        AddPort("Velocity", false, [typeof(Vector2)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
+        Values values = new();
+        values.Vector2 = Vector2.NaN;
+
+        if (componentHolder == null)
+        {
+            GameConsole.Log("[Get Velocity Chip] ComponentHolder is null", LogType.Error);
+            return values;
+        }
+
+        if (componentHolder.Component == null)
+        {
+            GameConsole.Log("[Get Velocity Chip] Component is null", LogType.Error);
+            return values;
+        }
+
+        if (componentHolder.Component.GetType() != typeof(Rigidbody))
+        {
+            GameConsole.Log("[Get Velocity Chip] Component is not a Rigidbody", LogType.Error);
+            return values;
+        }
+        
+        Rigidbody? rigidbody = componentHolder.Component as Rigidbody;
+
+        values.Vector2 = rigidbody.Velocity;
+
+        return values;
     }
 }
 
@@ -4239,7 +4571,7 @@ public class GetComponentChip : Chip
 
     public override void DisplayCustomItem()
     {
-        ImGui.PushItemWidth(200);
+        ImGui.PushItemWidth(200 * CircuitEditor.Zoom);
         if (ImGui.BeginCombo("ComponentDropdown", previewValue))
         {
             for (int i = 0; i < Component.AllComponents.Count(); i++)

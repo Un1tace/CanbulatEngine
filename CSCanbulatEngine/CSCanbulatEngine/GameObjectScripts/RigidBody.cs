@@ -12,8 +12,13 @@ public class Rigidbody : Component
 {
     public float Mass = 1f;
     public Vector2 Velocity = Vector2.Zero;
+    public float AngularVelocity = 0f;
+    public float AngularDrag = 1f;
+    public float Inertia = 1f;
     public bool UseGravity = true;
     public bool IsKinematic = false;
+    
+    public float Friction = 0.4f;
     
     //Axis Constraints
     public bool FreezeX = false;
@@ -50,12 +55,22 @@ public class Rigidbody : Component
 
         Velocity += acceleration * deltaTime;
 
+        if (Friction > 0f && MathF.Abs(Velocity.X) > 0.01f)
+        {
+            Velocity.X *= MathF.Pow(1.0f - Friction, deltaTime * 10f);
+        }
+
         Vector2 pos = transform.WorldPosition;
 
         if (!FreezeX) pos.X += Velocity.X * deltaTime;
         if (!FreezeY) pos.Y += Velocity.Y * deltaTime;
         
         transform.WorldPosition = pos;
+        
+        if (AngularVelocity > 0f)
+            AngularVelocity += -AngularVelocity * AngularDrag * deltaTime;
+        
+        transform.WorldRotation += AngularVelocity * deltaTime;
     }
     
 #if EDITOR
@@ -78,6 +93,10 @@ public class Rigidbody : Component
         ImGui.DragFloat2("Velocity", ref Velocity, 0.05f);
         
         ImGui.DragFloat("Linear Drag", ref LinearDrag, 0.01f, 0f, 10f);
+        
+        ImGui.DragFloat("Angular Drag", ref AngularDrag, 0.01f, 0f, 10f);
+        ImGui.DragFloat("Angular Velocity", ref AngularVelocity);
+        ImGui.DragFloat("Inertia", ref Inertia, 0.01f, 0.01f, 10f);
     }
 #endif
     
@@ -93,7 +112,10 @@ public class Rigidbody : Component
             { "IsKinematic", IsKinematic.ToString() },
             { "FreezeX", FreezeX.ToString() },
             { "FreezeY", FreezeY.ToString() },
-            { "LinearDrag", LinearDrag.ToString(CultureInfo.InvariantCulture) }
+            { "LinearDrag", LinearDrag.ToString(CultureInfo.InvariantCulture) },
+            { "AngularVelocity", AngularVelocity.ToString(CultureInfo.InvariantCulture) },
+            { "AngularDrag", AngularDrag.ToString(CultureInfo.InvariantCulture) },
+            { "Inertia", Inertia.ToString(CultureInfo.InvariantCulture) },
         };
     }
 
@@ -120,5 +142,12 @@ public class Rigidbody : Component
             FreezeY = bool.Parse(fyStr);
         if (properties.TryGetValue("LinearDrag", out var dragStr))
             LinearDrag = float.Parse(dragStr, CultureInfo.InvariantCulture);
+        
+        if (properties.TryGetValue("AngularDrag", out var adStr))
+            AngularDrag = float.Parse(adStr, CultureInfo.InvariantCulture);
+        if (properties.TryGetValue("AngularVelocity", out var avStr))
+            AngularVelocity = float.Parse(avStr, CultureInfo.InvariantCulture);
+        if (properties.TryGetValue("Inertia", out var inertiaStr))
+            Inertia = float.Parse(inertiaStr, CultureInfo.InvariantCulture);
     }
 }

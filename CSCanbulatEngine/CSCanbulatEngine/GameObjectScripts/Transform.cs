@@ -118,6 +118,7 @@ public class Transform : Component
                 Transform? parentTransform = AttachedGameObject.ParentObject.GetComponent<Transform>();
                 _Rotation = value - parentTransform.WorldRotation;
             }
+            else _Rotation = value;
         }
     }
 

@@ -39,7 +39,7 @@ public class CircuitScript : Component
         
         chips.Clear();
         CircuitScriptName = Path.GetFileNameWithoutExtension(filePath);
-        CircuitScriptDirPath = filePath.TrimEnd(CircuitScriptName.ToCharArray());
+        CircuitScriptDirPath = Path.GetDirectoryName(filePath);
         
         foreach (var chip in circuitInfo.Chips)
         {

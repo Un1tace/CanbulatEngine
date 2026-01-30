@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using CSCanbulatEngine.Audio;
@@ -187,6 +188,8 @@ public class Engine
         #if EDITOR
         window.FileDrop += OnFileDrop;
         window.FramebufferResize += OnFramebufferResize;
+
+        LoadWindowSettings();
         #endif
 
         window.Run();
@@ -1415,6 +1418,8 @@ public class Engine
                 CurrentState = EngineState.Editor;
                 
                 SceneSerialiser.LoadSceneFromString(_sceneSnapshotBeforePlay);
+                
+                Engine.ReloadAllCircuitScripts();
             }
         }
         
@@ -1484,6 +1489,7 @@ public class Engine
         gl.DeleteTexture(FboTexture);
         gl.DeleteRenderbuffer(Rbo);
         gl.DeleteTexture(_logoTextureID);
+        SaveWindowSettings();
 #endif
         Audio?.Dispose();
         _squareMesh.Dispose();
@@ -1723,6 +1729,91 @@ public class Engine
                 }
             }
         }
+    }
+
+    
+    //Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CanbulatEngine", "Logs")
+    
+    /// <summary>
+    /// Save settings of current window to WindowConfig.cseetings
+    /// </summary>
+    public void SaveWindowSettings()
+    {
+        IWindow window = Engine.window;
+
+        Dictionary<string, string> Config = new Dictionary<string, string>()
+        {
+            {"SizeX", window.Size.X.ToString(CultureInfo.InvariantCulture)},
+            {"SizeY", window.Size.Y.ToString(CultureInfo.InvariantCulture)},
+            {"PositionX", window.Position.X.ToString(CultureInfo.InvariantCulture)},
+            {"PositionY", window.Position.Y.ToString(CultureInfo.InvariantCulture)},
+            {"WindowState", (window.WindowState.ToString())}
+        };
+        
+        string savePlace = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CanbulatEngine", "WindowConfig.csettings");
+        
+        string jsonSettings = JsonConvert.SerializeObject(Config, Formatting.Indented);
+        
+        File.WriteAllText(savePlace, jsonSettings);
+        EngineLog.Log($"Window Settings Saved: {savePlace}");
+    }
+
+    public void LoadWindowSettings()
+    {
+        string settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CanbulatEngine", "WindowConfig.csettings");
+
+        if (!File.Exists(settingsPath))
+        {
+            EngineLog.Log($"Window Settings not found: {settingsPath}, loading default config...");
+            return;
+        }
+        
+        IWindow window = Engine.window;
+        
+        string jsonSettings = File.ReadAllText(settingsPath);
+        Dictionary<string, string> Config = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonSettings);
+
+        bool Fullscreen = false;
+        bool Maximized = false;
+        
+        if (Config.ContainsKey("WindowState"))
+        {
+            Config.TryGetValue("WindowState", out var windowStateStr);
+            Fullscreen = windowStateStr == "Fullscreen";
+            Maximized = windowStateStr == "Maximized";
+            
+            if (Fullscreen) window.WindowState = WindowState.Fullscreen;
+            if (Maximized) window.WindowState = WindowState.Maximized;
+        }
+
+        Vector2D<int> size = window.Size;
+        if (Config.ContainsKey("SizeX"))
+        {
+            size.X = Config.TryGetValue("SizeX", out var sxStr)? int.Parse(sxStr, CultureInfo.InvariantCulture) : 0;
+        }
+
+        if (Config.ContainsKey("SizeY"))
+        {
+            size.Y = Config.TryGetValue("SizeY", out var syStr)? int.Parse(syStr, CultureInfo.InvariantCulture) : 0;
+        }
+
+        window.Size = size;
+        
+        Vector2D<int> position = window.Position;
+
+        if (Config.ContainsKey("PositionX"))
+        {
+            position.X = Config.TryGetValue("PositionX", out var posStr)? int.Parse(posStr, CultureInfo.InvariantCulture) : 0;
+        }
+
+        if (Config.ContainsKey("PositionY"))
+        {
+            position.Y = Config.TryGetValue("PositionY", out var posStr)? int.Parse(posStr, CultureInfo.InvariantCulture) : 0;
+        }
+        
+        window.Position = position;
+        
+        
     }
 }
 
