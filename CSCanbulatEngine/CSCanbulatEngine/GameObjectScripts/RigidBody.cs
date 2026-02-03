@@ -13,7 +13,7 @@ public class Rigidbody : Component
     public float Mass = 1f;
     public Vector2 Velocity = Vector2.Zero;
     public float AngularVelocity = 0f;
-    public float AngularDrag = 1f;
+    public float AngularDrag = 2f;
     public float Inertia = 1f;
     public bool UseGravity = true;
     public bool IsKinematic = false;
@@ -46,10 +46,10 @@ public class Rigidbody : Component
     {
         var transform = AttachedGameObject?.GetComponent<Transform>();
         if (transform == null) return;
-        
+    
         Vector2 acceleration = Vector2.Zero;
-        
-        if (UseGravity) acceleration += ChernikovEngine.Gravity * Mass;
+    
+        if (UseGravity) acceleration += ChernikovEngine.Gravity;
 
         if (LinearDrag > 0f) acceleration += -Velocity * LinearDrag;
 
@@ -64,14 +64,19 @@ public class Rigidbody : Component
 
         if (!FreezeX) pos.X += Velocity.X * deltaTime;
         if (!FreezeY) pos.Y += Velocity.Y * deltaTime;
-        
+    
         transform.WorldPosition = pos;
-        
-        if (AngularVelocity > 0f)
-            AngularVelocity += -AngularVelocity * AngularDrag * deltaTime;
-        
+    
+        // Angular drag (stable exponential damping)
+        // AngularDrag is in "per second" units; 0 = no damping
+        if (AngularDrag > 0f)
+        {
+            AngularVelocity *= MathF.Exp(-AngularDrag * deltaTime);
+        }
+    
         transform.WorldRotation += AngularVelocity * deltaTime;
     }
+
     
 #if EDITOR
     // ------- Editor UI -------

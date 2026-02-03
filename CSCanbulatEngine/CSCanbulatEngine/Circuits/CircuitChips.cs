@@ -3913,7 +3913,7 @@ public class SetWorldPositionChip : Chip
             {
                 bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
 
-                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set World Position Chip] ComponentHolder is not a Transform", LogType.Error);
                 }
@@ -3975,7 +3975,7 @@ public class SetLocalPositionChip : Chip
             {
                 bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
 
-                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set Local Position Chip] ComponentHolder is not a Transform", LogType.Error);
                 }
@@ -4037,7 +4037,7 @@ public class SetWorldRotationChip : Chip
             {
                 bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
 
-                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set World Rotation Chip] ComponentHolder is not a Transform", LogType.Error);
                 }
@@ -4099,7 +4099,7 @@ public class SetLocalRotationChip : Chip
             {
                 bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
 
-                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set Local Rotation Chip] ComponentHolder is not a Transform", LogType.Error);
                 }
@@ -4161,7 +4161,7 @@ public class SetWorldRotationInDegreesChip : Chip
             {
                 bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
 
-                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set World In Degrees Rotation Chip] ComponentHolder is not a Transform", LogType.Error);
                 }
@@ -4223,7 +4223,7 @@ public class SetLocalRotationInDegreesChip : Chip
             {
                 bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
 
-                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set Local In Degrees Rotation Chip] ComponentHolder is not a Transform", LogType.Error);
                 }
@@ -4285,7 +4285,7 @@ public class SetWorldScaleChip : Chip
             {
                 bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
 
-                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set World Scale Chip] ComponentHolder is not a Transform", LogType.Error);
                 }
@@ -4347,7 +4347,7 @@ public class SetLocalScaleChip : Chip
             {
                 bool usingComponent = InputPorts[0].PortType == typeof(ComponentHolder);
 
-                if (usingComponent && componentHolder.Component.GetType() != typeof(Transform))
+                if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set Local Scale Chip] ComponentHolder is not a Transform", LogType.Error);
                 }
@@ -4385,7 +4385,7 @@ public class SetVelocityChip : Chip
     public static string Description = "Sets the velocity of a rigidbody acting upon an object.";
     public SetVelocityChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
-        AddPort("Rigidbody", true, [typeof(Component)], true);
+        AddPort("Rigidbody", true, [typeof(ComponentHolder)], true);
         AddPort("Velocity", true, [typeof(Vector2)], true);
     }
 
@@ -4413,7 +4413,7 @@ public class SetVelocityChip : Chip
                 return;
             }
 
-            if (componentHolder.Component.GetType() != typeof(Rigidbody))
+            if (componentHolder.Component is not Rigidbody)
             {
                 GameConsole.Log("[Set Velocity Chip] Component is not a Rigidbody", LogType.Error);
                 return;
@@ -4441,7 +4441,7 @@ public class AddVelocityChip : Chip
     public static string Description = "Adds onto the velocity of a rigidbody acting upon an object.";
     public AddVelocityChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
-        AddPort("Rigidbody", true, [typeof(Component)], true);
+        AddPort("Rigidbody", true, [typeof(ComponentHolder)], true);
         AddPort("Velocity", true, [typeof(Vector2)], true);
     }
 
@@ -4469,7 +4469,7 @@ public class AddVelocityChip : Chip
                 return;
             }
 
-            if (componentHolder.Component.GetType() != typeof(Rigidbody))
+            if (componentHolder.Component is not Rigidbody)
             {
                 GameConsole.Log("[Add Velocity Chip] Component is not a Rigidbody", LogType.Error);
                 return;
@@ -4520,7 +4520,7 @@ public class GetVelocityChip : Chip
             return values;
         }
 
-        if (componentHolder.Component.GetType() != typeof(Rigidbody))
+        if (componentHolder.Component is not Rigidbody)
         {
             GameConsole.Log("[Get Velocity Chip] Component is not a Rigidbody", LogType.Error);
             return values;
@@ -4605,6 +4605,28 @@ public class GetComponentChip : Chip
             ? Component.AllComponents[selectedIndex].Item1
             : "Select...";
     }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        return new Dictionary<string, string>()
+        {
+            { "Type", selectedIndex.ToString() }
+        };
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.ContainsKey("Type"))
+        {
+            if (int.TryParse(properties["Type"], out int type))
+            {
+                selectedIndex = type;
+                previewValue = (selectedIndex >= 0 && selectedIndex < Component.AllComponents.Count())
+                    ? Component.AllComponents[selectedIndex].Item1
+                    : "Select...";
+            }
+        }
+    }
 }
 
 public class HasComponentChip : Chip
@@ -4677,6 +4699,28 @@ public class HasComponentChip : Chip
         previewValue = (selectedIndex >= 0 && selectedIndex < Component.AllComponents.Count())
             ? Component.AllComponents[selectedIndex].Item1
             : "Select...";
+    }
+    
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        return new Dictionary<string, string>()
+        {
+            { "Type", selectedIndex.ToString() }
+        };
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.ContainsKey("Type"))
+        {
+            if (int.TryParse(properties["Type"], out int type))
+            {
+                selectedIndex = type;
+                previewValue = (selectedIndex >= 0 && selectedIndex < Component.AllComponents.Count())
+                    ? Component.AllComponents[selectedIndex].Item1
+                    : "Select...";
+            }
+        }
     }
 }
 

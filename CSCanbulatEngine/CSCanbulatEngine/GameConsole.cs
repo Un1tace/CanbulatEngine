@@ -31,6 +31,11 @@ public static class GameConsole
     public static void RenderConsole()
     {
         ImGui.Text("Console Logs");
+        ImGui.SameLine();
+        if (ImGui.Button("Clear Console"))
+        {
+            ClearLog();
+        }
         ImGui.Separator();
         ImGui.BeginChild("Logs");
 

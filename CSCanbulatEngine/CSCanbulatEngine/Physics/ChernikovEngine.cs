@@ -13,6 +13,8 @@ public static class ChernikovEngine
 
     private static readonly List<Rigidbody> _rigidbodies = new();
 
+    private const int SubSteps = 4;
+
     /// <summary>
     /// Register a rigidbody to the ChernikovEngine
     /// </summary>
@@ -39,70 +41,54 @@ public static class ChernikovEngine
     {
         if (deltaTime <= 0f) return;
 
-        foreach (var rb in _rigidbodies)
-        {
-            if (rb == null || !rb.isEnabled || !rb.IsSimulated) continue;
+        float stepDelta = deltaTime / SubSteps;
 
-            rb.Integrate(deltaTime);
-        }
-
-        var colliders = new List<BoxCollider>();
-        foreach (var go in Engine.currentScene.GameObjects)
+        for (int s = 0; s < SubSteps; s++)
         {
-            BoxCollider? collider = go.GetComponent<BoxCollider>();
-            if (collider != null && collider.isEnabled) colliders.Add(collider);
-        }
-
-        for (int i = 0; i < colliders.Count; i++)
-        {
-            for (int j = i + 1; j < colliders.Count; j++)
+            foreach (var rb in _rigidbodies)
             {
-                BoxCollider a = colliders[i];
-                BoxCollider b = colliders[j];
+                if (rb == null || !rb.isEnabled || !rb.IsSimulated) continue;
 
-                var aAabb = a.GetAabb();
-                var bAabb = b.GetAabb();
+                rb.Integrate(deltaTime);
+            }
 
-                if (Intersects(a, b))
+            var colliders = new List<BoxCollider>();
+            foreach (var go in Engine.currentScene.GameObjects)
+            {
+                BoxCollider? collider = go.GetComponent<BoxCollider>();
+                if (collider != null && collider.isEnabled) colliders.Add(collider);
+            }
+
+            for (int i = 0; i < colliders.Count; i++)
+            {
+                for (int j = i + 1; j < colliders.Count; j++)
                 {
-                    if (a.isTrigger || b.isTrigger) continue;
+                    BoxCollider a = colliders[i];
+                    BoxCollider b = colliders[j];
 
-                    var rbA = a.AttachedGameObject.GetComponent<Rigidbody>();
-                    var rbB = b.AttachedGameObject.GetComponent<Rigidbody>();
+                    if (Intersects(a, b))
+                    {
+                        if (a.isTrigger || b.isTrigger) continue;
 
-                    bool aDynamic = rbA != null && rbA.IsSimulated;
-                    bool bDynamic = rbB != null && rbB.IsSimulated;
-            
-                    if (aDynamic && !bDynamic)
-                    {
-                        var bT = b.AttachedGameObject.GetComponent<Transform>();
-                        float platformRight = bT.WorldPosition.X + (b.Size.X * bT.WorldScale.X * 0.5f);
-                        float platformLeft = bT.WorldPosition.X - (b.Size.X * bT.WorldScale.X * 0.5f);
-                
-                        Vector2 com = a.GetWorldCentreOfMass();
-                        bool isSupported = (com.X < platformRight && com.X > platformLeft);
-                        
-                        ResolvePenetration(a, b);
-                
-                        ApplyTippingTorque(a, b, deltaTime);
+                        var rbA = a.AttachedGameObject.GetComponent<Rigidbody>();
+                        var rbB = b.AttachedGameObject.GetComponent<Rigidbody>();
+
+                        bool aDynamic = rbA != null && rbA.IsSimulated;
+                        bool bDynamic = rbB != null && rbB.IsSimulated;
+
+                        if (aDynamic && !bDynamic)
+                        {
+                            ResolvePenetration(a, b, stepDelta);
+                        }
+                        else if (!aDynamic && bDynamic)
+                        {
+                            ResolvePenetration(b, a, stepDelta);
+                        }
+                        else if (aDynamic && bDynamic)
+                        {
+                            ResolvePenetration(a, b, stepDelta);
+                        }
                     }
-                    else if (!aDynamic && bDynamic)
-                    {
-                        var aT = a.AttachedGameObject.GetComponent<Transform>();
-                        float platformRight = aT.WorldPosition.X + (a.Size.X * aT.WorldScale.X * 0.5f);
-                        float platformLeft = aT.WorldPosition.X - (a.Size.X * aT.WorldScale.X * 0.5f);
-                
-                        Vector2 com = b.GetWorldCentreOfMass();
-                        bool isSupported = (com.X < platformRight && com.X > platformLeft);
-                        
-                        ResolvePenetration(b, a);
-                
-                        ApplyTippingTorque(b, a, deltaTime);
-                    }
-                    else
-                    {
-                        ResolvePenetration(a, b);
-                    } 
                 }
             }
         }
@@ -113,124 +99,178 @@ public static class ChernikovEngine
     /// </summary>
     /// <param name="a">Collider 1</param>
     /// <param name="b">Collider 2</param>
-    private static void ResolvePenetration(BoxCollider a, BoxCollider b)
+    private static void ResolvePenetration(BoxCollider dynamicCol, BoxCollider staticCol, float dt)
     {
-        var rbA = a.AttachedGameObject.GetComponent<Rigidbody>();
-        var aT = a.AttachedGameObject.GetComponent<Transform>();
-        var bAabb = b.GetAabb();
+        var rb = dynamicCol.AttachedGameObject.GetComponent<Rigidbody>();
+        var tA = dynamicCol.AttachedGameObject.GetComponent<Transform>();
         
-        Vector2 half = (a.Size * aT.WorldScale) * 0.5f;
-        Vector2[] corners = { new(-half.X, -half.Y), new(half.X, -half.Y), new(half.X, half.Y), new(-half.X, half.Y) };
-        float cos = MathF.Cos(aT.WorldRotation);
-        float sin = MathF.Sin(aT.WorldRotation);
+        Vector2 bestCorrection = Vector2.Zero;
+        float maxDepth = 0f;
+        Vector2 contactPoint = Vector2.Zero;
 
-        float maxOverlapY = 0, maxOverlapX = 0;
-        float lowestY = float.MaxValue;
-        
-        foreach (var c in corners) {
-            Vector2 world = new Vector2(c.X * cos - c.Y * sin, c.X * sin + c.Y * cos) + (aT.WorldPosition + a.Offset);
-            if (world.Y < lowestY) lowestY = world.Y;
-            
-            if (world.X > bAabb.Min.X && world.X < bAabb.Max.X) {
-                float depth = bAabb.Max.Y - world.Y;
-                if (depth > maxOverlapY) maxOverlapY = depth;
-            }
-        }
+        // --- PASS 1: Check if Dynamic Corners are inside Static Box ---
+        var bAabb = staticCol.GetAabb();
+        Vector2[] cornersA = GetRotatedCorners(dynamicCol);
 
-        foreach (var c in corners) {
-            Vector2 world = new Vector2(c.X * cos - c.Y * sin, c.X * sin + c.Y * cos) + (aT.WorldPosition + a.Offset);
-        
-            
-            float ox = MathF.Min(world.X - bAabb.Min.X, bAabb.Max.X - world.X);
-            float oy = MathF.Min(world.Y - bAabb.Min.Y, bAabb.Max.Y - world.Y);
-    
-            if (world.X > bAabb.Min.X && world.X < bAabb.Max.X && world.Y > bAabb.Min.Y && world.Y < bAabb.Max.Y) {
-                if (oy > maxOverlapY) maxOverlapY = oy;
-                if (ox > maxOverlapX) maxOverlapX = ox;
-            }
-        }
-        
-        bool isOnTop = lowestY > bAabb.Max.Y - 0.5f; 
-
-        if (maxOverlapY > 0 && isOnTop)
+        foreach (var p in cornersA)
         {
-            float percent = 0.8f; 
-            float slop = 0.01f;
-            float correction = MathF.Max(maxOverlapY - slop, 0.0f) * percent;
-        
-            aT.WorldPosition += new Vector2(0, correction);
-            
-            if (rbA != null && rbA.Velocity.Y < 0) {
-                rbA.Velocity.Y *= 0.1f;
-            }
-        }
-        else if (maxOverlapX > 0) 
-        {
-            float dir = aT.WorldPosition.X < b.AttachedGameObject.GetComponent<Transform>().WorldPosition.X ? -1f : 1f;
-            aT.WorldPosition += new Vector2(dir * maxOverlapX, 0);
-            if (rbA != null) rbA.Velocity.X = 0;
-        }
-    }
-    
-    private static void ResolveVertical(BoxCollider falling, BoxCollider support, Rigidbody? rbFalling)
-    {
-        if (falling == null || support == null) return;
-
-        var fAabb = falling.GetAabb();
-        var sAabb = support.GetAabb();
-        
-        float overlapY = sAabb.Max.Y - fAabb.Min.Y;
-        if (overlapY <= 0f) return;
-
-        var fT = falling.AttachedGameObject.GetComponent<Transform>();
-        var sT = support.AttachedGameObject.GetComponent<Transform>();
-    Vector2 half = (falling.Size * fT.WorldScale) * 0.5f;
-    Vector2[] localCorners =
-    {
-        new(-half.X, -half.Y),
-        new( half.X, -half.Y),
-        new( half.X,  half.Y),
-        new(-half.X,  half.Y)
-    };
-
-    float cos = MathF.Cos(fT.WorldRotation);
-    float sin = MathF.Sin(fT.WorldRotation);
-
-    float lowestY = float.MaxValue;
-    Vector2 lowestCorner = Vector2.Zero;
-
-        foreach (var c in localCorners)
-        {
-            Vector2 world = new(
-                c.X * cos - c.Y * sin,
-                c.X * sin + c.Y * cos
-            );
-            world += fT.WorldPosition + falling.Offset;
-
-            if (world.Y < lowestY)
+            if (p.X > bAabb.Min.X && p.X < bAabb.Max.X && 
+                p.Y > bAabb.Min.Y && p.Y < bAabb.Max.Y)
             {
-                lowestY = world.Y;
-                lowestCorner = world;
+                float left = p.X - bAabb.Min.X;
+                float right = bAabb.Max.X - p.X;
+                float top = bAabb.Max.Y - p.Y;
+                float bottom = p.Y - bAabb.Min.Y;
+
+                float minX = MathF.Min(left, right);
+                float minY = MathF.Min(top, bottom);
+                
+                if (minY < minX) 
+                {
+                    // Vertical push
+                    float sign = (top < bottom) ? 1f : -1f; 
+                    if (minY > maxDepth) { 
+                        maxDepth = minY; 
+                        bestCorrection = new Vector2(0, sign * minY); 
+                        contactPoint = p; // Store contact for torque
+                    }
+                }
+                else
+                {
+                    // Horizontal push
+                    float sign = (right < left) ? 1f : -1f;
+                    if (minX > maxDepth) { 
+                        maxDepth = minX; 
+                        bestCorrection = new Vector2(sign * minX, 0); 
+                        contactPoint = p;
+                    }
+                }
             }
         }
-        
-        float platformHalfWidth = support.Size.X * sT.WorldScale.X * 0.5f;
-        float platformLeft = sT.WorldPosition.X - platformHalfWidth;
-        float platformRight = sT.WorldPosition.X + platformHalfWidth;
 
-        bool cornerSupported = lowestCorner.X >= platformLeft && lowestCorner.X <= platformRight;
-        if (!cornerSupported) return; 
+        // --- PASS 2: Check if Static Corners are inside Dynamic Box ---
+        Vector2 halfA = (dynamicCol.Size * tA.WorldScale) * 0.5f;
+        Vector2[] cornersB = GetRotatedCorners(staticCol); 
         
-    float correctionY = sAabb.Max.Y - lowestY;
-        if (correctionY > 0f)
+        foreach (var p in cornersB)
         {
-            fT.WorldPosition += new Vector2(0, correctionY);
+            Vector2 localP = RotatePoint(p - (tA.WorldPosition + dynamicCol.Offset), -tA.WorldRotation);
             
-            if (rbFalling != null && MathF.Abs(MathF.Sin(fT.WorldRotation)) < 0.3f)
-                rbFalling.Velocity.Y = 0;
+            if (MathF.Abs(localP.X) < halfA.X && MathF.Abs(localP.Y) < halfA.Y)
+            {
+                float left = localP.X - (-halfA.X);
+                float right = halfA.X - localP.X;
+                float bottom = localP.Y - (-halfA.Y);
+                float top = halfA.Y - localP.Y;
+                
+                float minX = MathF.Min(left, right);
+                float minY = MathF.Min(top, bottom);
+                
+                Vector2 localCorrection;
+                if (minY < minX)
+                {
+                    float sign = (top < bottom) ? -1f : 1f; 
+                    localCorrection = new Vector2(0, sign * minY);
+                }
+                else
+                {
+                    float sign = (right < left) ? -1f : 1f;
+                    localCorrection = new Vector2(sign * minX, 0);
+                }
+                float depth = MathF.Min(minX, minY);
+                if (depth > maxDepth)
+                {
+                    maxDepth = depth;
+                    bestCorrection = RotatePoint(localCorrection, tA.WorldRotation);
+                    contactPoint = p; 
+                }
+            }
+        }
+
+        // Apply Position Correction
+        if (maxDepth > 0)
+        {
+            tA.WorldPosition += bestCorrection;
+
+            if (rb != null)
+            {
+                // 1. Stop linear velocity on collision axis (Inelastic)
+                if (MathF.Abs(bestCorrection.Y) > MathF.Abs(bestCorrection.X)) rb.Velocity.Y = 0;
+                else rb.Velocity.X = 0;
+
+                // 2. Check if supported on platform before applying torque
+                // Get platform bounds
+                var sT = staticCol.AttachedGameObject.GetComponent<Transform>();
+                float halfWidth = (staticCol.Size.X * sT.WorldScale.X) * 0.5f;
+                float platformLeft = sT.WorldPosition.X - halfWidth;
+                float platformRight = sT.WorldPosition.X + halfWidth;
+                
+                // Get object COM
+                float objectX = tA.WorldPosition.X;
+
+                // Only apply torque if the center of mass is safely WITHIN the platform width.
+                // If it's hanging over the edge, do NOT rotate (just let it sit flat/stable).
+                bool isSafelyOnPlatform = objectX > platformLeft && objectX < platformRight;
+
+                if (isSafelyOnPlatform)
+                {
+                    ApplySimpleTorque(rb, tA, contactPoint, dt);
+                }
+                else
+                {
+                    // If over the edge, kill angular velocity to stabilize it
+                    rb.AngularVelocity *= 0.5f;
+                }
+            }
         }
     }
+
+    private static void ApplySimpleTorque(Rigidbody rb, Transform t, Vector2 contactPoint, float dt)
+    {
+        float distanceX = contactPoint.X - t.WorldPosition.X;
+        
+        if (MathF.Abs(distanceX) < 0.1f) return;
+        
+        float supportForce = rb.Mass * 20f; 
+        
+        float torque = distanceX * supportForce;
+        
+        rb.AngularVelocity += (torque / rb.Inertia) * dt;
+        
+        rb.AngularVelocity *= 0.95f; 
+    }
+
+    private static Vector2 RotatePoint(Vector2 point, float angle)
+    {
+        float cos = MathF.Cos(angle);
+        float sin = MathF.Sin(angle);
+
+        return new Vector2(point.X * cos - point.Y * sin, point.X * sin + point.Y * cos);
+    }
     
+    public static Vector2[] GetRotatedCorners(BoxCollider box)
+    {
+        var t = box.AttachedGameObject.GetComponent<Transform>();
+        Vector2 half = (box.Size * t.WorldScale) * 0.5f;
+        Vector2[] corners =
+        {
+            new(-half.X, -half.Y), new(half.X, -half.Y),
+            new(-half.X, half.Y), new(-half.X, half.Y)
+        };
+        
+        float cos = MathF.Cos(t.WorldRotation);
+        float sin = MathF.Sin(t.WorldRotation);
+
+        Vector2 centre = t.WorldPosition + box.Offset;
+
+        for (int i = 0; i < 4; i++)
+        {
+            corners[i] = new Vector2(corners[i].X * cos - corners[i].Y * sin, corners[i].X * sin + corners[i].Y * cos) + centre;
+        }
+
+        return corners;
+    }
+
     /// <summary>
     /// Checks if two AABBs intersect with each other
     /// </summary>
@@ -241,80 +281,20 @@ public static class ChernikovEngine
     {
         var aAabb = a.GetAabb();
         var bAabb = b.GetAabb();
-        
-        if (aAabb.Min.X > bAabb.Max.X || aAabb.Max.X < bAabb.Min.X || 
-            aAabb.Min.Y > bAabb.Max.Y || aAabb.Max.Y < bAabb.Min.Y) return false;
-        
-        return  IsAnyCornerInside(a, b) || IsAnyCornerInside(b, a);
+        if (aAabb.Min.X > bAabb.Max.X || aAabb.Max.X < bAabb.Min.X || aAabb.Min.Y > bAabb.Max.Y || aAabb.Max.Y < bAabb.Min.Y) return false;
+        return IsAnyCornerInside(a, b) || IsAnyCornerInside(b, a);
     }
-
+    
     private static bool IsAnyCornerInside(BoxCollider a, BoxCollider b)
     {
         var bAabb = b.GetAabb();
-        var t = a.AttachedGameObject.GetComponent<Transform>();
-        Vector2 worldScale = t.WorldScale;
-        float rotation = t.WorldRotation;
-
-        Vector2 half = (a.Size * worldScale) * 0.5f;
-        
-        Vector2[] localCorners = {
-            new Vector2(-half.X, -half.Y), new Vector2(half.X, -half.Y),
-            new Vector2(half.X, half.Y), new Vector2(-half.X, half.Y)
-        };
-        
-        float cos = MathF.Cos(rotation);
-        float sin = MathF.Sin(rotation);
-
-        foreach (var corner in localCorners)
+        var corners = GetRotatedCorners(a);
+        foreach (var p in corners)
         {
-            Vector2 worldCorner = new Vector2(corner.X * cos - corner.Y * sin, corner.X * sin + corner.Y * cos) + (t.WorldPosition + a.Offset);
-
-            if (worldCorner.X >= bAabb.Min.X && worldCorner.X <= bAabb.Max.X && worldCorner.Y >= bAabb.Min.Y &&
-                worldCorner.Y <= bAabb.Max.Y)
-            {
-                return true;
-            }
+            if (p.X >= bAabb.Min.X && p.X <= bAabb.Max.X && 
+                p.Y >= bAabb.Min.Y && p.Y <= bAabb.Max.Y) return true;
         }
         return false;
-    }
-
-    static void ApplyTippingTorque(BoxCollider box, BoxCollider support, float dt)
-    {
-        var rb = box.AttachedGameObject.GetComponent<Rigidbody>();
-        if (rb == null || !rb.IsSimulated) return;
-
-        Vector2 com = box.GetWorldCentreOfMass();
-        var sAabb = support.GetAabb();
-        var sT = support.AttachedGameObject.GetComponent<Transform>();
-        
-        float halfWidth = (support.Size.X * sT.WorldScale.X) * 0.5f;
-        float edgeLeft = sT.WorldPosition.X - halfWidth;
-        float edgeRight = sT.WorldPosition.X + halfWidth;
-        float edgeTop = sAabb.Max.Y;
-
-        Vector2 pivot;
-        
-        if (com.X > edgeRight) {
-            pivot = new Vector2(edgeRight, edgeTop);
-        }
-        else if (com.X < edgeLeft) {
-            pivot = new Vector2(edgeLeft, edgeTop);
-        }
-        else {
-            pivot = new Vector2(com.X, edgeTop);
-        }
-        
-        Vector2 r = com - pivot;
-        
-        Vector2 F = rb.Mass * ProjectSettings.Gravity;
-        float torque = (r.X * F.Y) - (r.Y * F.X);
-    
-        rb.AngularVelocity += (torque / rb.Inertia) * dt;
-        
-        if (com.X > edgeRight || com.X < edgeLeft) {
-            float tangentialVelocityX = -rb.AngularVelocity * r.Y;
-            rb.Velocity.X = Single.Lerp(rb.Velocity.X, tangentialVelocityX, 10f * dt);
-        }
     }
     
     public static void ResetRigidbodyValues()
