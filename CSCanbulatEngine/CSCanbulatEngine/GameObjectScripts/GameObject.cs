@@ -491,12 +491,25 @@ public class GameObject
                         var meshRenderer = new MeshRenderer(Engine._squareMesh);
                         Engine._selectedGameObject.gameObject.AddComponent(meshRenderer); 
                     }
+
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Holds information about object rendering. Like the mesh, colour and texture.");
+                        ImGui.EndTooltip();
+                    }
                 }
 
                 if (ImGui.MenuItem("CircuitScript"))
                 {
                     var circuitScript = new CircuitScript();
                     Engine._selectedGameObject.gameObject.AddComponent(circuitScript);
+                }
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.Text("Holds information for logic and what the object should execute at the start or during the game.");
+                    ImGui.EndTooltip();
                 }
 
                 if (!Engine._selectedGameObject.gameObject.HasComponent<Rigidbody>())
@@ -505,6 +518,12 @@ public class GameObject
                     {
                         var rigidbody = new Rigidbody();
                         Engine._selectedGameObject.gameObject.AddComponent(rigidbody);
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Adds physics to the object and holds information about velocity, acceleration and gravity.");
+                        ImGui.EndTooltip();
                     }
                 }
 
@@ -520,6 +539,12 @@ public class GameObject
 
                         var boxCollider = new BoxCollider();
                         Engine._selectedGameObject.gameObject.AddComponent(boxCollider);
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Allows the object to have collisions. (Rigidbody is required)");
+                        ImGui.EndTooltip();
                     }
                 }
                     
