@@ -49,7 +49,7 @@ public static class ChernikovEngine
             {
                 if (rb == null || !rb.isEnabled || !rb.IsSimulated) continue;
 
-                rb.Integrate(deltaTime);
+                rb.Integrate(stepDelta);
             }
 
             var colliders = new List<BoxCollider>();
