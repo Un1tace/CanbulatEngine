@@ -204,6 +204,16 @@ public class GameObject
                 RemoveChildObject(ChildObjects[0]);
             }
         }
+
+        if (HasComponent<Camera>())
+        {
+            var camera = GetComponent<Camera>();
+
+            if (Camera.Main == camera)
+            {
+                Camera.NullMainCamera();
+            }
+        }
         
         while (Components.Count > 0)
         {
@@ -275,7 +285,7 @@ public class GameObject
     private static bool makingNewTag = false;
     public static void RenderGameObjectInspector()
     {
-        if (Engine._selectedGameObject != null)
+        if (Engine._selectedGameObject != null && Engine._selectedGameObject.gameObject != null)
         {
             ImGui.Text($"Editing {Engine._selectedGameObject.gameObject.Name}");
             ImGui.Text($"ID: {Engine._selectedGameObject.gameObject.ID}");
@@ -544,6 +554,22 @@ public class GameObject
                     {
                         ImGui.BeginTooltip();
                         ImGui.Text("Allows the object to have collisions. (Rigidbody is required)");
+                        ImGui.EndTooltip();
+                    }
+                }
+                
+                if (!Engine._selectedGameObject.gameObject.HasComponent<Camera>()) 
+                { 
+                    if (ImGui.MenuItem("Camera")) 
+                    {
+                        var camera = new Camera();
+                        Engine._selectedGameObject.gameObject.AddComponent(camera); 
+                    }
+
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Used to show where to display gameobjects in the viewport");
                         ImGui.EndTooltip();
                     }
                 }

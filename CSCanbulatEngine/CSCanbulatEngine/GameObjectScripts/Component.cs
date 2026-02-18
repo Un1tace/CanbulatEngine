@@ -14,7 +14,8 @@ public class Component
         ("MeshRenderer", typeof(MeshRenderer)),
         ("CircuitScript", typeof(CircuitScript)),
         ("Rigidbody", typeof(Rigidbody)),
-        ("BoxCollider", typeof(BoxCollider))
+        ("BoxCollider", typeof(BoxCollider)),
+        ("Camera", typeof(Camera))
     };
 
     public List<Type> RequiredComponents = new();

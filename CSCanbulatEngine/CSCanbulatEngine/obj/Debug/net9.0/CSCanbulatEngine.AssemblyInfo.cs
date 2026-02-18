@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CSCanbulatEngine")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2f4715432e3305374af1191324783d7217fc04c5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d0702ae3bd863f645069ff3f2dc60a2eac59d55c")]
 [assembly: System.Reflection.AssemblyProductAttribute("CSCanbulatEngine")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CSCanbulatEngine")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

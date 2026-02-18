@@ -176,7 +176,11 @@ public class SceneSerialiser
         //Reset managers
         VariableManager.Clear();
         EventManager.Clear();
-        Engine.currentScene.GameObjects.Clear();
+        Engine._selectedGameObject = null;
+        while (Engine.currentScene.GameObjects.Any())
+        {
+            Engine.currentScene.GameObjects[0].DeleteObject();
+        }
 
         Engine.currentScene = new Scene(sceneData.SceneName);
         Engine.currentScene.SceneName = sceneData.SceneName;

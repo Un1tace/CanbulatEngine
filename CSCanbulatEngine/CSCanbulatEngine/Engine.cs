@@ -14,6 +14,7 @@ using CSCanbulatEngine.Physics;
 using CSCanbulatEngine.UIHelperScripts;
 using CSCanbulatEngine.Utilities;
 using Newtonsoft.Json;
+using Silk.NET.GLFW;
 
 namespace CSCanbulatEngine;
 
@@ -62,7 +63,12 @@ public class Engine
     private static IKeyboard? primaryKeyboard;
     private static IMouse? primaryMouse;
 
-    private static float _cameraZoom = 2f;
+    // Editor Camera
+    private static Vector2 _editorCameraPos = Vector2.Zero;
+    private static float _editorCameraZoom = 2f;
+    
+    // Game Camera
+    private static float _cameraZoom => Camera.Main?.Zoom ?? 2f;
 
     public static uint _whiteTexture;
     
@@ -141,6 +147,9 @@ public class Engine
 
     private RectangleF _projectManagerBounds;
     private string[]? _pendingDroppedFiles = null;
+    
+    public static Matrix4x4 FinalView = Matrix4x4.Identity;
+    public static Matrix4x4 FinalProj = Matrix4x4.Identity;
     
     //Console
     public static bool _forceSetConsoleTab = false;
@@ -509,6 +518,26 @@ public class Engine
             ChernikovEngine.Step((float)deltaTime);
         }
 
+        if (CurrentState == EngineState.Editor)
+        {
+            if (primaryMouse != null)
+            {
+                _editorCameraZoom += primaryMouse.ScrollWheels[0].Y * 0.1f;
+                if (_editorCameraZoom < 0.1f) _editorCameraZoom = 0.1f;
+            }
+
+            if (ImGui.IsMouseDragging(ImGuiMouseButton.Middle) || (primaryKeyboard.IsKeyPressed(Key.SuperLeft) && ImGui.IsMouseDragging(ImGuiMouseButton.Right)))
+            {
+                Vector2 mouseDelta = ImGui.GetIO().MouseDelta;
+                
+                float panSpeed = 1.0f / _editorCameraZoom;
+                
+                _editorCameraPos.X -= mouseDelta.X * panSpeed * 0.003f;
+                
+                _editorCameraPos.Y += mouseDelta.Y * panSpeed * 0.003f;
+            }
+        }
+
         Audio?.Update();
         
         // ! ! ! Keep at last update ! ! !
@@ -526,10 +555,14 @@ public class Engine
         imGuiController.Update((float)deltaTime);
         
         ImGui.PushFont(_customFont);
+        
+        
         // Render game scene to off screen FBO
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, Fbo);
         
         gl.Viewport(0, 0, (uint)ViewportSize.X, (uint)ViewportSize.Y);
+        
+        UpdateCameraMatrices(ViewportSize.X, ViewportSize.Y);
         
         DrawGameScene(ViewportSize, _cameraZoom);
         
@@ -808,7 +841,7 @@ public class Engine
             }
             else
             {
-                if (_selectedGameObject != null)
+                if (_selectedGameObject != null && _selectedGameObject.gameObject != null)
                 {
                     _selectedGameObject.gameObject.RenderObjectOptionBar(superKey);
                 }
@@ -928,16 +961,42 @@ public class Engine
 
                 if (_selectedGameObject != null)
                 {
-                    var viewMatrix = Matrix4x4.Identity;
+                    float viewportAspectRatio = viewportPanelSize.X > 0 ? viewportPanelSize.X / viewportPanelSize.Y : 1;
 
-                    float viewportAspectRatio =
-                        viewportPanelSize.X > 0 ? viewportPanelSize.X / viewportPanelSize.Y : 1.0f;
-                    float orthoWidth = 2f * (viewportAspectRatio > 1.0f ? viewportAspectRatio : 1.0f) * _cameraZoom;
-                    float orthoHeight = 2f * (viewportAspectRatio < 1.0f ? 1.0f / viewportAspectRatio : 1.0f) *
-                                        _cameraZoom;
-                    var projMatrix = Matrix4x4.CreateOrthographic(orthoWidth, orthoHeight, -1f, 100f);
+                    float baseHeight = 2.0f;
+                    float baseWidth = baseHeight * viewportAspectRatio;
 
-                    _gizmo.UpdateAndRender(_selectedGameObject.gameObject, viewMatrix, projMatrix, viewportPos, viewportPanelSize);
+                    Matrix4x4 viewMatrix;
+                    Matrix4x4 projMatrix;
+                    
+                    if (CurrentState == EngineState.Play && Camera.Main != null) // Editor
+                    {
+                        viewMatrix = Camera.Main.GetViewMatrix();
+                        
+                        projMatrix = Matrix4x4.CreateOrthographic(baseWidth, baseHeight, -100f, 100f);
+                    }
+                    else // Game
+                    {
+                        viewMatrix = Matrix4x4.CreateTranslation(-_editorCameraPos.X, -_editorCameraPos.Y, 0);
+                        
+                        float w = baseWidth * _editorCameraZoom;
+                        float h = baseHeight * _editorCameraZoom;
+                        projMatrix = Matrix4x4.CreateOrthographic(w, h, -100f, 100f);
+                    }
+
+                    FinalView = viewMatrix;
+                    FinalProj = projMatrix;
+
+                    shader.SetUniform("projection", FinalProj);
+                    
+                    _gizmo.UpdateAndRender(
+                        _selectedGameObject.gameObject,
+                        FinalView,
+                        FinalProj,
+                        viewportPos,
+                        viewportPanelSize
+                    );
+
                 }
 
                 ImGui.EndTabItem();
@@ -1262,6 +1321,31 @@ public class Engine
         
         SetLook();
     }
+    
+
+    public static void UpdateCameraMatrices(float viewportWidth, float viewportHeight)
+    {
+        float viewportAspectRatio = viewportWidth > 0 ? viewportWidth / viewportHeight : 1.0f;
+        float baseHeight = 2.0f;
+        float baseWidth = baseHeight * viewportAspectRatio;
+
+        if (CurrentState == EngineState.Play && Camera.Main != null)
+        {
+            FinalView = Camera.Main.GetViewMatrix();
+            FinalProj = Matrix4x4.CreateOrthographic(baseWidth, baseHeight, -100f, 100f);
+        }
+        else
+        {
+            FinalView = Matrix4x4.CreateTranslation(-_editorCameraPos.X, -_editorCameraPos.Y, 0);
+        
+            float w = baseWidth * _editorCameraZoom;
+            float h = baseHeight * _editorCameraZoom;
+            FinalProj = Matrix4x4.CreateOrthographic(w, h, -100f, 100f);
+        }
+        
+        shader.SetUniform("projection", FinalProj);
+    }
+
 
     private unsafe void RenderHierarchyNode(GameObject gameObject)
     {
@@ -1437,32 +1521,70 @@ public class Engine
     {
         gl.ClearColor(Color.CornflowerBlue);
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-        shader.Use();
         
-        float viewportAspectRatio = (float)currentViewportSize.X / currentViewportSize.Y;
+        float aspect = ViewportSize.X / (float)ViewportSize.Y;
+        float width, height, zoom;
 
-        float orthoWidth, orthoHeight;
-        if (viewportAspectRatio > 1.0f)
+        if (CurrentState == EngineState.Play && Camera.Main != null)
         {
-            orthoWidth = 2f * viewportAspectRatio * cameraZoom;
-            orthoHeight = 2f * cameraZoom;
+            FinalView = Camera.Main.GetViewMatrix();
+            zoom = Camera.Main.Zoom;
         }
         else
         {
-            orthoWidth = 2f * cameraZoom;
-            orthoHeight = 2f / viewportAspectRatio * cameraZoom;
+            FinalView = Matrix4x4.CreateTranslation(-_editorCameraPos.X, -_editorCameraPos.Y, 0f);
+            zoom = _editorCameraZoom;
         }
-        Matrix4x4 projection = Matrix4x4.CreateOrthographic(orthoWidth, orthoHeight, -1f, 1f);
-        shader.SetUniform("projection", projection);
+
+        width = 2f * (aspect > 1f ? aspect : 1f) * zoom;
+        height = 2f * (aspect < 1f ? 1f / aspect : 1f) * zoom;
+        FinalProj = Matrix4x4.CreateOrthographic(width, height, -100f, 100f);
+        
+        Matrix4x4 combinedMatrix = FinalView * FinalProj;
+
+        Matrix4x4 shaderProjection = FinalView * FinalProj;
+        
+        
+        
+        shader.Use();
+        shader.SetUniform("view", Matrix4x4.Identity);
+        shader.SetUniform("projection", FinalProj);
+        
+        // shader.Use();
+        //
+        // float viewportAspectRatio = (float)currentViewportSize.X / currentViewportSize.Y;
+        //
+        // float orthoWidth, orthoHeight;
+        // if (viewportAspectRatio > 1.0f)
+        // {
+        //     orthoWidth = 2f * viewportAspectRatio * cameraZoom;
+        //     orthoHeight = 2f * cameraZoom;
+        // }
+        // else
+        // {
+        //     orthoWidth = 2f * cameraZoom;
+        //     orthoHeight = 2f / viewportAspectRatio * cameraZoom;
+        // }
+        // Matrix4x4 projection = Matrix4x4.CreateOrthographic(orthoWidth, orthoHeight, -1f, 1f);
+        // shader.SetUniform("projection", projection);
         
         shader.SetUniform("uTexture", 0);
         gl.ActiveTexture(TextureUnit.Texture0);
+        
+        Matrix4x4 viewMatrix = Matrix4x4.Identity;
+        if (Camera.Main != null)
+        {
+            viewMatrix = Camera.Main.GetViewMatrix();
+        }
 
         foreach (var gameObject in currentScene.GameObjects)
         {
             var renderer = gameObject.GetComponent<MeshRenderer>();
             if (renderer == null) continue;
+            
+            var transform = gameObject.GetComponent<Transform>();
+            
+            
             
             renderer.Draw();
             

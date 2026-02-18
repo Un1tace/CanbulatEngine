@@ -135,27 +135,28 @@ public class Transform : Component
     {
         get
         {
-            if (AttachedGameObject.ParentObject is not null)
-            {
-                Transform? parentTransform = AttachedGameObject.ParentObject.GetComponent<Transform>();
-                return _Scale * parentTransform.WorldScale;
-            }
+            // if (AttachedGameObject.ParentObject is not null)
+            // {
+            //     Transform? parentTransform = AttachedGameObject.ParentObject.GetComponent<Transform>();
+            //     return _Scale * parentTransform.WorldScale;
+            // }
 
             return _Scale;
         }
 
         set
         {
-            if (AttachedGameObject.ParentObject is not null)
-            {
-                Transform? parentTransform = AttachedGameObject.ParentObject.GetComponent<Transform>();
-                Vector2 parentWorld = parentTransform.WorldScale;
-                _Scale = new Vector2(
-                    parentWorld.X != 0 ? value.X / parentWorld.X : value.X,
-                    parentWorld.Y != 0 ? value.Y / parentWorld.Y : value.Y
-                    );
-            }
-            else _Scale = value;
+            // if (AttachedGameObject.ParentObject is not null)
+            // {
+            //     Transform? parentTransform = AttachedGameObject.ParentObject.GetComponent<Transform>();
+            //     Vector2 parentWorld = parentTransform.WorldScale;
+            //     _Scale = new Vector2(
+            //         parentWorld.X != 0 ? value.X / parentWorld.X : value.X,
+            //         parentWorld.Y != 0 ? value.Y / parentWorld.Y : value.Y
+            //         );
+            // }
+            // else _Scale = value;
+            _Scale = value;
         }
     }
 

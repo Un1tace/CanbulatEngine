@@ -5646,7 +5646,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net9.0": {
@@ -5718,36 +5718,48 @@
         "warn": true,
         "downloadDependencies": [
           {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[9.0.12, 9.0.12]"
+          },
+          {
             "name": "Microsoft.AspNetCore.App.Runtime.osx-arm64",
-            "version": "[9.0.5, 9.0.5]"
+            "version": "[9.0.12, 9.0.12]"
           },
           {
             "name": "Microsoft.AspNetCore.App.Runtime.osx-x64",
-            "version": "[9.0.5, 9.0.5]"
+            "version": "[9.0.12, 9.0.12]"
           },
           {
             "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
-            "version": "[9.0.5, 9.0.5]"
+            "version": "[9.0.12, 9.0.12]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.osx-arm64",
+            "version": "[9.0.12, 9.0.12]"
           },
           {
             "name": "Microsoft.NETCore.App.Host.osx-x64",
-            "version": "[9.0.5, 9.0.5]"
+            "version": "[9.0.12, 9.0.12]"
           },
           {
             "name": "Microsoft.NETCore.App.Host.win-x64",
-            "version": "[9.0.5, 9.0.5]"
+            "version": "[9.0.12, 9.0.12]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[9.0.12, 9.0.12]"
           },
           {
             "name": "Microsoft.NETCore.App.Runtime.osx-arm64",
-            "version": "[9.0.5, 9.0.5]"
+            "version": "[9.0.12, 9.0.12]"
           },
           {
             "name": "Microsoft.NETCore.App.Runtime.osx-x64",
-            "version": "[9.0.5, 9.0.5]"
+            "version": "[9.0.12, 9.0.12]"
           },
           {
             "name": "Microsoft.NETCore.App.Runtime.win-x64",
-            "version": "[9.0.5, 9.0.5]"
+            "version": "[9.0.12, 9.0.12]"
           }
         ],
         "frameworkReferences": {
@@ -5755,7 +5767,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.300/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.102/PortableRuntimeIdentifierGraph.json"
       }
     },
     "runtimes": {

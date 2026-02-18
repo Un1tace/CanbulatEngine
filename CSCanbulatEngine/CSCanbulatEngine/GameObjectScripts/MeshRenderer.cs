@@ -69,11 +69,17 @@ public class MeshRenderer : Component
 
             uint textureToBind = TextureID != 0 ? TextureID : Engine._whiteTexture;
             Engine.gl.BindTexture(TextureTarget.Texture2D, textureToBind);
-
-            //Get the matrix from the transform
+            
             Matrix4x4 modelMatrix = AttachedGameObject.GetComponent<Transform>().GetModelMatrix();
-            //Set model uniform in the shader for the object
-            Engine.shader.SetUniform("model", modelMatrix);
+            Matrix4x4 view = Engine.FinalView;
+            // if (Camera.Main != null)
+            // {
+            //     view = Camera.Main.GetViewMatrix();
+            // }
+            
+            Matrix4x4 finalMatrix = modelMatrix * view;
+            
+            Engine.shader.SetUniform("model", finalMatrix);
             
             if (Mesh != null) Mesh.Draw();
         }

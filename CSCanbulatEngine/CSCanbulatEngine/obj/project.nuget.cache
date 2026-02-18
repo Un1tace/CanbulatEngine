@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "5LzxtjkPdKs=",
+  "dgSpecHash": "2bzvxyOkaWA=",
   "success": true,
   "projectFilePath": "/Users/kaiafful/Developer/CSProjects/CanbulatEngine/CanbulatEngine/CSCanbulatEngine/CSCanbulatEngine/CSCanbulatEngine.csproj",
   "expectedPackageFiles": [
@@ -62,14 +62,17 @@
     "/Users/kaiafful/.nuget/packages/system.threading.tasks.extensions/4.5.4/system.threading.tasks.extensions.4.5.4.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/tinydialogsnet/2.0.0/tinydialogsnet.2.0.0.nupkg.sha512",
     "/Users/kaiafful/.nuget/packages/ultz.native.glfw/3.4.0/ultz.native.glfw.3.4.0.nupkg.sha512",
-    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.runtime.win-x64/9.0.5/microsoft.netcore.app.runtime.win-x64.9.0.5.nupkg.sha512",
-    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.runtime.osx-x64/9.0.5/microsoft.netcore.app.runtime.osx-x64.9.0.5.nupkg.sha512",
-    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.runtime.osx-arm64/9.0.5/microsoft.netcore.app.runtime.osx-arm64.9.0.5.nupkg.sha512",
-    "/Users/kaiafful/.nuget/packages/microsoft.aspnetcore.app.runtime.win-x64/9.0.5/microsoft.aspnetcore.app.runtime.win-x64.9.0.5.nupkg.sha512",
-    "/Users/kaiafful/.nuget/packages/microsoft.aspnetcore.app.runtime.osx-x64/9.0.5/microsoft.aspnetcore.app.runtime.osx-x64.9.0.5.nupkg.sha512",
-    "/Users/kaiafful/.nuget/packages/microsoft.aspnetcore.app.runtime.osx-arm64/9.0.5/microsoft.aspnetcore.app.runtime.osx-arm64.9.0.5.nupkg.sha512",
-    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.host.win-x64/9.0.5/microsoft.netcore.app.host.win-x64.9.0.5.nupkg.sha512",
-    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.host.osx-x64/9.0.5/microsoft.netcore.app.host.osx-x64.9.0.5.nupkg.sha512"
+    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.ref/9.0.12/microsoft.netcore.app.ref.9.0.12.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.runtime.win-x64/9.0.12/microsoft.netcore.app.runtime.win-x64.9.0.12.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.runtime.osx-x64/9.0.12/microsoft.netcore.app.runtime.osx-x64.9.0.12.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.runtime.osx-arm64/9.0.12/microsoft.netcore.app.runtime.osx-arm64.9.0.12.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.12/microsoft.aspnetcore.app.ref.9.0.12.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/microsoft.aspnetcore.app.runtime.win-x64/9.0.12/microsoft.aspnetcore.app.runtime.win-x64.9.0.12.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/microsoft.aspnetcore.app.runtime.osx-x64/9.0.12/microsoft.aspnetcore.app.runtime.osx-x64.9.0.12.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/microsoft.aspnetcore.app.runtime.osx-arm64/9.0.12/microsoft.aspnetcore.app.runtime.osx-arm64.9.0.12.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.host.osx-arm64/9.0.12/microsoft.netcore.app.host.osx-arm64.9.0.12.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.host.win-x64/9.0.12/microsoft.netcore.app.host.win-x64.9.0.12.nupkg.sha512",
+    "/Users/kaiafful/.nuget/packages/microsoft.netcore.app.host.osx-x64/9.0.12/microsoft.netcore.app.host.osx-x64.9.0.12.nupkg.sha512"
   ],
   "logs": []
 }
