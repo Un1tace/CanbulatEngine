@@ -1448,7 +1448,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
 
 public class BoolConstantChip : Chip
 {
-    public static string Description = "Outputs a constant Boolean (True/False) value.";
+    public static readonly string Description = "Outputs a constant Boolean (True/False) value.";
     public BoolConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(bool)]);
@@ -1464,7 +1464,7 @@ public class BoolConstantChip : Chip
 
 public class FloatConstantChip : Chip
 {
-    public static string Description = "Outputs a constant float (decimal) value.";
+    public static readonly string Description = "Outputs a constant float (decimal) value.";
     public FloatConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(float)]);
@@ -1480,7 +1480,7 @@ public class FloatConstantChip : Chip
 
 public class IntConstantChip : Chip
 {
-    public static string Description = "Outputs a constant integer (Whole Number) value.";
+    public static readonly string Description = "Outputs a constant integer (Whole Number) value.";
     public IntConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(int)]);
@@ -1496,7 +1496,7 @@ public class IntConstantChip : Chip
 
 public class StringConstantChip : Chip
 {
-    public static string Description = "Outputs a constant string (text) value.";
+    public static readonly string Description = "Outputs a constant string (text) value.";
     public StringConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(string)]);
@@ -1512,7 +1512,7 @@ public class StringConstantChip : Chip
 
 public class Vector2ConstantChip : Chip
 {
-    public static string Description = "Outputs a constant Vector2 (X,Y) value";
+    public static readonly string Description = "Outputs a constant Vector2 (X,Y) value";
     public Vector2ConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(Vector2)]);
@@ -1528,7 +1528,7 @@ public class Vector2ConstantChip : Chip
 
 public class AddChip : Chip
 {
-    public static string Description = "Outputs the sum of A and B. (A + B). Works with Ints and Floats.";
+    public static readonly string Description = "Outputs the sum of A and B. (A + B). Works with Ints and Floats.";
     public AddChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -1591,7 +1591,7 @@ public class AddChip : Chip
 
 public class SubtractChip : Chip
 {
-    public static string Description = "Outputs the difference between A and B. (A - B). Works with Ints and Floats.";
+    public static readonly string Description = "Outputs the difference between A and B. (A - B). Works with Ints and Floats.";
     public SubtractChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -1653,7 +1653,7 @@ public class SubtractChip : Chip
 
 public class DivideChip : Chip
 {
-    public static string Description = "Outputs the quotient of A and B. (A / B). Works with Ints and Floats.";
+    public static readonly string Description = "Outputs the quotient of A and B. (A / B). Works with Ints and Floats.";
     public DivideChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -1715,7 +1715,7 @@ public class DivideChip : Chip
 
 public class MultiplyChip : Chip
 {
-    public static string Description = "Outputs the product of A and B. (A * B). Works with Ints and Floats.";
+    public static readonly string Description = "Outputs the product of A and B. (A * B). Works with Ints and Floats.";
     public MultiplyChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -1777,7 +1777,7 @@ public class MultiplyChip : Chip
 
 public class PowerChip : Chip
 {
-    public static string Description = "Outputs the exponentiation of A and B. (A ^ B). Works with Ints and Floats.";
+    public static readonly string Description = "Outputs the exponentiation of A and B. (A ^ B). Works with Ints and Floats.";
     public PowerChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -1839,7 +1839,7 @@ public class PowerChip : Chip
 
 public class PiConstant : Chip
 {
-    public static string Description = "Output PI";
+    public static readonly string Description = "Output PI";
 
     public PiConstant(int id, string name, Vector2 position) : base(id, name, position)
     {
@@ -1857,7 +1857,7 @@ public class PiConstant : Chip
 
 public class TestButton : Chip
 {
-    public static string Description = "A simple button on the chip that fires an execution pulse when clicked in the editor.";
+    public static readonly string Description = "A simple button on the chip that fires an execution pulse when clicked in the editor.";
     public TestButton(int id, string name, Vector2 position) : base(id, name, position)
     {
         ShowCustomItemOnChip = true;
@@ -1876,7 +1876,7 @@ public class TestButton : Chip
 // Variables :)
 public class BoolVariable : Chip
 {
-    public static string Description = "Sets (on execute) or gets (on output) a global boolean variable by name.";
+    public static readonly string Description = "Sets (on execute) or gets (on output) a global boolean variable by name.";
     private Values varValues;
     public BoolVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -1949,7 +1949,7 @@ public class BoolVariable : Chip
 
 public class FloatVariable : Chip
 {
-    public static string Description = "Sets (on execute) or gets (on output) a global float variable by name.";
+    public static readonly string Description = "Sets (on execute) or gets (on output) a global float variable by name.";
     private Values varValues;
     public FloatVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -2022,7 +2022,7 @@ public class FloatVariable : Chip
 
 public class IntVariable : Chip
 {
-    public static string Description = "Sets (on execute) or gets (on output) a global integer variable by name.";
+    public static readonly string Description = "Sets (on execute) or gets (on output) a global integer variable by name.";
     private Values varValues;
     public IntVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -2095,7 +2095,7 @@ public class IntVariable : Chip
 
 public class StringVariable : Chip
 {
-    public static string Description = "Sets (on execute) or gets (on output) a global string variable by name.";
+    public static readonly string Description = "Sets (on execute) or gets (on output) a global string variable by name.";
     private Values varValues;
     public StringVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -2168,7 +2168,7 @@ public class StringVariable : Chip
 
 public class Vector2Variable : Chip
 {
-    public static string Description = "Sets (on execute) or gets (on output) a global Vector2 variable by name.";
+    public static readonly string Description = "Sets (on execute) or gets (on output) a global Vector2 variable by name.";
     private Values varValues;
     public Vector2Variable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -2241,7 +2241,7 @@ public class Vector2Variable : Chip
 
 public class GameObjectVariable : Chip
 {
-    public static string Description = "Sets (on execute) or gets (on output) a global GameObject variable by name.";
+    public static readonly string Description = "Sets (on execute) or gets (on output) a global GameObject variable by name.";
     private Values varValues;
     public GameObjectVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -2319,7 +2319,7 @@ public class GameObjectVariable : Chip
 
 public class AudioInfoVariable : Chip
 {
-    public static string Description = "Sets (on execute) or gets (on output) a global Audio INfo variable by name.";
+    public static readonly string Description = "Sets (on execute) or gets (on output) a global Audio INfo variable by name.";
     private Values varValues;
     public AudioInfoVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -2392,7 +2392,7 @@ public class AudioInfoVariable : Chip
 
 public class ComponentHolderVariable : Chip
 {
-    public static string Description = "Sets (on execute) or gets (on output) a global Component variable by name.";
+    public static readonly string Description = "Sets (on execute) or gets (on output) a global Component variable by name.";
     private Values varValues;
     public ComponentHolderVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
@@ -2466,7 +2466,7 @@ public class ComponentHolderVariable : Chip
 // Logic Chips
 public class AndChip : Chip
 {
-    public static string Description = "Outputs true only if both A and B are true.";
+    public static readonly string Description = "Outputs true only if both A and B are true.";
     public AndChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input A", true, [typeof(bool)]);
@@ -2487,7 +2487,7 @@ public class AndChip : Chip
 
 public class OrChip : Chip
 {
-    public static string Description = "Outputs true if either A or B (Or both) are true.";
+    public static readonly string Description = "Outputs true if either A or B (Or both) are true.";
     public OrChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input A", true, [typeof(bool)]);
@@ -2508,7 +2508,7 @@ public class OrChip : Chip
 
 public class NotChip : Chip
 {
-    public static string Description = "Outputs the inverse of the input.";
+    public static readonly string Description = "Outputs the inverse of the input.";
     public NotChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(bool)]);
@@ -2528,7 +2528,7 @@ public class NotChip : Chip
 
 public class NorChip : Chip
 {
-    public static string Description = "Outputs true only if both A and B are false.";
+    public static readonly string Description = "Outputs true only if both A and B are false.";
     public NorChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input A", true, [typeof(bool)]);
@@ -2549,7 +2549,7 @@ public class NorChip : Chip
 
 public class NandChip : Chip
 {
-    public static string Description = "Outputs true only if A and B are false.";
+    public static readonly string Description = "Outputs true only if A and B are false.";
     public NandChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input A", true, [typeof(bool)]);
@@ -2570,7 +2570,7 @@ public class NandChip : Chip
 
 public class XorChip : Chip
 {
-    public static string Description = "Outputs true only if A and B are opposites.";
+    public static readonly string Description = "Outputs true only if A and B are opposites.";
     public XorChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input A", true, [typeof(bool)]);
@@ -2592,7 +2592,7 @@ public class XorChip : Chip
 //Comparison
 public class GreaterThanChip : Chip
 {
-    public static string Description = "Outputs true if A is greater than B. Works with Integers or Floats.";
+    public static readonly string Description = "Outputs true if A is greater than B. Works with Integers or Floats.";
     public GreaterThanChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -2651,7 +2651,7 @@ public class GreaterThanChip : Chip
 
 public class GreaterThanOrEqualsChip : Chip
 {
-    public static string Description = "Outputs true if A is greater than or equal to B. Works with Integers or Floats.";
+    public static readonly string Description = "Outputs true if A is greater than or equal to B. Works with Integers or Floats.";
     public GreaterThanOrEqualsChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -2710,7 +2710,7 @@ public class GreaterThanOrEqualsChip : Chip
 
 public class LessThanChip : Chip
 {
-    public static string Description = "Outputs true if A is less than B. Works with Integers or Floats.";
+    public static readonly string Description = "Outputs true if A is less than B. Works with Integers or Floats.";
     public LessThanChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -2769,7 +2769,7 @@ public class LessThanChip : Chip
 
 public class LessThanOrEqualsChip : Chip
 {
-    public static string Description = "Outputs true if A is less than or equal to B. Works with Integers or Floats.";
+    public static readonly string Description = "Outputs true if A is less than or equal to B. Works with Integers or Floats.";
     public LessThanOrEqualsChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(int), typeof(float)]);
@@ -2828,7 +2828,7 @@ public class LessThanOrEqualsChip : Chip
 
 public class EqualsChip : Chip
 {
-    public static string Description = "Outputs true if A is equals to B. Works with most data types.";
+    public static readonly string Description = "Outputs true if A is equals to B. Works with most data types.";
     public EqualsChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2), typeof(GameObject), 
@@ -2923,7 +2923,7 @@ public class EqualsChip : Chip
 // Event Chip
 public class EventChip : Chip
 {
-    public static string Description = "Sends (on execute) or recieves (on event) a named event with custom parameters. Also has predefined events that can be used such as: OnUpdate, OnStart...";
+    public static readonly string Description = "Sends (on execute) or recieves (on event) a named event with custom parameters. Also has predefined events that can be used such as: OnUpdate, OnStart...";
     public Event? SelectedEvent;
     private EventMode Mode = EventMode.Receive;
     private Action<EventValues>? ListenerAction;
@@ -3493,7 +3493,7 @@ public class EventChip : Chip
 
 public class LogChip : Chip
 {
-    public static string Description = "Prints a standard message to the game console when executed.";
+    public static readonly string Description = "Prints a standard message to the game console when executed.";
     public LogChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("Log", true, [typeof(string)], false);
@@ -3508,7 +3508,7 @@ public class LogChip : Chip
 
 public class LogWarningChip : Chip
 {
-    public static string Description = "Prints a warning message to the game console when executed.";
+    public static readonly string Description = "Prints a warning message to the game console when executed.";
     public LogWarningChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("Log", true, [typeof(string)], false);
@@ -3523,7 +3523,7 @@ public class LogWarningChip : Chip
 
 public class LogErrorChip : Chip
 {
-    public static string Description = "Prints an error message to the game console when executed.";
+    public static readonly string Description = "Prints an error message to the game console when executed.";
     public LogErrorChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("Log", true, [typeof(string)], false);
@@ -3538,7 +3538,7 @@ public class LogErrorChip : Chip
 
 public class FindObjectByID : Chip
 {
-    public static string Description = "Finds and outputs the first GameObject in the scene with a matching ID.";
+    public static readonly string Description = "Finds and outputs the first GameObject in the scene with a matching ID.";
     public FindObjectByID(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("ID", true, [typeof(int)], true);
@@ -3554,7 +3554,7 @@ public class FindObjectByID : Chip
 
 public class FindFirstObjectWithTag : Chip
 {
-    public static string Description = "Finds and outputs the first GameObject in the scene that has the specified tag.";
+    public static readonly string Description = "Finds and outputs the first GameObject in the scene that has the specified tag.";
     public FindFirstObjectWithTag(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("Tag", true, [typeof(string)], true);
@@ -3572,7 +3572,7 @@ public class FindFirstObjectWithTag : Chip
 
 public class FindAllObjectsWithTag : Chip
 {
-    public static string Description = "Finds and outputs a List of all GameObjects in the scene that have the specified tag.";
+    public static readonly string Description = "Finds and outputs a List of all GameObjects in the scene that have the specified tag.";
     public FindAllObjectsWithTag(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         Size = new Vector2(250, 100);
@@ -3592,7 +3592,7 @@ public class FindAllObjectsWithTag : Chip
 
 public class CreateList : Chip
 {
-    public static string Description = "Combines multiple 'Element' inputs into a single List output. Add/Remove ports in the inspector.";
+    public static readonly string Description = "Combines multiple 'Element' inputs into a single List output. Add/Remove ports in the inspector.";
     private Type? ChipPortsType = null;
     public CreateList(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
@@ -3851,7 +3851,7 @@ public override void SetCustomProperties(Dictionary<string, string> properties)
 
 public class GetElementAt : Chip
 {
-    public static string Description = "Outputs a single element from a List at the secified index.";
+    public static readonly string Description = "Outputs a single element from a List at the secified index.";
     public GetElementAt(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("List", true, [typeof(List<bool>), typeof(List<int>), typeof(List<float>), typeof(List<string>), typeof(List<Vector2>), typeof(List<GameObject>)], true);
@@ -3914,7 +3914,7 @@ public class GetElementAt : Chip
 
 public class Vector2Create : Chip
 {
-    public static string Description = "Creates and outputs a new Vector2 from separate X and Y float inputs.";
+    public static readonly string Description = "Creates and outputs a new Vector2 from separate X and Y float inputs.";
     public Vector2Create(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("X", true, [typeof(float)], true);
@@ -3937,7 +3937,7 @@ public class Vector2Create : Chip
 
 public class thisChip : Chip
 {
-    public static string Description = "Outputs a reference to the GameObject that this CircuitScript component is attached to. (This will display null in the inspector.)";
+    public static readonly string Description = "Outputs a reference to the GameObject that this CircuitScript component is attached to. (This will display null in the inspector.)";
     public GameObject? theThisGameObject;
     public thisChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
@@ -3958,7 +3958,7 @@ public class thisChip : Chip
 
 public class SetWorldPositionChip : Chip
 {
-    public static string Description = "Sets the world-space position of a GameObject when executed.";
+    public static readonly string Description = "Sets the world-space position of a GameObject when executed.";
     public SetWorldPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("GameObject", true, [typeof(GameObject), typeof(ComponentHolder)], true);
@@ -4020,7 +4020,7 @@ public class SetWorldPositionChip : Chip
 
 public class SetLocalPositionChip : Chip
 {
-    public static string Description = "Sets the local-space position of a GameObject (relative to its parent) when executed.";
+    public static readonly string Description = "Sets the local-space position of a GameObject (relative to its parent) when executed.";
     public SetLocalPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("GameObject", true, [typeof(GameObject), typeof(ComponentHolder)], true);
@@ -4082,7 +4082,7 @@ public class SetLocalPositionChip : Chip
 
 public class SetWorldRotationChip : Chip
 {
-    public static string Description = "Sets the world-space rotation (in radians) of a GameObject when executed.";
+    public static readonly string Description = "Sets the world-space rotation (in radians) of a GameObject when executed.";
     public SetWorldRotationChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("GameObject", true, [typeof(GameObject), typeof(Component)], true);
@@ -4144,7 +4144,7 @@ public class SetWorldRotationChip : Chip
 
 public class SetLocalRotationChip : Chip
 {
-    public static string Description = "Sets the local-space rotation (in radians) of a GameObject (relative to its parent) when executed.";
+    public static readonly string Description = "Sets the local-space rotation (in radians) of a GameObject (relative to its parent) when executed.";
     public SetLocalRotationChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("GameObject", true, [typeof(GameObject), typeof(Component)], true);
@@ -4206,7 +4206,7 @@ public class SetLocalRotationChip : Chip
 
 public class SetWorldRotationInDegreesChip : Chip
 {
-    public static string Description = "Sets the world-space Rotation (In Degrees) of a GameObject when executed.";
+    public static readonly string Description = "Sets the world-space Rotation (In Degrees) of a GameObject when executed.";
     public SetWorldRotationInDegreesChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("GameObject", true, [typeof(GameObject), typeof(Component)], true);
@@ -4268,7 +4268,7 @@ public class SetWorldRotationInDegreesChip : Chip
 
 public class SetLocalRotationInDegreesChip : Chip
 {
-    public static string Description = "Sets the local-space Rotation (In Degrees) of a GameObject (relative to its parent) when executed.";
+    public static readonly string Description = "Sets the local-space Rotation (In Degrees) of a GameObject (relative to its parent) when executed.";
     public SetLocalRotationInDegreesChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("GameObject", true, [typeof(GameObject), typeof(Component)], true);
@@ -4330,7 +4330,7 @@ public class SetLocalRotationInDegreesChip : Chip
 
 public class SetWorldScaleChip : Chip
 {
-    public static string Description = "Sets the world-space scale of a GameObject when executed.";
+    public static readonly string Description = "Sets the world-space scale of a GameObject when executed.";
     public SetWorldScaleChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("GameObject", true, [typeof(GameObject), typeof(Component)], true);
@@ -4392,7 +4392,7 @@ public class SetWorldScaleChip : Chip
 
 public class SetLocalScaleChip : Chip
 {
-    public static string Description = "Sets the local-space scale of a GameObject (relative to its parent) when executed.";
+    public static readonly string Description = "Sets the local-space scale of a GameObject (relative to its parent) when executed.";
     public SetLocalScaleChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("GameObject", true, [typeof(GameObject), typeof(Component)], true);
@@ -4454,7 +4454,7 @@ public class SetLocalScaleChip : Chip
 
 public class SetVelocityChip : Chip
 {
-    public static string Description = "Sets the velocity of a rigidbody acting upon an object.";
+    public static readonly string Description = "Sets the velocity of a rigidbody acting upon an object.";
     public SetVelocityChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("Rigidbody", true, [typeof(ComponentHolder)], true);
@@ -4510,7 +4510,7 @@ public class SetVelocityChip : Chip
 
 public class AddVelocityChip : Chip
 {
-    public static string Description = "Adds onto the velocity of a rigidbody acting upon an object.";
+    public static readonly string Description = "Adds onto the velocity of a rigidbody acting upon an object.";
     public AddVelocityChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("Rigidbody", true, [typeof(ComponentHolder)], true);
@@ -4566,7 +4566,7 @@ public class AddVelocityChip : Chip
 
 public class GetVelocityChip : Chip
 {
-    public static string Description = "Gets the velocity of a rigidbody acting upon an object.";
+    public static readonly string Description = "Gets the velocity of a rigidbody acting upon an object.";
     public GetVelocityChip(int id, string name, Vector2 pos) : base(id, name, pos)
     {
         AddPort("Rigidbody", true, [typeof(ComponentHolder)], true);
@@ -4608,7 +4608,7 @@ public class GetVelocityChip : Chip
 
 public class GetComponentChip : Chip
 {
-    public static string Description = "Gets a component (like Transform or MeshRenderer) from a GameObject by type.";
+    public static readonly string Description = "Gets a component (like Transform or MeshRenderer) from a GameObject by type.";
     private int selectedIndex = 0;
 
     private string previewValue;
@@ -4703,7 +4703,7 @@ public class GetComponentChip : Chip
 
 public class HasComponentChip : Chip
 {
-    public static string Description = "Outputs true if the target GameObject has the specified component.";
+    public static readonly string Description = "Outputs true if the target GameObject has the specified component.";
     private int selectedIndex = 0;
 
     private string previewValue;
@@ -4801,7 +4801,7 @@ public class HasComponentChip : Chip
 /// </summary>
 public class SetMainCameraChip : Chip
 {
-    public static string Description = "Sets the main camera of the scene when executed.";
+    public static readonly string Description = "Sets the main camera of the scene when executed.";
     public SetMainCameraChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("Camera", true, [typeof(ComponentHolder)], true);
@@ -4847,7 +4847,7 @@ public class SetMainCameraChip : Chip
 /// </summary>
 public class GetMainCameraChip : Chip
 {
-    public static string Description = "Gets the main camera of the scene.";
+    public static readonly string Description = "Gets the main camera of the scene.";
     public GetMainCameraChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("Camera", false, [typeof(ComponentHolder)], true);
@@ -4871,7 +4871,7 @@ public class GetMainCameraChip : Chip
 /// </summary>
 public class SetCameraZoomChip : Chip
 {
-    public static string Description = "Sets the zoom of the camera inputted.";
+    public static readonly string Description = "Sets the zoom of the camera inputted.";
     public SetCameraZoomChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("Camera", true, [typeof(ComponentHolder)], true);
@@ -4924,7 +4924,7 @@ public class SetCameraZoomChip : Chip
 /// </summary>
 public class GetCameraZoomChip : Chip
 {
-    public static string Description = "Gets the zoom of the camera inputted.";
+    public static readonly string Description = "Gets the zoom of the camera inputted.";
     public GetCameraZoomChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("Camera", true, [typeof(ComponentHolder)], true);
@@ -4973,7 +4973,7 @@ public class GetCameraZoomChip : Chip
 
 public class IfChip : Chip
 {
-    public static string Description = "Routes execution to 'Then' if the Condition is true, or to 'Else' if it is false.";
+    public static readonly string Description = "Routes execution to 'Then' if the Condition is true, or to 'Else' if it is false.";
     public IfChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddExecPort("If", true);
@@ -5005,7 +5005,7 @@ public class IfChip : Chip
 
 public class IfValueChip : Chip
 {
-    public static string Description = "Outputs 'A (True)' if 'Condition' is true, otherwise outputs 'B (False)'. 'A', 'B', and 'Result' must all be the same type.";
+    public static readonly string Description = "Outputs 'A (True)' if 'Condition' is true, otherwise outputs 'B (False)'. 'A', 'B', and 'Result' must all be the same type.";
 
     public Type? _lockedType = null;
 
@@ -5088,7 +5088,7 @@ public class IfValueChip : Chip
 
 public class AudioConstant : Chip
 {
-    public static string Description = "Selects an audio file in the inspector to output as an 'Audio Info' object.";
+    public static readonly string Description = "Selects an audio file in the inspector to output as an 'Audio Info' object.";
     private bool searchButtonClicked = false;
     AudioInfo audioInfo = new AudioInfo();
     public AudioConstant(int id, string name, Vector2 pos) : base(id, name, pos, false)
@@ -5156,7 +5156,7 @@ public class AudioConstant : Chip
 
 public class PlayAudioChip : Chip
 {
-    public static string Description = "Plays the specified 'Audio Info' sound file when executed.";
+    public static readonly string Description = "Plays the specified 'Audio Info' sound file when executed.";
     public PlayAudioChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
     {
         AddPort("Audio", true, [typeof(AudioInfo)], true);
@@ -5187,7 +5187,7 @@ public class PlayAudioChip : Chip
 
 public class IsKeyDownChip : Chip
 {
-    public static string Description = "Outputs true every frame that the selected key is being held down.";
+    public static readonly string Description = "Outputs true every frame that the selected key is being held down.";
     public IsKeyDownChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("IsDown", false, [typeof(bool)], false);
@@ -5207,7 +5207,7 @@ public class IsKeyDownChip : Chip
 
 public class IsKeyPressedThisFrameChip : Chip
 {
-    public static string Description = "Outputs true for the single frame that the selected key is first pressed down.";
+    public static readonly string Description = "Outputs true for the single frame that the selected key is first pressed down.";
     public IsKeyPressedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("IsDown", false, [typeof(bool)], false);
@@ -5227,7 +5227,7 @@ public class IsKeyPressedThisFrameChip : Chip
 
 public class IsKeyReleasedThisFrameChip : Chip
 {
-    public static string Description = "Outputs true for the single frame that the selected key is released.";
+    public static readonly string Description = "Outputs true for the single frame that the selected key is released.";
     public IsKeyReleasedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("IsDown", false, [typeof(bool)], false);
@@ -5247,7 +5247,7 @@ public class IsKeyReleasedThisFrameChip : Chip
 
 public class Vector2Split : Chip
 {
-    public static string Description = "Splits an input Vector2 into its separate X and Y float outputs.";
+    public static readonly string Description = "Splits an input Vector2 into its separate X and Y float outputs.";
     public Vector2Split(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("Vector2", true, [typeof(Vector2)], false);
@@ -5273,7 +5273,7 @@ public class Vector2Split : Chip
 
 public class GetWorldPositionChip : Chip
 {
-    public static string Description = "Gets the world-space position (as a Vector2) of the input GameObject.";
+    public static readonly string Description = "Gets the world-space position (as a Vector2) of the input GameObject.";
     public GetWorldPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("GameObject", true, [typeof(GameObject)], false);
@@ -5297,7 +5297,7 @@ public class GetWorldPositionChip : Chip
 
 public class GetLocalPositionChip : Chip
 {
-    public static string Description = "Gets the local position (as a Vector2) of the input GameObject.";
+    public static readonly string Description = "Gets the local position (as a Vector2) of the input GameObject.";
     public GetLocalPositionChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("GameObject", true, [typeof(GameObject)], false);
@@ -5321,7 +5321,7 @@ public class GetLocalPositionChip : Chip
 
 public class GetWorldRotationChip : Chip
 {
-    public static string Description = "Gets the world-space rotation (as a Float) of the input GameObject.";
+    public static readonly string Description = "Gets the world-space rotation (as a Float) of the input GameObject.";
     public GetWorldRotationChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("GameObject", true, [typeof(GameObject)], false);
@@ -5345,7 +5345,7 @@ public class GetWorldRotationChip : Chip
 
 public class GetLocalRotationChip : Chip
 {
-    public static string Description = "Gets the local rotation (as a Float) of the input GameObject.";
+    public static readonly string Description = "Gets the local rotation (as a Float) of the input GameObject.";
     public GetLocalRotationChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("GameObject", true, [typeof(GameObject)], false);
@@ -5369,7 +5369,7 @@ public class GetLocalRotationChip : Chip
 
 public class GetWorldRotationInDegreesChip : Chip
 {
-    public static string Description = "Gets the world-space rotation in degrees (as a Float) of the input GameObject.";
+    public static readonly string Description = "Gets the world-space rotation in degrees (as a Float) of the input GameObject.";
     public GetWorldRotationInDegreesChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("GameObject", true, [typeof(GameObject)], false);
@@ -5393,7 +5393,7 @@ public class GetWorldRotationInDegreesChip : Chip
 
 public class GetLocalRotationInDegreesChip : Chip
 {
-    public static string Description = "Gets the local rotation in degrees (as a Float) of the input GameObject.";
+    public static readonly string Description = "Gets the local rotation in degrees (as a Float) of the input GameObject.";
     public GetLocalRotationInDegreesChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("GameObject", true, [typeof(GameObject)], false);
@@ -5417,7 +5417,7 @@ public class GetLocalRotationInDegreesChip : Chip
 
 public class GetWorldScaleChip : Chip
 {
-    public static string Description = "Gets the world-space scale (as a Vector2) of the input GameObject.";
+    public static readonly string Description = "Gets the world-space scale (as a Vector2) of the input GameObject.";
     public GetWorldScaleChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("GameObject", true, [typeof(GameObject)], false);
@@ -5441,7 +5441,7 @@ public class GetWorldScaleChip : Chip
 
 public class GetLocalScaleChip : Chip
 {
-    public static string Description = "Gets the local scale (as a Vector2) of the input GameObject.";
+    public static readonly string Description = "Gets the local scale (as a Vector2) of the input GameObject.";
     public GetLocalScaleChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("GameObject", true, [typeof(GameObject)], false);
@@ -5465,7 +5465,7 @@ public class GetLocalScaleChip : Chip
 
 public class ToString : Chip
 {
-    public static string Description = "Convert Data types (bools, ints, floats and Vector2s) into string format.";
+    public static readonly string Description = "Convert Data types (bools, ints, floats and Vector2s) into string format.";
     public ToString(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("Input", true, [typeof(bool), typeof(int), typeof(float), typeof(Vector2)]);
@@ -5502,7 +5502,7 @@ public class ToString : Chip
 
 public class KeyConstantChip : Chip
 {
-    public static string Description = "Outputs a constant key (input) value.";
+    public static readonly string Description = "Outputs a constant key (input) value.";
     public KeyConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(Key)]);
@@ -5518,7 +5518,7 @@ public class KeyConstantChip : Chip
 
 public class MouseButtonConstantChip : Chip
 {
-    public static string Description = "Outputs a constant MouseButton (Input) value.";
+    public static readonly string Description = "Outputs a constant MouseButton (Input) value.";
     public MouseButtonConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Input", true, [typeof(MouseButton)]);
@@ -5534,7 +5534,7 @@ public class MouseButtonConstantChip : Chip
 
 public class IsMouseButtonDownChip : Chip
 {
-    public static string Description = "Outputs true every frame that the selected MouseButton is being held down.";
+    public static readonly string Description = "Outputs true every frame that the selected MouseButton is being held down.";
     public IsMouseButtonDownChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("IsDown", false, [typeof(bool)], false);
@@ -5554,7 +5554,7 @@ public class IsMouseButtonDownChip : Chip
 
 public class IsMouseButtonPressedThisFrameChip : Chip
 {
-    public static string Description = "Outputs true for the single frame that the selected MouseButton is first pressed down.";
+    public static readonly string Description = "Outputs true for the single frame that the selected MouseButton is first pressed down.";
     public IsMouseButtonPressedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("IsDown", false, [typeof(bool)], false);
@@ -5574,7 +5574,7 @@ public class IsMouseButtonPressedThisFrameChip : Chip
 
 public class IsMouseButtonReleasedThisFrameChip : Chip
 {
-    public static string Description = "Outputs true for the single frame that the selected MouseButton is first released";
+    public static readonly string Description = "Outputs true for the single frame that the selected MouseButton is first released";
     public IsMouseButtonReleasedThisFrameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("IsDown", false, [typeof(bool)], false);
@@ -5594,7 +5594,7 @@ public class IsMouseButtonReleasedThisFrameChip : Chip
 
 public class StringFormatChip : Chip
 {
-    public static string Description = "Formats a string with other strings. Can put in strings with {<argumentIndex>}";
+    public static readonly string Description = "Formats a string with other strings. Can put in strings with {<argumentIndex>}";
     public List<ChipPort> argumentPorts;
     public StringFormatChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
@@ -5666,7 +5666,7 @@ public class StringFormatChip : Chip
 
 public class SerialisationChip : Chip
 {
-    public static string Description = "Add serialisation to your chips to change values within the editor.";
+    public static readonly string Description = "Add serialisation to your chips to change values within the editor.";
     
     public Type? serialisationType = typeof(bool);
     private string _nameOfValue = "Serialised Value";
