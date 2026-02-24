@@ -2,7 +2,7 @@ using CSCanbulatEngine.GameObjectScripts;
 
 namespace CSCanbulatEngine.InfoHolders;
 
-public class Scene
+public record Scene
 {
     public string SceneFilePath { get; set; }
 

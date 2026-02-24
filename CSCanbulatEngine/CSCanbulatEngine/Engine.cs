@@ -31,24 +31,26 @@ using Silk.NET.OpenGL.Extensions.ImGui;
 //Using if editor to check if they are running the editor or the game for when they build it
 
 /// <summary>
-/// The Game Engine
+/// The Main Engine
 /// </summary>
 public class Engine
 {
+    // Minimum Width and height of window
     int minWidth = 1024;
     int minHeight = 720;
     
+    // Current project and scene file
     public static Project? currentProject;
     public static Scene currentScene;
     
-    
+    // Reference to the window
     private static IWindow window;
 
+    // OpenGL Variable
     public static GL gl;
 
     public static GameObjectScripts.Mesh _squareMesh;
-
-    //--- Core Resources ---
+    
     // Variables for rendering
     private static uint Vbo;
     private static uint Vao;
@@ -59,7 +61,10 @@ public class Engine
     //Reference to Shader.cs class
     public static Shader shader;
 
+    // Aspect ratio having to be kept on the viewport
     private const float GameAspectRatio = 16f / 9f;
+    
+    // Primary inputs used by the user
     private static IKeyboard? primaryKeyboard;
     private static IMouse? primaryMouse;
 
@@ -70,6 +75,7 @@ public class Engine
     // Game Camera
     private static float _cameraZoom => Camera.Main?.Zoom ?? 2f;
 
+    // Plain white default camera
     public static uint _whiteTexture;
     
     //Engine state config
@@ -86,6 +92,8 @@ public class Engine
         }
 
     }
+    
+    // Snapshot
     private static string _sceneSnapshotBeforePlay;
     
     //Audio Engine
@@ -101,6 +109,7 @@ public class Engine
     private static uint Fbo;
     private static uint FboTexture;
     private static uint Rbo;
+    
     //Size of the viewport
     private static Silk.NET.Maths.Vector2D<int> ViewportSize;
     
@@ -438,7 +447,7 @@ public class Engine
                 }
                 else if (InputManager.IsKeyPressed(Key.O))
                 {
-                    LoadProject();
+                    ProjectSerialiser.LoadProject();
                 }
                 else if (InputManager.IsKeyPressed(Key.Backspace))
                 {
@@ -504,7 +513,7 @@ public class Engine
         }
        
 #endif
-
+        // Execute OnUpdate event reciever with delta time if game running
         if (CurrentState == EngineState.Play)
         {
             var updateEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnUpdate");
@@ -518,6 +527,7 @@ public class Engine
             ChernikovEngine.Step((float)deltaTime);
         }
 
+        // Editor camera movement
         if (CurrentState == EngineState.Editor)
         {
             if (primaryMouse != null)
@@ -545,7 +555,7 @@ public class Engine
     }
 
     /// <summary>
-    /// Renders GUI Elements
+    /// Renders GUI Elements. Executed by OpenGL on rendering a frame
     /// </summary>
     /// <param name="deltaTime"></param>
     private unsafe void OnRender(double deltaTime)
@@ -564,7 +574,7 @@ public class Engine
         
         UpdateCameraMatrices(ViewportSize.X, ViewportSize.Y);
         
-        DrawGameScene(ViewportSize, _cameraZoom);
+        DrawGameScene();
         
                 
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
@@ -754,18 +764,15 @@ public class Engine
 #endif
     }
 #if EDITOR
+    /// <summary>
+    /// Renders all the game engine's editor UI
+    /// </summary>
     private unsafe void RenderEditorUI()
     {
         ImGuiWindowFlags editorPanelFlags = ImGuiWindowFlags.None;
-        editorPanelFlags |= ImGuiWindowFlags.NoMove;      // Uncomment to prevent moving
-        editorPanelFlags |= ImGuiWindowFlags.NoResize;    // Uncomment to prevent resizing
-        editorPanelFlags |= ImGuiWindowFlags.NoCollapse;  // Uncomment to prevent collapsing
-                // bool fontLoaded = _customFont.NativePtr != null;
-        //
-        // if (fontLoaded)
-        // {
-        //     ImGui.PushFont(_customFont);
-        // }
+        editorPanelFlags |= ImGuiWindowFlags.NoMove;
+        editorPanelFlags |= ImGuiWindowFlags.NoResize;
+        editorPanelFlags |= ImGuiWindowFlags.NoCollapse; 
         //--Dock Space Window--
         ImGui.SetNextWindowPos(Vector2.Zero);
         ImGui.SetNextWindowSize(ImGui.GetIO().DisplaySize);
@@ -926,7 +933,7 @@ public class Engine
             ProjectSettings.ProjectSettingsWindow();
         }
         
-        // Render the editor UI
+        // ----- Main Editor UI Elements ------
         // -- Viewport --
         ImGui.SetNextWindowPos(ImGuiWindowManager.windowPosition[0]);
         ImGui.SetNextWindowSize(ImGuiWindowManager.windowSize[0]);
@@ -1313,16 +1320,15 @@ public class Engine
             ImGui.EndTabBar();
         }
         ImGui.End();
-
-        // if (fontLoaded)
-        // {
-        //     ImGui.PopFont();
-        // }
         
         SetLook();
     }
     
-
+    /// <summary>
+    /// Updates the camera matrices for the viewport
+    /// </summary>
+    /// <param name="viewportWidth"></param>
+    /// <param name="viewportHeight"></param>
     public static void UpdateCameraMatrices(float viewportWidth, float viewportHeight)
     {
         float viewportAspectRatio = viewportWidth > 0 ? viewportWidth / viewportHeight : 1.0f;
@@ -1332,7 +1338,8 @@ public class Engine
         if (CurrentState == EngineState.Play && Camera.Main != null)
         {
             FinalView = Camera.Main.GetViewMatrix();
-            FinalProj = Matrix4x4.CreateOrthographic(baseWidth, baseHeight, -100f, 100f);
+            float zoom = Camera.Main.Zoom;
+            FinalProj = Matrix4x4.CreateOrthographic(baseWidth / zoom, baseHeight / zoom, -100f, 100f);
         }
         else
         {
@@ -1347,6 +1354,10 @@ public class Engine
     }
 
 
+    /// <summary>
+    /// Renders a node/object in the hierarchy
+    /// </summary>
+    /// <param name="gameObject">Game Object on Node</param>
     private unsafe void RenderHierarchyNode(GameObject gameObject)
     {
         bool isSelected = (_selectedGameObject?.gameObject == gameObject);
@@ -1451,17 +1462,11 @@ public class Engine
         }
     }
 
+    /// <summary>
+    /// Function for rendering the toolbar at the top of the window
+    /// </summary>
     public static void RenderToolbar()
     {
-        // float toolbarHeight = ImGuiWindowManager.menuBarHeight * 1.5f;
-        // Vector2 viewportPos = ImGui.GetMainViewport().Pos;
-        // Vector2 viewportSize = ImGui.GetMainViewport().Size;
-        // ImGui.SetNextWindowPos(new Vector2(viewportPos.X + viewportSize.X * 0.5f, viewportPos.Y + ImGuiWindowManager.menuBarHeight), ImGuiCond.Always, new Vector2(0.5f, 0f));
-        // ImGui.SetNextWindowSize(new Vector2(0, toolbarHeight));
-        //
-        // ImGuiWindowFlags flags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove |
-        //                          ImGuiWindowFlags.NoScrollWithMouse;
-        // ImGui.Begin("Toolbar", flags);
         float buttonSize = ImGui.GetContentRegionAvail().X - 5f;
 
         bool twoButtonsPerRow = buttonSize >= 50f;
@@ -1517,7 +1522,10 @@ public class Engine
     }
     #endif
     
-    private unsafe void DrawGameScene(Vector2D<int> currentViewportSize, float cameraZoom)
+    /// <summary>
+    /// Draws objects to the game scene and camera position
+    /// </summary>
+    private unsafe void DrawGameScene()
     {
         gl.ClearColor(Color.CornflowerBlue);
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -1550,24 +1558,6 @@ public class Engine
         shader.SetUniform("view", Matrix4x4.Identity);
         shader.SetUniform("projection", FinalProj);
         
-        // shader.Use();
-        //
-        // float viewportAspectRatio = (float)currentViewportSize.X / currentViewportSize.Y;
-        //
-        // float orthoWidth, orthoHeight;
-        // if (viewportAspectRatio > 1.0f)
-        // {
-        //     orthoWidth = 2f * viewportAspectRatio * cameraZoom;
-        //     orthoHeight = 2f * cameraZoom;
-        // }
-        // else
-        // {
-        //     orthoWidth = 2f * cameraZoom;
-        //     orthoHeight = 2f / viewportAspectRatio * cameraZoom;
-        // }
-        // Matrix4x4 projection = Matrix4x4.CreateOrthographic(orthoWidth, orthoHeight, -1f, 1f);
-        // shader.SetUniform("projection", projection);
-        
         shader.SetUniform("uTexture", 0);
         gl.ActiveTexture(TextureUnit.Texture0);
         
@@ -1587,22 +1577,12 @@ public class Engine
             
             
             renderer.Draw();
-            
-            // //Set color in shader :)
-            // shader.SetUniform("uColor", renderer.Color);
-            //
-            // uint textureToBind = renderer.TextureID != 0 ? renderer.TextureID : _whiteTexture;
-            // gl.BindTexture(TextureTarget.Texture2D, textureToBind);
-            //
-            // //Get the matrix from the transform
-            // Matrix4x4 modelMatrix = gameObject.GetComponent<Transform>().GetModelMatrix();
-            // //Set model uniform in the shader for the object
-            // shader.SetUniform("model", modelMatrix);
-            //
-            // renderer.Mesh.Draw();
         }
     }
 
+    /// <summary>
+    /// Disposes of main stuff ensuring no memory leak 
+    /// </summary>
     private void OnClose()
     {
 #if EDITOR
@@ -1623,7 +1603,10 @@ public class Engine
     }
 
 #if EDITOR
-    //Creating the frame buffer for the viewport in the editor
+    
+    /// <summary>
+    /// Creating the frame buffer for the viewport in the editor
+    /// </summary>
     private static unsafe void CreateFrameBuffer()
     {
         Fbo = gl.GenFramebuffer();
@@ -1653,6 +1636,9 @@ public class Engine
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     }
 
+    /// <summary>
+    /// Resizes the game engine buffer
+    /// </summary>
     private static void ResizeFramebuffer()
     {
         gl.DeleteFramebuffer(Fbo);
@@ -1661,13 +1647,19 @@ public class Engine
         CreateFrameBuffer();
     }
 
-
+    /// <summary>
+    /// Resizes the viewport based on the frame buffer window size
+    /// </summary>
+    /// <param name="size"></param>
     private void OnFramebufferResize(Vector2D<int> size)
     {
         gl.Viewport(0, 0, (uint) size.X, (uint)size.Y);
         ImGuiWindowManager.OnFrameBufferResize();
     }
 
+    /// <summary>
+    /// Set default look for engine style
+    /// </summary>
     private static void SetLook()
     {
         var style = ImGui.GetStyle();
@@ -1677,12 +1669,19 @@ public class Engine
 
         style.Colors[(int)ImGuiCol.Button] = new Vector4(0.15f, 0.4f, 0.75f, 0.8f);
     }
-
+    
+    // ----- Scene/Project serialisation -----
+    /// <summary>
+    /// Opens name popup to create new scene file
+    /// </summary>
     private static void SaveSceneAs()
     {
         nameSceneAsPopup = true;
     }
     
+    /// <summary>
+    /// After name popup to create the scene file and save it
+    /// </summary>
     private static void SaveSceneAsContinued()
     {
             if (String.IsNullOrWhiteSpace(currentScene.SceneName)) currentScene.SceneName = "ExampleScene";
@@ -1690,6 +1689,9 @@ public class Engine
             ss.SaveScene(currentScene.SceneName);
     }
 
+    /// <summary>
+    /// Overwrites old file if it has old file otherwise opens file dialog for new one
+    /// </summary>
     private static void SaveScene()
     {
         if (!String.IsNullOrWhiteSpace(currentScene.SceneFilePath) && !String.IsNullOrWhiteSpace(currentScene.SceneName) && currentScene.SceneSavedOnce)
@@ -1707,12 +1709,9 @@ public class Engine
         }
     }
 
-    private static void LoadProject()
-    {
-        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        EngineLog.Log($"Folder Selected: {FileDialogHelper.ShowSelectFolderDialog(documentsPath, "Select The Folder To Load Project")}");
-    }
-
+    /// <summary>
+    /// Opens the file dialog to select a scene then calls to open it
+    /// </summary>
     private static void LoadScene()
     {
         string documentsPath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Scenes");
@@ -1725,22 +1724,36 @@ public class Engine
         }
     }
 
+    /// <summary>
+    /// Calls the function to create a new project for the user
+    /// </summary>
     private static void CreateProject()
     {
         ProjectSerialiser.CreateProjectFiles();
     }
 
+    /// <summary>
+    /// Creates a new scene for the user
+    /// </summary>
     private static void CreateScene()
     {
         currentScene = new Scene("New Scene");
         _selectedGameObject = null;
     }
 
+    // ----- Circuit file serialisation -----
+    /// <summary>
+    /// Calls the function in the CircuitSerialiser to load the circuit script
+    /// </summary>
+    /// <param name="filePath">String to file</param>
     public static void LoadCircuitScript(string filePath)
     {
         CircuitSerialiser.LoadCircuit(filePath);
     }
 
+    /// <summary>
+    /// Function to open file dialog to a circuit script file
+    /// </summary>
     public static void OpenCircuitScript()
     {
         string circuitPathFolder = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Circuits");
@@ -1752,6 +1765,9 @@ public class Engine
         }
     }
 
+    /// <summary>
+    /// Overwrites same file of circuit or activates name popup to name
+    /// </summary>
     public static void SaveCircuitScript()
     {
         if (!String.IsNullOrWhiteSpace(CircuitEditor.CircuitScriptName) && !String.IsNullOrWhiteSpace(CircuitEditor.CircuitScriptDirPath))
@@ -1764,11 +1780,17 @@ public class Engine
         }
     }
 
+    /// <summary>
+    /// Activates the name popup to name the file
+    /// </summary>
     public static void SaveAsCircuitScript()
     {
         renameCircuitFileAsPopup = true;
     }
 
+    /// <summary>
+    /// Second part of saving circuit script after the naming popup
+    /// </summary>
     private static void SaveAsCircuitScriptContinued()
     {
         if (!String.IsNullOrWhiteSpace(CircuitEditor.CircuitScriptName))
@@ -1783,6 +1805,9 @@ public class Engine
     
 #endif
 
+    /// <summary>
+    /// Reloads all circuit scripts in the game editor
+    /// </summary>
     public static void ReloadAllCircuitScripts()
     {
         foreach (var gameObject in Engine.currentScene.GameObjects)
@@ -1797,6 +1822,9 @@ public class Engine
         }
     }
 
+    /// <summary>
+    /// Executes the logic in circuits when the game plays
+    /// </summary>
     public static void ExecuteOnPlay()
     {
         foreach (var gameObject in Engine.currentScene.GameObjects)
@@ -1810,7 +1838,11 @@ public class Engine
             }
         }
     }
-
+    
+    // ----- Change in Engine State logic -----
+    /// <summary>
+    /// Executes the logic in circuits when the game pauses
+    /// </summary>
     public static void ExecuteOnPause()
     {
         foreach (var gameObject in Engine.currentScene.GameObjects)
@@ -1825,6 +1857,9 @@ public class Engine
         }
     }
 
+    /// <summary>
+    /// Executes the logic in circuits when the game resumes
+    /// </summary>
     public static void ExecuteOnResume()
     {
         foreach (var gameObject in Engine.currentScene.GameObjects)
@@ -1839,6 +1874,9 @@ public class Engine
         }
     }
 
+    /// <summary>
+    /// Executes the logic in circuits when the game stops
+    /// </summary>
     public static void ExecuteOnStop()
     {
         foreach (var gameObject in Engine.currentScene.GameObjects)
@@ -1852,12 +1890,10 @@ public class Engine
             }
         }
     }
-
     
-    //Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CanbulatEngine", "Logs")
-    
+    // ----- Window Configuration -----
     /// <summary>
-    /// Save settings of current window to WindowConfig.cseetings
+    /// Save settings of current window to WindowConfig.csettings
     /// </summary>
     public void SaveWindowSettings()
     {
@@ -1880,6 +1916,9 @@ public class Engine
         EngineLog.Log($"Window Settings Saved: {savePlace}");
     }
 
+    /// <summary>
+    /// Loads settings from WindowConfig.csettings
+    /// </summary>
     public void LoadWindowSettings()
     {
         string settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CanbulatEngine", "WindowConfig.csettings");
@@ -1939,7 +1978,7 @@ public class Engine
     }
 }
 
-public class StoreObject
+public record StoreObject
 {
     public GameObject gameObject { get; set; }
     public int timeCreated { get; private set; }

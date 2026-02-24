@@ -2,7 +2,7 @@ namespace CSCanbulatEngine.FileHandling;
 
 public class ProjectData
 {
-    public class ProjectInfo
+    public record ProjectInfo
     {
         public string ProjectPath { get; set; }
         public string ProjectName { get; set; }

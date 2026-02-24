@@ -4,7 +4,7 @@ namespace CSCanbulatEngine.FileHandling.CircuitHandling;
 
 public class CircuitData
 {
-    public class ChipData
+    public record ChipData
     {
         public int id { get; set; }
         public string Name { get ; set; }
@@ -14,13 +14,13 @@ public class CircuitData
         public Dictionary<string, string> CustomProperties { get; set; } = new Dictionary<string, string>(); // Holds custom data, e.g event picked
     }
 
-    public class UnconnectedClipboardChipData
+    public record UnconnectedClipboardChipData
     {
         public List<UnconnectedPortValueData> inputPorts { get; set; }
         public List<UnconnectedPortValueData> outputPorts { get; set; }
     }
 
-    public class UnconnectedPortValueData
+    public record UnconnectedPortValueData
     {
         public int ChipId { get; set; }
         public int PortId { get; set; }
@@ -28,7 +28,7 @@ public class CircuitData
         public string? Value { get; set; }
     }
     
-    public class PortConnectionData
+    public record PortConnectionData
     {
         public int OutputChipId { get; set; }
         public int OutputPortId { get; set; }
@@ -36,7 +36,7 @@ public class CircuitData
         public int InputPortId { get; set; }
     }
     
-    public class CircuitInfo
+    public record CircuitInfo
     {
         public string CircuitScriptName { get; set; }
         public List<ChipData> Chips { get; set; } = new();

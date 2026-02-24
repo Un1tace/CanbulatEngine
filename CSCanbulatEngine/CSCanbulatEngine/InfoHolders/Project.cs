@@ -7,7 +7,7 @@ using Silk.NET.Maths;
 
 namespace CSCanbulatEngine.InfoHolders;
 
-public class Project
+public record Project
 {
     public string ProjectFolderPath { get; set; }
     

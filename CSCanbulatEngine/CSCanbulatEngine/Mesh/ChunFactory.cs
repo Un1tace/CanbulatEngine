@@ -11,15 +11,6 @@ public class ChunFactory
     /// <returns></returns>
     public static GameObjectScripts.Mesh CreateTriangle()
     {
-        // float[] vertices = {
-        //     // Position (X, Y, Z)    // UV (U, V)
-        //     0.0f,  0.5f, 0.0f,      0.5f, 1.0f, // Top
-        //     -Single.Sqrt(0.25f/2f), -Single.Sqrt(0.25f/2f), 0.0f,      0.0f, 0.0f, // Bottom Left
-        //     Single.Sqrt(0.25f/2f), -Single.Sqrt(0.25f/2f), 0.0f,      1.0f, 0.0f  // Bottom Right
-        // };
-        //
-        // uint[] indices = { 0, 1, 2 };
-
         return CreateCircle(3);
     }
 

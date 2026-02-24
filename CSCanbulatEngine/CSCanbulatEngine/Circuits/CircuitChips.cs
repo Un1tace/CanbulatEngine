@@ -2,6 +2,7 @@ using System.Data.SqlTypes;
 using System.Drawing;
 using System.Globalization;
 using System.Numerics;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Windows.Markup;
@@ -77,11 +78,15 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Variables/Component Holder Variable", ComponentHolderVariable.Description, (pos) => new ComponentHolderVariable(CircuitEditor.GetNextAvaliableChipID(), "Component Holder Variable", pos)),
 
         ("Object/This", thisChip.Description, (pos) => new thisChip(CircuitEditor.GetNextAvaliableChipID(), "This", pos)),
-        ("Object/Find By ID", FindObjectByID.Description, (pos) => new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID Chip", pos)),
+        ("Object/Find By ID", FindObjectByID.Description, (pos) => new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID", pos)),
         ("Object/Find First With Tag", FindFirstObjectWithTag.Description, (pos) => new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", pos)),
         ("Object/Find All With Tag", FindAllObjectsWithTag.Description, (pos) => new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", pos)),
-        ("Object/Get Component", GetComponentChip.Description, (pos) => new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Get Component", pos)),
-        ("Object/Has Component", HasComponentChip.Description, (pos) => new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Has Component", pos)),
+        ("Object/Components/Get Component", GetComponentChip.Description, (pos) => new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Get Component", pos)),
+        ("Object/Components/Has Component", HasComponentChip.Description, (pos) => new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Has Component", pos)),
+        ("Object/Components/Set Main Camera", SetMainCameraChip.Description, (pos) => new SetMainCameraChip(CircuitEditor.GetNextAvaliableChipID(), "Set Main Camera", pos)),
+        ("Object/Components/Get Main Camera", GetMainCameraChip.Description, (pos) => new GetMainCameraChip(CircuitEditor.GetNextAvaliableChipID(), "Get Main Camera", pos)),
+        ("Object/Components/Set Camera Zoom", SetCameraZoomChip.Description, (pos) => new SetCameraZoomChip(CircuitEditor.GetNextAvaliableChipID(), "Set Camera Zoom", pos)),
+        ("Object/Components/Get Camera Zoom", GetCameraZoomChip.Description, (pos) => new GetCameraZoomChip(CircuitEditor.GetNextAvaliableChipID(), "Get Camera Zoom", pos)),
         ("Object/Velocity/Set Velocity", SetVelocityChip.Description, (pos) => new SetVelocityChip(CircuitEditor.GetNextAvaliableChipID(), "Set Velocity", pos)),
         ("Object/Velocity/Add Velocity", AddVelocityChip.Description, (pos) => new AddVelocityChip(CircuitEditor.GetNextAvaliableChipID(), "Add Velocity", pos)),
         ("Object/Velocity/Get Velocity", GetVelocityChip.Description, (pos) => new GetVelocityChip(CircuitEditor.GetNextAvaliableChipID(), "Get Velocity", pos)),
@@ -772,32 +777,99 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.EndTooltip();
                     }
 
-                    if (ImGui.MenuItem("Create Get Component Chip"))
+                    if (ImGui.BeginMenu("Components"))
                     {
-                        CircuitEditor.chips.Add(new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Get Component", spawnPos));
-                    }
-                    if (ImGui.IsItemHovered())
-                    {
-                        ImGui.BeginTooltip();
-                        ImGui.Text("Get Component Chip");
-                        ImGui.Separator();
-                        ImGui.Text(GetComponentChip.Description);
-                        ImGui.EndTooltip();
-                    }
+                        if (ImGui.MenuItem("Create Get Component Chip"))
+                        {
+                            CircuitEditor.chips.Add(new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Get Component", spawnPos));
+                        }
 
-                    if (ImGui.MenuItem("Create Has Component Chip"))
-                    {
-                        CircuitEditor.chips.Add(new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Has Component", spawnPos));
-                    }
-                    if (ImGui.IsItemHovered())
-                    {
-                        ImGui.BeginTooltip();
-                        ImGui.Text("Has Component Chip");
-                        ImGui.Separator();
-                        ImGui.Text(HasComponentChip.Description);
-                        ImGui.EndTooltip();
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Get Component Chip");
+                            ImGui.Separator();
+                            ImGui.Text(GetComponentChip.Description);
+                            ImGui.EndTooltip();
+                        }
+
+                        if (ImGui.MenuItem("Create Has Component Chip"))
+                        {
+                            CircuitEditor.chips.Add(new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Has Component", spawnPos));
+                        }
+
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Has Component Chip");
+                            ImGui.Separator();
+                            ImGui.Text(HasComponentChip.Description);
+                            ImGui.EndTooltip();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Set Main Camera Chip"))
+                        {
+                            CircuitEditor.chips.Add(new SetMainCameraChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Set Main Camera", spawnPos));
+                        }
+
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Set Main Camera Chip");
+                            ImGui.Separator();
+                            ImGui.Text(SetMainCameraChip.Description);
+                            ImGui.EndTooltip();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Get Main Camera Chip"))
+                        {
+                            CircuitEditor.chips.Add(new GetMainCameraChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Get Main Camera", spawnPos));
+                        }
+
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Get Main Camera Chip");
+                            ImGui.Separator();
+                            ImGui.Text(GetMainCameraChip.Description);
+                            ImGui.EndTooltip();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Set Camera Zoom Chip"))
+                        {
+                            CircuitEditor.chips.Add(new SetCameraZoomChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Set Camera Zoom", spawnPos));
+                        }
+
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Set Camera Zoom Chip");
+                            ImGui.Separator();
+                            ImGui.Text(SetCameraZoomChip.Description);
+                            ImGui.EndTooltip();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Get Camera Zoom Chip"))
+                        {
+                            CircuitEditor.chips.Add(new GetCameraZoomChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Get Camera Zoom", spawnPos));
+                        }
+
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Get Camera Zoom Chip");
+                            ImGui.Separator();
+                            ImGui.Text(GetCameraZoomChip.Description);
+                            ImGui.EndTooltip();
+                        }
+
+                        ImGui.EndMenu();
                     }
 
                     if (ImGui.BeginMenu("Velocity"))
@@ -4720,6 +4792,181 @@ public class HasComponentChip : Chip
                     ? Component.AllComponents[selectedIndex].Item1
                     : "Select...";
             }
+        }
+    }
+}
+
+/// <summary>
+/// Sets camera inputted to main camera
+/// </summary>
+public class SetMainCameraChip : Chip
+{
+    public static string Description = "Sets the main camera of the scene when executed.";
+    public SetMainCameraChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Camera", true, [typeof(ComponentHolder)], true);
+    }
+
+    public override void OnExecute()
+    {
+        try
+        {
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
+
+            if (componentHolder is null)
+            {
+                GameConsole.Log("[Set Main Camera Chip] ComponentHolder is null");
+                base.OnExecute();
+                return;
+            }
+
+            if (componentHolder.Component is not Camera)
+            {
+                GameConsole.Log("[Set Main Camera Chip] ComponentHolder is not Camera");
+                base.OnExecute();
+            }
+
+            Camera? newMainCam = componentHolder.Component as Camera;
+
+            if (newMainCam != null)
+            {
+                newMainCam.MakeMainCamera();
+            }
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Set Main Camera Chip] Error Executing: " + e.Message);
+        }
+        
+        base.OnExecute();
+    }
+}
+
+/// <summary>
+/// Gets the main camera of the scene
+/// </summary>
+public class GetMainCameraChip : Chip
+{
+    public static string Description = "Gets the main camera of the scene.";
+    public GetMainCameraChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("Camera", false, [typeof(ComponentHolder)], true);
+        InputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        ComponentHolder? cameraHolder = new ComponentHolder();
+        cameraHolder.Component = Camera.Main;
+
+        Values values = new Values();
+        values.ComponentHolder = cameraHolder;
+
+        return values;
+    }
+}
+
+/// <summary>
+/// Sets the zoom of a camera
+/// </summary>
+public class SetCameraZoomChip : Chip
+{
+    public static string Description = "Sets the zoom of the camera inputted.";
+    public SetCameraZoomChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Camera", true, [typeof(ComponentHolder)], true);
+        AddPort("Zoom", true, [typeof(float)], true);
+    }
+
+    public override void OnExecute()
+    {
+        try
+        {
+            ComponentHolder? cameraHolder = InputPorts[0].Value.GetValue().ComponentHolder;
+            float? zoom = InputPorts[1].Value.GetValue().Float;
+
+            if (cameraHolder is null)
+            {
+                GameConsole.Log("[Set Camera Zoom Chip] ComponentHolder is null");
+                base.OnExecute();
+                return;
+            }
+
+            if (cameraHolder.Component is not Camera)
+            {
+                GameConsole.Log("[Set Camera Zoom Chip] ComponentHolder is not Camera");
+                base.OnExecute();
+                return;
+            }
+            
+            Camera? camera = cameraHolder.Component as Camera;
+
+            if (camera is null)
+            {
+                GameConsole.Log("[Set Camera Zoom Chip] ComponentHolder is not Camera");
+                base.OnExecute();
+                return;
+            }
+
+            camera.Zoom = zoom.Value;
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Set Camera Zoom Chip] Error Executing: " + e.Message);
+        }
+        
+        base.OnExecute();
+    }
+}
+
+/// <summary>
+/// Gets the zoom of the camera
+/// </summary>
+public class GetCameraZoomChip : Chip
+{
+    public static string Description = "Gets the zoom of the camera inputted.";
+    public GetCameraZoomChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("Camera", true, [typeof(ComponentHolder)], true);
+        AddPort("Zoom", false, [typeof(float)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        try
+        {
+            ComponentHolder? cameraHolder = InputPorts[0].Value.GetValue().ComponentHolder;
+            if (cameraHolder is null)
+            {
+                GameConsole.Log("[Get Camera Zoom Chip] ComponentHolder is null");
+                return new Values();
+            }
+
+            if (cameraHolder.Component is not Camera)
+            {
+                GameConsole.Log("[Get Camera Zoom Chip] ComponentHolder is not Camera");
+                return new Values();
+            }
+            
+            Camera? camera = cameraHolder.Component as Camera;
+
+            if (camera is null)
+            {
+                GameConsole.Log("[Get Camera Zoom Chip] ComponentHolder is not Camera");
+                return new Values();
+            }
+
+            Values theValues = new Values();
+
+            theValues.Float = camera.Zoom;
+
+            return theValues;
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Get Camera Zoom Chip] Error getting value: " + e.Message);
+            return new Values();
         }
     }
 }

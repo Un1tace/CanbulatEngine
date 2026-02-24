@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using ImGuiNET;
 
@@ -53,13 +54,28 @@ public class Camera : Component
         
         Matrix4x4 translation = Matrix4x4.CreateTranslation(-t.WorldPosition.X , -t.WorldPosition.Y, 0f);
         Matrix4x4 rotation = Matrix4x4.CreateRotationZ(-t.WorldRotation);
-        Matrix4x4 scale = Matrix4x4.CreateScale(Zoom, Zoom, 1f);
 
-        return translation * rotation * scale;
+        return translation * rotation;
     }
 
     public override void RenderInspector()
     {
         ImGui.DragFloat("Zoom", ref Zoom, 1f, 0.001f, 1000f);
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        return new Dictionary<string, string>()
+        {
+            { "Zoom", Zoom.ToString(CultureInfo.InvariantCulture) }
+        };
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties["Zoom"] != null)
+        {
+            Zoom = float.Parse(properties["Zoom"]);
+        }
     }
 }
