@@ -306,3 +306,44 @@ public static void ShowEventPortConfigWindow() // Removed unused parameters
     }
 }
 #endif
+
+/// <summary>
+/// Executes chips for logic before/after execution. Executes Update every frame for logic.
+/// </summary>
+public static class ChipExecManager
+{
+    public static List<Chip> chipsToExec { get; private set; } = new List<Chip>();
+
+    public static void AddChip(Chip chip)
+    {
+        chipsToExec.Add(chip);
+    }
+
+    public static void RemoveChip(Chip chip)
+    {
+        chipsToExec.Remove(chip);
+    }
+
+    public static void Clear()
+    {
+        chipsToExec.Clear();
+    }
+
+    public static void Update()
+    {
+        if (chipsToExec.Count > 0)
+        {
+            List<Chip> chips = new();
+            foreach (Chip chip in chipsToExec)
+            {
+                chips.Add(chip);
+            }
+
+            while (chips.Count > 0)
+            {
+                chips[0].ChipExecUpdate();
+                chips.RemoveAt(0);
+            }
+        }
+    }
+}

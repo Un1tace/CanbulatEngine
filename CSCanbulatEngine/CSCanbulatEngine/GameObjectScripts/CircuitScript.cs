@@ -36,7 +36,11 @@ public class CircuitScript : Component
     {
         string json = File.ReadAllText(filePath);
         var circuitInfo = JsonConvert.DeserializeObject<CircuitData.CircuitInfo>(json);
-        
+
+        foreach (Chip chip in chips)
+        {
+            chip.OnDestroy();
+        }
         chips.Clear();
         CircuitScriptName = Path.GetFileNameWithoutExtension(filePath);
         CircuitScriptDirPath = Path.GetDirectoryName(filePath);

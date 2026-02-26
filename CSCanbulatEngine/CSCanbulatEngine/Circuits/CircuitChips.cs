@@ -1,4 +1,6 @@
+using System.Dynamic;
 using System.Globalization;
+using System.Net.Mime;
 using System.Numerics;
 using System.Text;
 using CSCanbulatEngine.Audio;
@@ -47,6 +49,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Math/Pi Constant", PiConstant.Description, (pos) => new PiConstant(CircuitEditor.GetNextAvaliableChipID(), "Pi", pos)),
         ("Math/Vector Math/Vector2 Add", Vector2Add.Description, (pos) => new Vector2Add(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Add", pos)),
         ("Math/Vector Math/Vector2 Scale", Vector2Scale.Description, (pos) => new Vector2Scale(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Scale", pos)),
+        ("Math/Vector Math/Distance", DistanceChip.Description, (pos) => new DistanceChip(CircuitEditor.GetNextAvaliableChipID(), "Distance", pos)),
         
         ("Logic/If", IfChip.Description, (pos) => new IfChip(CircuitEditor.GetNextAvaliableChipID(), "If", pos)),
         ("Logic/If Value", IfValueChip.Description, (pos) => new IfValueChip(CircuitEditor.GetNextAvaliableChipID(), "If Value", pos)),
@@ -121,6 +124,11 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Miscellaneous/To String", Circuits.ToString.Description, (pos) => new ToString(CircuitEditor.GetNextAvaliableChipID(), "To String", pos)),
         ("Miscellaneous/String Format", StringFormatChip.Description, (pos) => new StringFormatChip(CircuitEditor.GetNextAvaliableChipID(), "String Format Chip", pos)),
         ("Miscellaneous/Serialisation Chip", SerialisationChip.Description, (pos) => new SerialisationChip(CircuitEditor.GetNextAvaliableChipID(), "Serialisation Chip", pos)),
+        ("Miscellaneous/Delay Chip", DelayChip.Description, (pos) => new DelayChip(CircuitEditor.GetNextAvaliableChipID(), "Delay Chip", pos)),
+        ("Miscellaneous/Add Score Chip", AddScoreChip.Description, (pos) => new AddScoreChip(CircuitEditor.GetNextAvaliableChipID(), "Add Score Chip", pos)),
+        ("Miscellaneous/Remove Score Chip", RemoveScoreChip.Description, (pos) => new RemoveScoreChip(CircuitEditor.GetNextAvaliableChipID(), "Remove Score Chip", pos)),
+        ("Miscellaneous/Get Leaderboard Index Chip", GetLeaderboardIndexChip.Description, (pos) => new GetLeaderboardIndexChip(CircuitEditor.GetNextAvaliableChipID(), "Get Leaderboard Index Chip", pos)),
+        ("Miscellaneous/Get Leaderboard Count Chip", GetLeaderboardCountChip.Description, (pos) => new GetLeaderboardCountChip(CircuitEditor.GetNextAvaliableChipID(), "Get Leaderboard Count Chip", pos)),
     };
     
     
@@ -413,7 +421,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
 
                     if (ImGui.BeginMenu("Vector Math"))
                     {
-                        if (ImGui.MenuItem("Create Vector2 Add"))
+                        if (ImGui.MenuItem("Create Vector2 Add Chip"))
                         {
                             CircuitEditor.chips.Add(
                                 new Vector2Add(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Add", _spawnPos));
@@ -427,7 +435,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                             ImGui.EndTooltip();
                         }
                         
-                        if (ImGui.MenuItem("Create Vector2 Scale"))
+                        if (ImGui.MenuItem("Create Vector2 Scale Chip"))
                         {
                             CircuitEditor.chips.Add(
                                 new Vector2Scale(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Scale", _spawnPos));
@@ -438,6 +446,20 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                             ImGui.Text("Vector2 Scale");
                             ImGui.Separator();
                             ImGui.Text(Vector2Scale.Description);
+                            ImGui.EndTooltip();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Distance Chip"))
+                        {
+                            CircuitEditor.chips.Add(
+                                new DistanceChip(CircuitEditor.GetNextAvaliableChipID(), "Distance", _spawnPos));
+                        }
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Distance");
+                            ImGui.Separator();
+                            ImGui.Text(DistanceChip.Description);
                             ImGui.EndTooltip();
                         }
                         
@@ -1432,6 +1454,76 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text(SerialisationChip.Description);
                         ImGui.EndTooltip();
                     }
+                    
+                    if (ImGui.MenuItem("Create Delay Chip"))
+                    {
+                        CircuitEditor.chips.Add(new DelayChip(CircuitEditor.GetNextAvaliableChipID(), "Delay Chip",
+                            _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Delay Chip");
+                        ImGui.Separator();
+                        ImGui.Text(DelayChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Add Score Chip"))
+                    {
+                        CircuitEditor.chips.Add(new AddScoreChip(CircuitEditor.GetNextAvaliableChipID(), "Add Score Chip",
+                            _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Add Score Chip");
+                        ImGui.Separator();
+                        ImGui.Text(AddScoreChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Remove Score Chip"))
+                    {
+                        CircuitEditor.chips.Add(new RemoveScoreChip(CircuitEditor.GetNextAvaliableChipID(), "Remove Score Chip",
+                            _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Remove Score Chip");
+                        ImGui.Separator();
+                        ImGui.Text(RemoveScoreChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get Leaderboard Index Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetLeaderboardIndexChip(CircuitEditor.GetNextAvaliableChipID(), "Get Leaderboard Index Chip",
+                            _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Leaderboard Index Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetLeaderboardIndexChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get Leaderboard Count Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetLeaderboardCountChip(CircuitEditor.GetNextAvaliableChipID(), "Get Leaderboard Count Chip",
+                            _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Leaderboard Count Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetLeaderboardCountChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     ImGui.EndMenu();
                 }
@@ -1939,6 +2031,34 @@ public class Vector2Scale : Chip
     }
 }
 
+public class DistanceChip : Chip
+{
+    public static readonly string Description = "Determines the distance between two vectors";
+    public DistanceChip(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        AddPort("X",  true, [typeof(Vector2)], false);
+        AddPort("Y", true, [typeof(Vector2)], false);
+        AddPort("Distance", false, [typeof(float)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Vector2? x = InputPorts[0].Value.GetValue().Vector2;
+        Vector2? y = InputPorts[1].Value.GetValue().Vector2;
+        Values resultantValues = new Values();
+
+        if (x.HasValue && y.HasValue)
+        {
+            Vector2 difference = y.Value - x.Value;
+            float distance = difference.Length();
+            resultantValues.Float = distance;
+        }
+        
+        return resultantValues;
+    }
+}
+
 public class TestButton : Chip
 {
     public static readonly string Description = "A simple button on the chip that fires an execution pulse when clicked in the editor.";
@@ -1981,10 +2101,10 @@ public class BoolVariable : Chip
         return new Values { Bool = false };
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
     
     public override void ChipInspectorProperties()
@@ -2052,10 +2172,10 @@ public class FloatVariable : Chip
         return new Values { Float = 0 };
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
-        base.OnExecute();
+        OnExecute(execPort);
     }
     
     public override void ChipInspectorProperties()
@@ -2123,10 +2243,10 @@ public class IntVariable : Chip
         return new Values { Int = 0 };
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
     
     public override void ChipInspectorProperties()
@@ -2194,10 +2314,10 @@ public class StringVariable : Chip
         return new Values { String = "" };
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
     
     public override void ChipInspectorProperties()
@@ -2265,10 +2385,10 @@ public class Vector2Variable : Chip
         return new Values { Vector2 = Vector2.Zero };
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
     
     public override void ChipInspectorProperties()
@@ -2336,7 +2456,7 @@ public class GameObjectVariable : Chip
         return new Values { GameObject = null };
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         if (InputPorts[0].Value.GetValue().GameObject == null)
         {
@@ -2344,7 +2464,7 @@ public class GameObjectVariable : Chip
             return;
         }
         VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
     
     public override void ChipInspectorProperties()
@@ -2412,10 +2532,10 @@ public class AudioInfoVariable : Chip
         return new Values {AudioInfo = null};
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
     
     public override void ChipInspectorProperties()
@@ -2483,10 +2603,10 @@ public class ComponentHolderVariable : Chip
         return new Values {ComponentHolder = null};
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
     
     public override void ChipInspectorProperties()
@@ -3117,7 +3237,7 @@ public class EventChip : Chip
         #endif
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         if (Mode == EventMode.Send && SelectedEvent != null)
         {
@@ -3559,6 +3679,80 @@ public class EventChip : Chip
     }
 }
 
+public class DelayChip : Chip
+{
+    public static readonly string Description = "Delays an execution for an amount of seconds.";
+    public long startTime;
+    public long endTime;
+    public bool isRunning = false;
+    
+    public long currentTime => (DateTime.UtcNow.Second * 1000) + DateTime.UtcNow.Millisecond; 
+    public DelayChip(int id, string name, Vector2 pos) : base(id, name, pos)
+    {
+        AddExecPort("Run", true, true);
+        AddExecPort("Run", false, true);
+        AddPort("Seconds", true, [typeof(float)], true);
+        AddExecPort("Cancel", true, true);
+        AddExecPort("After Delay", false, true);
+        AddExecPort("Cancel", false, true);
+    }
+
+    public override void OnExecute(ExecPort? execPort)
+    {
+        try
+        {
+            if (execPort.Name == "Run" && execPort.IsInput)
+            {
+                float timeToRun = InputPorts[0].Value.GetValue().Float;
+                if (timeToRun < 0)
+                {
+                    GameConsole.Log("[Delay Chip] Delay time cannot be negative.");
+                    return;
+                }
+
+                startTime = currentTime;
+                endTime = startTime + (int)timeToRun * 1000;
+                ChipExecManager.AddChip(this);
+                isRunning = true;
+                OutputExecPorts.Find(e => e.Name == "Run").Execute();
+            }
+            else if (execPort.Name == "Cancel" && execPort.IsInput)
+            {
+                isRunning = false;
+                ChipExecManager.RemoveChip(this);
+                OutputExecPorts.Find(e => e.Name == "Cancel").Execute();
+                
+            }
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Delay Chip] An error occurred: " + e.Message);
+            return;
+        }
+    }
+
+    public override void ChipExecUpdate()
+    {
+        if (isRunning)
+        {
+            if (currentTime > endTime)
+            {
+                try
+                {
+                    OutputExecPorts.Find(e => e.Name == "After Delay").Execute();
+                    isRunning = false;
+                    ChipExecManager.RemoveChip(this);
+                }
+                catch (Exception e)
+                {
+                    GameConsole.Log("[Delay Chip] An error occurred: " + e.Message);
+                    ChipExecManager.RemoveChip(this);
+                }
+            }
+        }
+    }
+}
+
 public class LogChip : Chip
 {
     public static readonly string Description = "Prints a standard message to the game console when executed.";
@@ -3567,10 +3761,10 @@ public class LogChip : Chip
         AddPort("Log", true, [typeof(string)], false);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         GameConsole.Log(InputPorts[0].Value.GetValue().String);
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -3582,10 +3776,10 @@ public class LogWarningChip : Chip
         AddPort("Log", true, [typeof(string)], false);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         GameConsole.Log(InputPorts[0].Value.GetValue().String, LogType.Warning);
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -3597,10 +3791,10 @@ public class LogErrorChip : Chip
         AddPort("Log", true, [typeof(string)], false);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         GameConsole.Log(InputPorts[0].Value.GetValue().String, LogType.Error);
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -4033,7 +4227,7 @@ public class SetWorldPositionChip : Chip
         AddPort("Position", true, [typeof(Vector2)], true);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -4044,10 +4238,12 @@ public class SetWorldPositionChip : Chip
             if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
                 GameConsole.Log("[Set World Position Chip] GameObject/Component is null or invalid", LogType.Error);
+                return;
             }
             else if (targetPosition == null)
             {
                 GameConsole.Log("[Set World Position Chip] Position is null", LogType.Error);
+                return;
             }
             else
             {
@@ -4056,6 +4252,7 @@ public class SetWorldPositionChip : Chip
                 if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set World Position Chip] ComponentHolder is not a Transform", LogType.Error);
+                    return;
                 }
 
                 Transform? targetTransform;
@@ -4070,6 +4267,7 @@ public class SetWorldPositionChip : Chip
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set World Position Chip] Target Transform is null", LogType.Error);
+                    return;
                 }
                 else
                 {
@@ -4080,9 +4278,10 @@ public class SetWorldPositionChip : Chip
         catch (Exception ex)
         {
             GameConsole.Log($"[Set World Position Chip] Error: {ex.Message}", LogType.Error);
+            return;
         }
 
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -4095,7 +4294,7 @@ public class SetLocalPositionChip : Chip
         AddPort("Position", true, [typeof(Vector2)], true);
     }
     
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -4106,10 +4305,12 @@ public class SetLocalPositionChip : Chip
             if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
                 GameConsole.Log("[Set Local Position Chip] GameObject/Component is null or invalid", LogType.Error);
+                return;
             }
             else if (targetPosition == null)
             {
                 GameConsole.Log("[Set Local Position Chip] Position is null", LogType.Error);
+                return;
             }
             else
             {
@@ -4118,6 +4319,7 @@ public class SetLocalPositionChip : Chip
                 if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set Local Position Chip] ComponentHolder is not a Transform", LogType.Error);
+                    return;
                 }
 
                 Transform? targetTransform;
@@ -4132,6 +4334,7 @@ public class SetLocalPositionChip : Chip
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set Local Position Chip] Target Transform is null", LogType.Error);
+                    return;
                 }
                 else
                 {
@@ -4142,9 +4345,10 @@ public class SetLocalPositionChip : Chip
         catch (Exception ex)
         {
             GameConsole.Log($"[Set Local Position Chip] Error: {ex.Message}", LogType.Error);
+            return;
         }
 
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -4157,7 +4361,7 @@ public class SetWorldRotationChip : Chip
         AddPort("Rotation", true, [typeof(float)], true);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -4168,10 +4372,12 @@ public class SetWorldRotationChip : Chip
             if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
                 GameConsole.Log("[Set World Rotation Chip] GameObject/Component is null or invalid", LogType.Error);
+                return;
             }
             else if (targetRotation == null)
             {
                 GameConsole.Log("[Set World Rotation Chip] Rotation is null", LogType.Error);
+                return;
             }
             else
             {
@@ -4180,6 +4386,7 @@ public class SetWorldRotationChip : Chip
                 if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set World Rotation Chip] ComponentHolder is not a Transform", LogType.Error);
+                    return;
                 }
 
                 Transform? targetTransform;
@@ -4194,6 +4401,7 @@ public class SetWorldRotationChip : Chip
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set World Rotation Chip] Target Transform is null", LogType.Error);
+                    return;
                 }
                 else
                 {
@@ -4204,9 +4412,10 @@ public class SetWorldRotationChip : Chip
         catch (Exception ex)
         {
             GameConsole.Log($"[Set World Rotation Chip] Error: {ex.Message}", LogType.Error);
+            return;
         }
 
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -4219,7 +4428,7 @@ public class SetLocalRotationChip : Chip
         AddPort("Rotation", true, [typeof(float)], true);
     }
     
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -4230,10 +4439,12 @@ public class SetLocalRotationChip : Chip
             if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
                 GameConsole.Log("[Set Local Rotation Chip] GameObject/Component is null or invalid", LogType.Error);
+                return;
             }
             else if (targetRotation == null)
             {
                 GameConsole.Log("[Set Local Rotation Chip] Rotation is null", LogType.Error);
+                return;
             }
             else
             {
@@ -4242,6 +4453,7 @@ public class SetLocalRotationChip : Chip
                 if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set Local Rotation Chip] ComponentHolder is not a Transform", LogType.Error);
+                    return;
                 }
 
                 Transform? targetTransform;
@@ -4256,6 +4468,7 @@ public class SetLocalRotationChip : Chip
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set Local Rotation Chip] Target Transform is null", LogType.Error);
+                    return;
                 }
                 else
                 {
@@ -4266,9 +4479,10 @@ public class SetLocalRotationChip : Chip
         catch (Exception ex)
         {
             GameConsole.Log($"[Set Local Rotation Chip] Error: {ex.Message}", LogType.Error);
+            return;
         }
 
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -4281,7 +4495,7 @@ public class SetWorldRotationInDegreesChip : Chip
         AddPort("Rotation", true, [typeof(float)], true);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -4292,10 +4506,12 @@ public class SetWorldRotationInDegreesChip : Chip
             if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
                 GameConsole.Log("[Set World In Degrees Rotation Chip] GameObject/Component is null or invalid", LogType.Error);
+                return;
             }
             else if (targetRotation == null)
             {
                 GameConsole.Log("[Set World In Degrees Rotation Chip] Rotation is null", LogType.Error);
+                return;
             }
             else
             {
@@ -4304,6 +4520,7 @@ public class SetWorldRotationInDegreesChip : Chip
                 if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set World In Degrees Rotation Chip] ComponentHolder is not a Transform", LogType.Error);
+                    return;
                 }
 
                 Transform? targetTransform;
@@ -4318,6 +4535,7 @@ public class SetWorldRotationInDegreesChip : Chip
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set World In Degrees Rotation Chip] Target Transform is null", LogType.Error);
+                    return;
                 }
                 else
                 {
@@ -4328,9 +4546,10 @@ public class SetWorldRotationInDegreesChip : Chip
         catch (Exception ex)
         {
             GameConsole.Log($"[Set World In Degrees Rotation Chip] Error: {ex.Message}", LogType.Error);
+            return;
         }
 
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -4343,7 +4562,7 @@ public class SetLocalRotationInDegreesChip : Chip
         AddPort("Rotation", true, [typeof(float)], true);
     }
     
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -4354,10 +4573,12 @@ public class SetLocalRotationInDegreesChip : Chip
             if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
                 GameConsole.Log("[Set Local In Degrees Rotation Chip] GameObject/Component is null or invalid", LogType.Error);
+                return;
             }
             else if (targetRotation == null)
             {
                 GameConsole.Log("[Set Local In Degrees Rotation Chip] Rotation is null", LogType.Error);
+                return;
             }
             else
             {
@@ -4366,6 +4587,7 @@ public class SetLocalRotationInDegreesChip : Chip
                 if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set Local In Degrees Rotation Chip] ComponentHolder is not a Transform", LogType.Error);
+                    return;
                 }
 
                 Transform? targetTransform;
@@ -4380,6 +4602,7 @@ public class SetLocalRotationInDegreesChip : Chip
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set Local In Degrees Rotation Chip] Target Transform is null", LogType.Error);
+                    return;
                 }
                 else
                 {
@@ -4390,9 +4613,10 @@ public class SetLocalRotationInDegreesChip : Chip
         catch (Exception ex)
         {
             GameConsole.Log($"[Set Local In Degrees Rotation Chip] Error: {ex.Message}", LogType.Error);
+            return;
         }
 
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -4405,7 +4629,7 @@ public class SetWorldScaleChip : Chip
         AddPort("Scale", true, [typeof(Vector2)], true);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -4416,10 +4640,12 @@ public class SetWorldScaleChip : Chip
             if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
                 GameConsole.Log("[Set World Scale Chip] GameObject/Component is null or invalid", LogType.Error);
+                return;
             }
             else if (targetScale == null)
             {
                 GameConsole.Log("[Set World Scale Chip] Scale is null", LogType.Error);
+                return;
             }
             else
             {
@@ -4428,6 +4654,7 @@ public class SetWorldScaleChip : Chip
                 if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set World Scale Chip] ComponentHolder is not a Transform", LogType.Error);
+                    return;
                 }
 
                 Transform? targetTransform;
@@ -4442,6 +4669,7 @@ public class SetWorldScaleChip : Chip
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set World Scale Chip] Target Transform is null", LogType.Error);
+                    return;
                 }
                 else
                 {
@@ -4452,9 +4680,10 @@ public class SetWorldScaleChip : Chip
         catch (Exception ex)
         {
             GameConsole.Log($"[Set World Scale Chip] Error: {ex.Message}", LogType.Error);
+            return;
         }
 
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -4467,7 +4696,7 @@ public class SetLocalScaleChip : Chip
         AddPort("Scale", true, [typeof(Vector2)], true);
     }
     
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -4478,10 +4707,12 @@ public class SetLocalScaleChip : Chip
             if (targetObject == null && (componentHolder == null || componentHolder.Component == null))
             {
                 GameConsole.Log("[Set Local Scale Chip] GameObject/Component is null or invalid", LogType.Error);
+                return;
             }
             else if (targetScale == null)
             {
                 GameConsole.Log("[Set Local Scale Chip] Scale is null", LogType.Error);
+                return;
             }
             else
             {
@@ -4490,6 +4721,7 @@ public class SetLocalScaleChip : Chip
                 if (usingComponent && componentHolder.Component is not Transform)
                 {
                     GameConsole.Log("[Set Local Scale Chip] ComponentHolder is not a Transform", LogType.Error);
+                    return;
                 }
 
                 Transform? targetTransform;
@@ -4504,6 +4736,7 @@ public class SetLocalScaleChip : Chip
                 if (targetTransform == null)
                 {
                     GameConsole.Log("[Set Local Scale Chip] Target Transform is null", LogType.Error);
+                    return;
                 }
                 else
                 {
@@ -4514,9 +4747,10 @@ public class SetLocalScaleChip : Chip
         catch (Exception ex)
         {
             GameConsole.Log($"[Set Local Scale Chip] Error: {ex.Message}", LogType.Error);
+            return;
         }
 
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -4529,7 +4763,7 @@ public class SetVelocityChip : Chip
         AddPort("Velocity", true, [typeof(Vector2)], true);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -4572,6 +4806,7 @@ public class SetVelocityChip : Chip
         catch (Exception e)
         {
             GameConsole.Log($"[Set Velocity Chip] Error: {e.Message}", LogType.Error);
+            return;
         }
     }
 }
@@ -4585,7 +4820,7 @@ public class AddVelocityChip : Chip
         AddPort("Velocity", true, [typeof(Vector2)], true);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -4628,6 +4863,7 @@ public class AddVelocityChip : Chip
         catch (Exception e)
         {
             GameConsole.Log($"[Add Velocity Chip] Error: {e.Message}", LogType.Error);
+            return;
         }
     }
 }
@@ -4875,7 +5111,7 @@ public class SetMainCameraChip : Chip
         AddPort("Camera", true, [typeof(ComponentHolder)], true);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -4884,14 +5120,12 @@ public class SetMainCameraChip : Chip
             if (componentHolder is null)
             {
                 GameConsole.Log("[Set Main Camera Chip] ComponentHolder is null");
-                base.OnExecute();
                 return;
             }
 
             if (componentHolder.Component is not Camera)
             {
                 GameConsole.Log("[Set Main Camera Chip] ComponentHolder is not Camera");
-                base.OnExecute();
             }
 
             Camera? newMainCam = componentHolder.Component as Camera;
@@ -4904,9 +5138,10 @@ public class SetMainCameraChip : Chip
         catch (Exception e)
         {
             GameConsole.Log("[Set Main Camera Chip] Error Executing: " + e.Message);
+            return;
         }
         
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -4946,7 +5181,7 @@ public class SetCameraZoomChip : Chip
         AddPort("Zoom", true, [typeof(float)], true);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -4956,14 +5191,12 @@ public class SetCameraZoomChip : Chip
             if (cameraHolder is null)
             {
                 GameConsole.Log("[Set Camera Zoom Chip] ComponentHolder is null");
-                base.OnExecute();
                 return;
             }
 
             if (cameraHolder.Component is not Camera)
             {
                 GameConsole.Log("[Set Camera Zoom Chip] ComponentHolder is not Camera");
-                base.OnExecute();
                 return;
             }
             
@@ -4972,7 +5205,6 @@ public class SetCameraZoomChip : Chip
             if (camera is null)
             {
                 GameConsole.Log("[Set Camera Zoom Chip] ComponentHolder is not Camera");
-                base.OnExecute();
                 return;
             }
 
@@ -4981,9 +5213,10 @@ public class SetCameraZoomChip : Chip
         catch (Exception e)
         {
             GameConsole.Log("[Set Camera Zoom Chip] Error Executing: " + e.Message);
+            return;
         }
         
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -5050,7 +5283,7 @@ public class IfChip : Chip
         AddExecPort("Else", false, true);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -5066,7 +5299,7 @@ public class IfChip : Chip
         catch (Exception e)
         {
             GameConsole.Log($"[If] Error executing condition: {e.Message}");
-            EngineLog.Log(e.ToString());
+            return;
         }
     }
 }
@@ -5230,7 +5463,7 @@ public class PlayAudioChip : Chip
         AddPort("Audio", true, [typeof(AudioInfo)], true);
     }
 
-    public override void OnExecute()
+    public override void OnExecute(ExecPort? execPort)
     {
         try
         {
@@ -5243,13 +5476,15 @@ public class PlayAudioChip : Chip
             else
             {
                 GameConsole.Log($"[Play Audio Chip] Audio is null", LogType.Error);
+                return;
             }
         }
         catch (Exception e)
         {
            GameConsole.Log($"[Play Audio Chip] Error playing audio: {e.Message}", LogType.Error);
+           return;
         }
-        base.OnExecute();
+        base.OnExecute(execPort);
     }
 }
 
@@ -5677,7 +5912,7 @@ public class StringFormatChip : Chip
 
     public void AddArgumentPort()
     {
-        argumentPorts.Add(AddPort($"({argumentPorts.Count()-1})", true, [typeof(string)], true));
+        argumentPorts.Add(AddPort($"({argumentPorts.Count()})", true, [typeof(string)], true));
         RefreshSize();
     }
 
@@ -5729,6 +5964,28 @@ public class StringFormatChip : Chip
         {
             RemoveArgumentPort();
         }
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Count", out string theValue))
+        {
+            if (int.TryParse(theValue, out int count))
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    AddArgumentPort();
+                }
+            }
+        }
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        return new Dictionary<string, string>()
+        {
+            {"Count", argumentPorts.Count().ToString(CultureInfo.InvariantCulture)},
+        };
     }
 }
 
@@ -5908,5 +6165,161 @@ public class SerialisationChip : Chip
     public override void OnInstantiation()
     {
         base.OnInstantiation();
+    }
+}
+
+public class AddScoreChip : Chip
+{
+    public static readonly string Description = "Adds a score to the local leaderboard.";
+    public AddScoreChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Player Name", true, [typeof(string)], true);
+        AddPort("Score", true, [typeof(int)], true);
+    }
+
+    public override void OnExecute(ExecPort? execPort)
+    {
+        try
+        {
+            string playerName = InputPorts[0].Value.GetValue().String;
+            int score = InputPorts[1].Value.GetValue().Int;
+            
+            LeaderboardManager.AddScore(playerName, score);
+            
+            base.OnExecute(execPort);
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Add Score] An error occured: " + e.Message);
+            return;
+        }
+    }
+}
+
+public class GetLeaderboardIndexChip : Chip
+{
+    public static readonly string Description = "Gets a leaderboard entry based on the index provided.";
+    private string nameOfEntry = "";
+    private int scoreOfEntry = -1;
+    public GetLeaderboardIndexChip(int id, string name, Vector2 position) : base(id, name, position, true)
+    {
+        AddPort("Index", true, [typeof(int)], true);
+        AddPort("Player Name", false, [typeof(string)], true);
+        AddPort("Score", false, [typeof(int)], true);
+        OutputPorts[0].Value.ValueFunction = NameOutput;
+        OutputPorts[1].Value.ValueFunction = ScoreOutput;
+    }
+
+    public override void OnExecute(ExecPort? execPort)
+    {
+        try
+        {
+            var board = LeaderboardManager.LoadLeaderboard();
+
+            int index = InputPorts[0].Value.GetValue().Int;
+
+            if (index < 0)
+            {
+                GameConsole.Log("[Get Leaderboard] Index provided is less than 0");
+                return;
+            }
+
+            if (board.Count < index + 1)
+            {
+                GameConsole.Log("[Get Leaderboard] Index is greater than the count of the leaderboard");
+                return;
+            }
+
+            LeaderboardEntry entry = board[index];
+            nameOfEntry = entry.PlayerName;
+            scoreOfEntry = entry.Score;
+            
+            base.OnExecute(execPort);
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Get Leaderboard] An error occured: " + e.Message);
+            return;
+        }
+    }
+
+    public Values NameOutput(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        values.String = nameOfEntry;
+        return values;
+    }
+
+    public Values ScoreOutput(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        values.Int = scoreOfEntry;
+        return values;
+    }
+}
+
+public class GetLeaderboardCountChip : Chip
+{
+    public static readonly string Description = "Gets the amount of entries in the leaderboard.";
+    private int count = -1;
+    public GetLeaderboardCountChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Count", false, [typeof(int)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public override void OnExecute(ExecPort? execPort)
+    {
+        try
+        {
+            var board = LeaderboardManager.LoadLeaderboard();
+
+            count = board.Count();
+
+            base.OnExecute(execPort);
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Get Leaderboard] An error occured: " + e.Message);
+            return;
+        }
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        values.Int = count;
+        return values;
+    }
+}
+
+public class RemoveScoreChip : Chip
+{
+    public static readonly string Description = "Remove a leaderboard entry based on the index.";
+    public RemoveScoreChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("index", true, [typeof(int)], true);
+    }
+
+    public override void OnExecute(ExecPort? port)
+    {
+        try
+        {
+            var entries = LeaderboardManager.LoadLeaderboard();
+            int index = InputPorts[0].Value.GetValue().Int;
+            if (index < 0 || index > entries.Count + 1)
+            {
+                GameConsole.Log("[Remove Leaderboard] Index provided is out of range");
+                return;
+            }
+            
+            LeaderboardManager.RemoveScore(index);
+
+            base.OnExecute(port);
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Remove Score] An Error Occurred: " + e.Message);
+        }
     }
 }

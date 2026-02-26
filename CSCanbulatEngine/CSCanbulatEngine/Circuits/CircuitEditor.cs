@@ -99,7 +99,6 @@ public class ChipPortValue
         
         var lengthToCopy = Math.Min(bytes.Length, S_bufer.Length - 1);
         Array.Copy(bytes, S_bufer, lengthToCopy);
-        var stuff = SetValue("stuff");
     }
     
     /// <summary>
@@ -687,7 +686,7 @@ public class ExecPort : ChipPort
             
             animationManagerEndWire.SetUpPulseAnimation(Color, Vector4.Clamp(Color + new Vector4(1f, 1f, 1f, 0f), Vector4.Zero, Vector4.One), 200);
             
-            Parent.OnExecute();
+            Parent.OnExecute(this);
         }
         else
         {
@@ -757,15 +756,15 @@ public class Chip
     public string Name { get; set; }
     public Vector2 Position { get; set; }
 
-    public Vector2 _size = Vector2.Zero;
+    private Vector2 _size = new Vector2(150, 100);
 
+    /// <summary>
+    /// Size of chip. Default size: 150, 100
+    /// </summary>
     public Vector2 Size
     {
-        get
-        {
-            return _size;
-        } 
-        set
+        get => _size;
+        protected set
         {
             if (OriginalSize == Vector2.NegativeInfinity)
             {
@@ -774,7 +773,7 @@ public class Chip
 
             _size = value;
         }
-    }
+    } 
 
     public Vector2 OriginalSize = Vector2.NegativeInfinity;
     public Action CircuitFunction { get; set; }
@@ -795,13 +794,13 @@ public class Chip
         Id = id;
         Name = name;
         Position = position;
-        Size = new Vector2(150, 100);
         if (requiresExec)
         {
             InputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Input", this, true));
             OutputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Output", this, false));
         }
 
+        Size = CalculateSize();
         OnInstantiation();
     }
 
@@ -835,6 +834,10 @@ public class Chip
             OutputPorts.Add(port);
         }
 
+        #if EDITOR
+        Size = CalculateSize();
+        #endif
+        
         return port;
     }
 
@@ -861,13 +864,16 @@ public class Chip
         var port = new ExecPort(nextAvaliableID, name, this, isInput, showName);
         if (isInput) InputExecPorts.Add(port);
         else OutputExecPorts.Add(port);
+        #if EDITOR
+        Size = CalculateSize();
+        #endif
         return port;
     }
     
     /// <summary>
     /// Function to add do logic of the chip when executed
     /// </summary>
-    public virtual void OnExecute()
+    public virtual void OnExecute(ExecPort? port)
     {
         OutputExecPorts[0].Execute();
     }
@@ -930,6 +936,40 @@ public class Chip
         }
         return nextAvaliableID;
     }
+
+    /// <summary>
+    /// Used for calculating the size of the chip
+    /// </summary>
+    /// <returns></returns>
+    private Vector2 CalculateSize()
+    {
+        Vector2 minimumSize = new Vector2(150, 100);
+        const float portSpacing = 25f;
+        const float titleBarHeight = 30f;
+        const float portRadius = 5f;
+        const float nameSpacing = 10f;
+
+        float titleBarW = ImGui.CalcTextSize(Name).X;
+
+        float biggestOutputPortName = 0f;
+        float biggestInputPortName = 0f;
+
+        foreach (var port in InputPorts)
+            biggestInputPortName = Math.Max(biggestInputPortName, ImGui.CalcTextSize(port.Name).X);
+        foreach (var port in OutputPorts) biggestOutputPortName = Math.Max(biggestOutputPortName, ImGui.CalcTextSize(port.Name).X);
+
+        float width = biggestInputPortName + biggestOutputPortName + nameSpacing;
+        width = Math.Max(width, titleBarW);
+
+        int inputPortsCount = InputPorts.Count() + InputExecPorts.Count();
+        int outputPortsCount = OutputPorts.Count() + OutputExecPorts.Count();
+        
+        int highestPortCount = Math.Max(inputPortsCount, outputPortsCount);
+        
+        return new(Math.Max(width, minimumSize.X), Math.Max(minimumSize.Y, (highestPortCount * portSpacing) + titleBarHeight * 2));
+    }
+    
+    public virtual float GetCustomBodyHeight() => 0f;
 
     /// <summary>
     /// Used for displaying custom stuff on chips, used in override on chips
@@ -998,6 +1038,15 @@ public class Chip
     /// Executes when the game is resumed from pause state
     /// </summary>
     public virtual void OnResume() {}
+
+    /// <summary>
+    /// Executes for late executions and checks before/after the chip has been executed. Must be added to the ChipExecManager to use!
+    /// </summary>
+    public virtual void ChipExecUpdate()
+    {
+        // Removes chip because of no override.
+        ChipExecManager.RemoveChip(this);
+    }
 }
 
 /// <summary>
@@ -1140,15 +1189,15 @@ public static class CircuitEditor
         var chipPos = canvasPos + (chip.Position * Zoom) + panning;
         float chipNameWidth = ImGui.CalcTextSize(chip.Name).X + 10f;
 
-        Vector2 newSize = Vector2.Zero;
+        // Vector2 newSize = Vector2.Zero;
 
-        if (chipNameWidth > chip.OriginalSize.X)
-        {
-            newSize = new Vector2(chipNameWidth, chip.OriginalSize.Y);
-        }
-        else newSize = chip.OriginalSize;
+        // if (chipNameWidth > chip.OriginalSize.X)
+        // {
+        //     newSize = new Vector2(chipNameWidth, chip.OriginalSize.Y);
+        // }
+        // else newSize = chip.OriginalSize;
         
-        var chipSize = newSize * Zoom;
+        var chipSize = chip.Size * Zoom;
         var titleBarHeight = 30f * Zoom;
         
         

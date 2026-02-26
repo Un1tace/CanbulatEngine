@@ -516,6 +516,7 @@ public class Engine
         // Execute OnUpdate event reciever with delta time if game running
         if (CurrentState == EngineState.Play)
         {
+            ChipExecManager.Update();
             var updateEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnUpdate");
             if (updateEvent != null)
             {
@@ -1482,6 +1483,7 @@ public class Engine
         {
             if (ImGui.ImageButton("Play", (IntPtr)LoadIcons.icons["Play.png"], new Vector2(buttonSize)))
             {
+                ReloadAllCircuitScripts();
                 CurrentState = EngineState.Play;
                 ChernikovEngine.ResetRigidbodyValues();
                 var sceneData = SceneSerialiser.SceneDataFromCurrentScene();
@@ -1508,7 +1510,7 @@ public class Engine
                 
                 SceneSerialiser.LoadSceneFromString(_sceneSnapshotBeforePlay);
                 
-                Engine.ReloadAllCircuitScripts();
+                // Engine.ReloadAllCircuitScripts();
             }
         }
         
