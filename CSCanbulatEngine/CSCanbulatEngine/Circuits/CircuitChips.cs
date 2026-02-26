@@ -1,20 +1,13 @@
-using System.Data.SqlTypes;
-using System.Drawing;
 using System.Globalization;
 using System.Numerics;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.InteropServices.JavaScript;
 using System.Text;
-using System.Windows.Markup;
 using CSCanbulatEngine.Audio;
 using CSCanbulatEngine.FileHandling;
-using CSCanbulatEngine.FileHandling.CircuitHandling;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.UIHelperScripts;
 using ImGuiNET;
 using Microsoft.IdentityModel.Tokens;
 using Silk.NET.Input;
-using SixLabors.ImageSharp;
 using RectangleF = System.Drawing.RectangleF;
 
 namespace CSCanbulatEngine.Circuits;
@@ -22,17 +15,17 @@ namespace CSCanbulatEngine.Circuits;
 public class CircuitChips
 {
     #if EDITOR
-    private static Vector2 spawnPos = Vector2.Zero;
+    private static Vector2 _spawnPos = Vector2.Zero;
+
+    private static Chip? _hoveredChip;
     
-    private static Chip? hoveredChip = null;
-    
-    private static byte[] ChipSearchBuffer = new  byte[256];
+    private static byte[] _chipSearchBuffer = new  byte[256];
     
     //To add chip: make class, add to all chips, add to context menu
     
     //!! Executing chips require try and catch statement !!
     
-private static readonly List<(string Path, string Description, Func<Vector2, Chip> CreateAction)> allChips = new()
+private static readonly List<(string Path, string Description, Func<Vector2, Chip> CreateAction)> AllChips = new()
     {
         ("Event Chip", EventChip.Description, (pos) => new EventChip(CircuitEditor.GetNextAvaliableChipID(), "Event Chip", pos)),
         ("Test Button", TestButton.Description, (pos) => new TestButton(CircuitEditor.GetNextAvaliableChipID(), "Test Button", pos)),
@@ -52,6 +45,8 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Math/Divide", DivideChip.Description, (pos) => new DivideChip(CircuitEditor.GetNextAvaliableChipID(), "Divide", pos)),
         ("Math/Power", PowerChip.Description, (pos) => new PowerChip(CircuitEditor.GetNextAvaliableChipID(), "Power", pos)),
         ("Math/Pi Constant", PiConstant.Description, (pos) => new PiConstant(CircuitEditor.GetNextAvaliableChipID(), "Pi", pos)),
+        ("Math/Vector Math/Vector2 Add", Vector2Add.Description, (pos) => new Vector2Add(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Add", pos)),
+        ("Math/Vector Math/Vector2 Scale", Vector2Scale.Description, (pos) => new Vector2Scale(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Scale", pos)),
         
         ("Logic/If", IfChip.Description, (pos) => new IfChip(CircuitEditor.GetNextAvaliableChipID(), "If", pos)),
         ("Logic/If Value", IfValueChip.Description, (pos) => new IfValueChip(CircuitEditor.GetNextAvaliableChipID(), "If Value", pos)),
@@ -124,8 +119,8 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Miscellaneous/Vector2 Split", Vector2Split.Description, (pos) => new Vector2Split(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Split", pos)),
         ("Miscellaneous/Audio/Play Audio", PlayAudioChip.Description, (pos) => new PlayAudioChip(CircuitEditor.GetNextAvaliableChipID(), "Play Audio", pos)),
         ("Miscellaneous/To String", Circuits.ToString.Description, (pos) => new ToString(CircuitEditor.GetNextAvaliableChipID(), "To String", pos)),
-        ("Miscellaneous/String Format", Circuits.StringFormatChip.Description, (pos) => new StringFormatChip(CircuitEditor.GetNextAvaliableChipID(), "String Format Chip", pos)),
-        ("Miscellaneous/Serialisation Chip", Circuits.SerialisationChip.Description, (pos) => new SerialisationChip(CircuitEditor.GetNextAvaliableChipID(), "Serialisation Chip", pos)),
+        ("Miscellaneous/String Format", StringFormatChip.Description, (pos) => new StringFormatChip(CircuitEditor.GetNextAvaliableChipID(), "String Format Chip", pos)),
+        ("Miscellaneous/Serialisation Chip", SerialisationChip.Description, (pos) => new SerialisationChip(CircuitEditor.GetNextAvaliableChipID(), "Serialisation Chip", pos)),
     };
     
     
@@ -137,22 +132,22 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
 
         if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
         {
-            spawnPos = mousePosInWorld;
+            _spawnPos = mousePosInWorld;
 
-            hoveredChip = null;
+            _hoveredChip = null;
             
             foreach (var chip in CircuitEditor.chips)
             {
                 var chipRectangle = new RectangleF(chip.Position.X, chip.Position.Y, chip.Size.X, chip.Size.Y);
                 if (chipRectangle.Contains(mousePosInWorld.X, mousePosInWorld.Y))
                 {
-                    hoveredChip = chip;
+                    _hoveredChip = chip;
                     break;
                 }
             }
         }
         
-        if (hoveredChip == null)
+        if (_hoveredChip == null)
         {
             if (ImGui.BeginPopupContextWindow("SpawnChipMenu"))
             {
@@ -166,8 +161,8 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
             {
                 if (ImGui.MenuItem("Delete Chip"))
                 {
-                    CircuitEditor.DeleteChip(hoveredChip);
-                    hoveredChip = null;
+                    CircuitEditor.DeleteChip(_hoveredChip);
+                    _hoveredChip = null;
                 }
                 ImGui.EndPopup();
             }
@@ -178,8 +173,8 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
     {
         if (ImGui.BeginMenu("Create Chips"))
         {
-            ImGui.InputText("Search", ChipSearchBuffer, (uint)ChipSearchBuffer.Length);
-            string searchText = Encoding.UTF8.GetString(ChipSearchBuffer).TrimEnd('\0').ToLower();
+            ImGui.InputText("Search", _chipSearchBuffer, (uint)_chipSearchBuffer.Length);
+            string searchText = Encoding.UTF8.GetString(_chipSearchBuffer).TrimEnd('\0').ToLower();
             ImGui.Separator();
             
             
@@ -188,7 +183,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                 if (ImGui.MenuItem("Event Chip"))
                 {
                     CircuitEditor.chips.Add(new EventChip(CircuitEditor.GetNextAvaliableChipID(), "Event Chip",
-                        spawnPos));
+                        _spawnPos));
                 }
                 if (ImGui.IsItemHovered())
                 {
@@ -202,7 +197,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                 if (ImGui.MenuItem("Test Button"))
                 {
                     CircuitEditor.chips.Add(new TestButton(CircuitEditor.GetNextAvaliableChipID(), "Test Button",
-                        spawnPos));
+                        _spawnPos));
                 }
                 if (ImGui.IsItemHovered())
                 {
@@ -218,7 +213,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Bool Constant"))
                     {
                         CircuitEditor.chips.Add(new BoolConstantChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Bool Constant", spawnPos));
+                            "Bool Constant", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -232,7 +227,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Float Constant"))
                     {
                         CircuitEditor.chips.Add(new FloatConstantChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Float Constant", spawnPos));
+                            "Float Constant", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -246,7 +241,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Int Constant"))
                     {
                         CircuitEditor.chips.Add(new IntConstantChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Int Constant", spawnPos));
+                            "Int Constant", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -260,7 +255,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create String Constant"))
                     {
                         CircuitEditor.chips.Add(new StringConstantChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "String Constant", spawnPos));
+                            "String Constant", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -274,7 +269,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Vector2 Constant"))
                     {
                         CircuitEditor.chips.Add(new Vector2ConstantChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Vector2 Constant", spawnPos));
+                            "Vector2 Constant", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -288,7 +283,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Audio Info Constant"))
                     {
                         CircuitEditor.chips.Add(new AudioConstant(CircuitEditor.GetNextAvaliableChipID(),
-                            "Audio Constant", spawnPos));
+                            "Audio Constant", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -302,7 +297,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Key Constant"))
                     {
                         CircuitEditor.chips.Add(new KeyConstantChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Key Constant", spawnPos));
+                            "Key Constant", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -316,7 +311,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create MouseButton Constant"))
                     {
                         CircuitEditor.chips.Add(new MouseButtonConstantChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "MouseButton Constant", spawnPos));
+                            "MouseButton Constant", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -335,7 +330,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Add Chip"))
                     {
                         CircuitEditor.chips.Add(
-                            new AddChip(CircuitEditor.GetNextAvaliableChipID(), "Add", spawnPos));
+                            new AddChip(CircuitEditor.GetNextAvaliableChipID(), "Add", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -349,7 +344,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Subtract Chip"))
                     {
                         CircuitEditor.chips.Add(
-                            new SubtractChip(CircuitEditor.GetNextAvaliableChipID(), "Subtract", spawnPos));
+                            new SubtractChip(CircuitEditor.GetNextAvaliableChipID(), "Subtract", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -363,7 +358,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Multiply Chip"))
                     {
                         CircuitEditor.chips.Add(
-                            new MultiplyChip(CircuitEditor.GetNextAvaliableChipID(), "Multiply", spawnPos));
+                            new MultiplyChip(CircuitEditor.GetNextAvaliableChipID(), "Multiply", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -377,7 +372,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Divide Chip"))
                     {
                         CircuitEditor.chips.Add(
-                            new DivideChip(CircuitEditor.GetNextAvaliableChipID(), "Divide", spawnPos));
+                            new DivideChip(CircuitEditor.GetNextAvaliableChipID(), "Divide", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -391,7 +386,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Power Chip"))
                     {
                         CircuitEditor.chips.Add(
-                            new PowerChip(CircuitEditor.GetNextAvaliableChipID(), "Power", spawnPos));
+                            new PowerChip(CircuitEditor.GetNextAvaliableChipID(), "Power", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -405,7 +400,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Pi Constant"))
                     {
                         CircuitEditor.chips.Add(
-                            new PiConstant(CircuitEditor.GetNextAvaliableChipID(), "Pi Constant", spawnPos));
+                            new PiConstant(CircuitEditor.GetNextAvaliableChipID(), "Pi Constant", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -416,6 +411,39 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.EndTooltip();
                     }
 
+                    if (ImGui.BeginMenu("Vector Math"))
+                    {
+                        if (ImGui.MenuItem("Create Vector2 Add"))
+                        {
+                            CircuitEditor.chips.Add(
+                                new Vector2Add(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Add", _spawnPos));
+                        }
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Vector2 Add");
+                            ImGui.Separator();
+                            ImGui.Text(Vector2Add.Description);
+                            ImGui.EndTooltip();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Vector2 Scale"))
+                        {
+                            CircuitEditor.chips.Add(
+                                new Vector2Scale(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Scale", _spawnPos));
+                        }
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Vector2 Scale");
+                            ImGui.Separator();
+                            ImGui.Text(Vector2Scale.Description);
+                            ImGui.EndTooltip();
+                        }
+                        
+                        ImGui.EndMenu();
+                    }
+
                     ImGui.EndMenu();
                 }
 
@@ -423,7 +451,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                 {
                     if (ImGui.MenuItem("Create If Chip"))
                     {
-                        CircuitEditor.chips.Add(new IfChip(CircuitEditor.GetNextAvaliableChipID(), "If", spawnPos));
+                        CircuitEditor.chips.Add(new IfChip(CircuitEditor.GetNextAvaliableChipID(), "If", _spawnPos));
                     }if (ImGui.IsItemHovered())
                     {
                         ImGui.BeginTooltip();
@@ -435,7 +463,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     
                     if (ImGui.MenuItem("Create If Value Chip"))
                     {
-                        CircuitEditor.chips.Add(new IfValueChip(CircuitEditor.GetNextAvaliableChipID(), "If", spawnPos));
+                        CircuitEditor.chips.Add(new IfValueChip(CircuitEditor.GetNextAvaliableChipID(), "If", _spawnPos));
                     }if (ImGui.IsItemHovered())
                     {
                         ImGui.BeginTooltip();
@@ -448,7 +476,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Not Chip"))
                     {
                         CircuitEditor.chips.Add(new NotChip(CircuitEditor.GetNextAvaliableChipID(), "Not Chip",
-                            spawnPos));
+                            _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -462,7 +490,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create And Chip"))
                     {
                         CircuitEditor.chips.Add(new AndChip(CircuitEditor.GetNextAvaliableChipID(), "And Chip",
-                            spawnPos));
+                            _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -476,7 +504,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Or Chip"))
                     {
                         CircuitEditor.chips.Add(new OrChip(CircuitEditor.GetNextAvaliableChipID(), "Or Chip",
-                            spawnPos));
+                            _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -490,7 +518,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Nor Chip"))
                     {
                         CircuitEditor.chips.Add(new NorChip(CircuitEditor.GetNextAvaliableChipID(), "Nor Chip",
-                            spawnPos));
+                            _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -504,7 +532,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Nand Chip"))
                     {
                         CircuitEditor.chips.Add(new NandChip(CircuitEditor.GetNextAvaliableChipID(), "Nand Chip",
-                            spawnPos));
+                            _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -518,7 +546,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Xor Chip"))
                     {
                         CircuitEditor.chips.Add(new XorChip(CircuitEditor.GetNextAvaliableChipID(), "Xor Chip",
-                            spawnPos));
+                            _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -532,7 +560,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Equals Chip"))
                     {
                         CircuitEditor.chips.Add(new EqualsChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Equals Chip", spawnPos));
+                            "Equals Chip", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -546,7 +574,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Less Than Chip"))
                     {
                         CircuitEditor.chips.Add(new LessThanChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Less Than Chip", spawnPos));
+                            "Less Than Chip", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -560,7 +588,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Less Than Or Equals Chip"))
                     {
                         CircuitEditor.chips.Add(new LessThanOrEqualsChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Less Than Or Equals Chip", spawnPos));
+                            "Less Than Or Equals Chip", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -574,7 +602,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Greater Than Chip"))
                     {
                         CircuitEditor.chips.Add(new GreaterThanChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Greater Than Chip", spawnPos));
+                            "Greater Than Chip", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -588,7 +616,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Greater Than Or Equals Chip"))
                     {
                         CircuitEditor.chips.Add(new GreaterThanOrEqualsChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Greater Than Or Equals Chip", spawnPos));
+                            "Greater Than Or Equals Chip", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -607,7 +635,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Bool Variable"))
                     {
                         CircuitEditor.chips.Add(new BoolVariable(CircuitEditor.GetNextAvaliableChipID(),
-                            "Bool Variable", spawnPos));
+                            "Bool Variable", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -621,7 +649,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Float Variable"))
                     {
                         CircuitEditor.chips.Add(new FloatVariable(CircuitEditor.GetNextAvaliableChipID(),
-                            "Float Variable", spawnPos));
+                            "Float Variable", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -635,7 +663,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Int Variable"))
                     {
                         CircuitEditor.chips.Add(new IntVariable(CircuitEditor.GetNextAvaliableChipID(),
-                            "Int Variable", spawnPos));
+                            "Int Variable", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -649,7 +677,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create String Variable"))
                     {
                         CircuitEditor.chips.Add(new StringVariable(CircuitEditor.GetNextAvaliableChipID(),
-                            "String Variable", spawnPos));
+                            "String Variable", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -663,7 +691,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Vector2 Variable"))
                     {
                         CircuitEditor.chips.Add(new Vector2Variable(CircuitEditor.GetNextAvaliableChipID(),
-                            "Vector2 Variable", spawnPos));
+                            "Vector2 Variable", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -677,7 +705,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create GameObject Variable"))
                     {
                         CircuitEditor.chips.Add(new GameObjectVariable(CircuitEditor.GetNextAvaliableChipID(),
-                            "GameObject Variable", spawnPos));
+                            "GameObject Variable", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -691,7 +719,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Audio Info Variable"))
                     {
                         CircuitEditor.chips.Add(new AudioInfoVariable(CircuitEditor.GetNextAvaliableChipID(),
-                            "Audio Info Variable", spawnPos));
+                            "Audio Info Variable", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -705,7 +733,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Component Holder Variable"))
                     {
                         CircuitEditor.chips.Add(new ComponentHolderVariable(CircuitEditor.GetNextAvaliableChipID(),
-                            "Component Holder Variable", spawnPos));
+                            "Component Holder Variable", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -724,7 +752,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                 {
                     if (ImGui.MenuItem("Create This Chip"))
                     {
-                        CircuitEditor.chips.Add(new thisChip(CircuitEditor.GetNextAvaliableChipID(), "This", spawnPos));
+                        CircuitEditor.chips.Add(new thisChip(CircuitEditor.GetNextAvaliableChipID(), "This", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -738,7 +766,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Find Object By ID Chip"))
                     {
                         CircuitEditor.chips.Add(new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(),
-                            "Find Object By ID Chip", spawnPos));
+                            "Find Object By ID Chip", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -752,7 +780,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Find First Object By Tag Chip"))
                     {
                         CircuitEditor.chips.Add(new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(),
-                            "Find First Object With Tag", spawnPos));
+                            "Find First Object With Tag", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -766,7 +794,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Find All Objects By Tag Chip"))
                     {
                         CircuitEditor.chips.Add(new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(),
-                            "Find All Objects With Tag", spawnPos));
+                            "Find All Objects With Tag", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -782,7 +810,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get Component Chip"))
                         {
                             CircuitEditor.chips.Add(new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get Component", spawnPos));
+                                "Get Component", _spawnPos));
                         }
 
                         if (ImGui.IsItemHovered())
@@ -797,7 +825,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Has Component Chip"))
                         {
                             CircuitEditor.chips.Add(new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Has Component", spawnPos));
+                                "Has Component", _spawnPos));
                         }
 
                         if (ImGui.IsItemHovered())
@@ -812,7 +840,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Set Main Camera Chip"))
                         {
                             CircuitEditor.chips.Add(new SetMainCameraChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Set Main Camera", spawnPos));
+                                "Set Main Camera", _spawnPos));
                         }
 
                         if (ImGui.IsItemHovered())
@@ -827,7 +855,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get Main Camera Chip"))
                         {
                             CircuitEditor.chips.Add(new GetMainCameraChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get Main Camera", spawnPos));
+                                "Get Main Camera", _spawnPos));
                         }
 
                         if (ImGui.IsItemHovered())
@@ -842,7 +870,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Set Camera Zoom Chip"))
                         {
                             CircuitEditor.chips.Add(new SetCameraZoomChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Set Camera Zoom", spawnPos));
+                                "Set Camera Zoom", _spawnPos));
                         }
 
                         if (ImGui.IsItemHovered())
@@ -857,7 +885,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get Camera Zoom Chip"))
                         {
                             CircuitEditor.chips.Add(new GetCameraZoomChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get Camera Zoom", spawnPos));
+                                "Get Camera Zoom", _spawnPos));
                         }
 
                         if (ImGui.IsItemHovered())
@@ -877,7 +905,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Set Velocity Chip"))
                         {
                             CircuitEditor.chips.Add(new SetVelocityChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Set Velocity", spawnPos));
+                                "Set Velocity", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -891,7 +919,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Add Velocity Chip"))
                         {
                             CircuitEditor.chips.Add(new AddVelocityChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Add Velocity", spawnPos));
+                                "Add Velocity", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -905,7 +933,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get Velocity Chip"))
                         {
                             CircuitEditor.chips.Add(new GetVelocityChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get Velocity", spawnPos));
+                                "Get Velocity", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -924,7 +952,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Set World Position Chip"))
                         {
                             CircuitEditor.chips.Add(new SetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Set World Position", spawnPos));
+                                "Set World Position", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -938,7 +966,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Set Local Position Chip"))
                         {
                             CircuitEditor.chips.Add(new SetLocalPositionChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Set Local Position", spawnPos));
+                                "Set Local Position", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -952,7 +980,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get World Position Chip"))
                         {
                             CircuitEditor.chips.Add(new GetWorldPositionChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get World Position", spawnPos));
+                                "Get World Position", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -966,7 +994,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get Local Position Chip"))
                         {
                             CircuitEditor.chips.Add(new GetLocalPositionChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get Local Position", spawnPos));
+                                "Get Local Position", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -985,7 +1013,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Set World Rotation Chip"))
                         {
                             CircuitEditor.chips.Add(new SetWorldRotationChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Set World Rotation", spawnPos));
+                                "Set World Rotation", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -999,7 +1027,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Set Local Rotation Chip"))
                         {
                             CircuitEditor.chips.Add(new SetLocalRotationChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Set Local Rotation", spawnPos));
+                                "Set Local Rotation", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -1013,7 +1041,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Set World Rotation In Degrees Chip"))
                         {
                             CircuitEditor.chips.Add(new SetWorldRotationInDegreesChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Set World Rotation In Degrees", spawnPos));
+                                "Set World Rotation In Degrees", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -1027,7 +1055,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Set Local Rotation In Degrees Chip"))
                         {
                             CircuitEditor.chips.Add(new SetLocalRotationInDegreesChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Set Local Rotation In Degrees", spawnPos));
+                                "Set Local Rotation In Degrees", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -1041,7 +1069,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get World Rotation Chip"))
                         {
                             CircuitEditor.chips.Add(new GetWorldRotationChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get World Position", spawnPos));
+                                "Get World Position", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -1055,7 +1083,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get Local Rotation Chip"))
                         {
                             CircuitEditor.chips.Add(new GetLocalRotationChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get Local Position", spawnPos));
+                                "Get Local Position", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -1069,7 +1097,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get World Rotation In Degrees Chip"))
                         {
                             CircuitEditor.chips.Add(new GetWorldRotationInDegreesChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get World Rotation In Degrees", spawnPos));
+                                "Get World Rotation In Degrees", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -1083,7 +1111,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get Local Rotation In Degrees Chip"))
                         {
                             CircuitEditor.chips.Add(new GetLocalRotationInDegreesChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get Local Rotation In Degrees", spawnPos));
+                                "Get Local Rotation In Degrees", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -1102,7 +1130,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Set World Scale Chip"))
                         {
                             CircuitEditor.chips.Add(new SetWorldScaleChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Set World Scale", spawnPos));
+                                "Set World Scale", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -1116,7 +1144,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Set Local Scale Chip"))
                         {
                             CircuitEditor.chips.Add(new SetLocalScaleChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Set Local Scale", spawnPos));
+                                "Set Local Scale", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -1130,7 +1158,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get World Scale Chip"))
                         {
                             CircuitEditor.chips.Add(new GetWorldScaleChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get World Scale", spawnPos));
+                                "Get World Scale", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -1144,7 +1172,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get Local Scale Chip"))
                         {
                             CircuitEditor.chips.Add(new GetLocalScaleChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get Local Scale", spawnPos));
+                                "Get Local Scale", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -1166,7 +1194,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Is Key Down Chip"))
                     {
                         CircuitEditor.chips.Add(new IsKeyDownChip(CircuitEditor.GetNextAvaliableChipID(), "Is Key Down",
-                            spawnPos));
+                            _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1180,7 +1208,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Is Key Pressed This Frame Chip"))
                     {
                         CircuitEditor.chips.Add(new IsKeyPressedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Is Key Pressed This Frame", spawnPos));
+                            "Is Key Pressed This Frame", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1194,7 +1222,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Is Key Released This Frame Chip"))
                     {
                         CircuitEditor.chips.Add(new IsKeyReleasedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Is Key Released This Frame", spawnPos));
+                            "Is Key Released This Frame", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1208,7 +1236,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Is MouseButton Down Chip"))
                     {
                         CircuitEditor.chips.Add(new IsMouseButtonDownChip(CircuitEditor.GetNextAvaliableChipID(), "Is MouseButton Down",
-                            spawnPos));
+                            _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1222,7 +1250,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Is MouseButton Pressed This Frame Chip"))
                     {
                         CircuitEditor.chips.Add(new IsMouseButtonPressedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Is MouseButton Pressed This Frame", spawnPos));
+                            "Is MouseButton Pressed This Frame", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1236,7 +1264,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Is MouseButton Released This Frame Chip"))
                     {
                         CircuitEditor.chips.Add(new IsMouseButtonReleasedThisFrameChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Is MouseButton Released This Frame", spawnPos));
+                            "Is MouseButton Released This Frame", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1255,7 +1283,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Log Chip"))
                     {
                         CircuitEditor.chips.Add(new LogChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Log Chip", spawnPos));
+                            "Log Chip", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1269,7 +1297,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Log Warning Chip"))
                     {
                         CircuitEditor.chips.Add(new LogWarningChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Log Warning Chip", spawnPos));
+                            "Log Warning Chip", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1283,7 +1311,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Log Error Chip"))
                     {
                         CircuitEditor.chips.Add(new LogErrorChip(CircuitEditor.GetNextAvaliableChipID(),
-                            "Log Error Chip", spawnPos));
+                            "Log Error Chip", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1297,7 +1325,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Get Element At Chip"))
                     {
                         CircuitEditor.chips.Add(new GetElementAt(CircuitEditor.GetNextAvaliableChipID(),
-                            "Get Element At", spawnPos));
+                            "Get Element At", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1311,7 +1339,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create List Chip"))
                     {
                         CircuitEditor.chips.Add(new CreateList(CircuitEditor.GetNextAvaliableChipID(), "Create List",
-                            spawnPos));
+                            _spawnPos));
                     }if (ImGui.IsItemHovered())
                     {
                         ImGui.BeginTooltip();
@@ -1324,7 +1352,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Vector2 Create Chip"))
                     {
                         CircuitEditor.chips.Add(new Vector2Create(CircuitEditor.GetNextAvaliableChipID(),
-                            "Vector2 Create", spawnPos));
+                            "Vector2 Create", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1338,7 +1366,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Vector2 Split Chip"))
                     {
                         CircuitEditor.chips.Add(new Vector2Split(CircuitEditor.GetNextAvaliableChipID(),
-                            "Vector2 Split", spawnPos));
+                            "Vector2 Split", _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1352,7 +1380,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create Play Audio Chip"))
                     {
                         CircuitEditor.chips.Add(new PlayAudioChip(CircuitEditor.GetNextAvaliableChipID(), "Play Audio",
-                            spawnPos));
+                            _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1366,7 +1394,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create To String Chip"))
                     {
                         CircuitEditor.chips.Add(new ToString(CircuitEditor.GetNextAvaliableChipID(), "To String",
-                            spawnPos));
+                            _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -1380,28 +1408,28 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                     if (ImGui.MenuItem("Create String Format Chip"))
                     {
                         CircuitEditor.chips.Add(new StringFormatChip(CircuitEditor.GetNextAvaliableChipID(), "String Format",
-                            spawnPos));
+                            _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.BeginTooltip();
                         ImGui.Text("String Format Chip");
                         ImGui.Separator();
-                        ImGui.Text(Circuits.StringFormatChip.Description);
+                        ImGui.Text(StringFormatChip.Description);
                         ImGui.EndTooltip();
                     }
                     
                     if (ImGui.MenuItem("Create Serialisation Chip"))
                     {
                         CircuitEditor.chips.Add(new SerialisationChip(CircuitEditor.GetNextAvaliableChipID(), "Serialisation Chip",
-                            spawnPos));
+                            _spawnPos));
                     }
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.BeginTooltip();
                         ImGui.Text("Serialisation Chip");
                         ImGui.Separator();
-                        ImGui.Text(Circuits.SerialisationChip.Description);
+                        ImGui.Text(SerialisationChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -1410,13 +1438,13 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
             }
             else
             {
-                foreach (var (path, description, createAction) in allChips)
+                foreach (var (path, description, createAction) in AllChips)
                 {
                     if (path.ToLower().Contains(searchText.ToLower()))
                     {
                         if (ImGui.MenuItem(path))
                         {
-                            var newChip = createAction(spawnPos);
+                            var newChip = createAction(_spawnPos);
                             CircuitEditor.chips.Add(newChip);
                         }
                         if (ImGui.IsItemHovered())
@@ -1438,7 +1466,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
     
     public static void SetSpawnPos(Vector2 pos)
     {
-        spawnPos = pos;
+        _spawnPos = pos;
     }
 #endif
 }
@@ -1453,12 +1481,12 @@ public class BoolConstantChip : Chip
     {
         AddPort("Input", true, [typeof(bool)]);
         AddPort("Output", false, [typeof(bool)]);
-        base.OutputPorts[0].Value.ValueFunction = ConstantOutput;
+        OutputPorts[0].Value.ValueFunction = ConstantOutput;
     }
 
     public Values ConstantOutput(ChipPort? chipPort)
     {
-        return base.InputPorts[0].Value.GetValue();
+        return InputPorts[0].Value.GetValue();
     }
 }
 
@@ -1469,12 +1497,12 @@ public class FloatConstantChip : Chip
     {
         AddPort("Input", true, [typeof(float)]);
         AddPort("Output", false, [typeof(float)]);
-        base.OutputPorts[0].Value.ValueFunction = ConstantOutput;
+        OutputPorts[0].Value.ValueFunction = ConstantOutput;
     }
 
     public Values ConstantOutput(ChipPort? chipPort)
     {
-        return base.InputPorts[0].Value.GetValue();
+        return InputPorts[0].Value.GetValue();
     }
 }
 
@@ -1485,12 +1513,12 @@ public class IntConstantChip : Chip
     {
         AddPort("Input", true, [typeof(int)]);
         AddPort("Output", false, [typeof(int)]);
-        base.OutputPorts[0].Value.ValueFunction = ConstantOutput;
+        OutputPorts[0].Value.ValueFunction = ConstantOutput;
     }
 
     public Values ConstantOutput(ChipPort? chipPort)
     {
-        return base.InputPorts[0].Value.GetValue();
+        return InputPorts[0].Value.GetValue();
     }
 }
 
@@ -1501,12 +1529,12 @@ public class StringConstantChip : Chip
     {
         AddPort("Input", true, [typeof(string)]);
         AddPort("Output", false, [typeof(string)]);
-        base.OutputPorts[0].Value.ValueFunction = ConstantOutput;
+        OutputPorts[0].Value.ValueFunction = ConstantOutput;
     }
 
     public Values ConstantOutput(ChipPort? chipPort)
     {
-        return base.InputPorts[0].Value.GetValue();
+        return InputPorts[0].Value.GetValue();
     }
 }
 
@@ -1517,14 +1545,16 @@ public class Vector2ConstantChip : Chip
     {
         AddPort("Input", true, [typeof(Vector2)]);
         AddPort("Output", false, [typeof(Vector2)]);
-        base.OutputPorts[0].Value.ValueFunction = ConstantOutput;
+        OutputPorts[0].Value.ValueFunction = ConstantOutput;
     }
 
     public Values ConstantOutput(ChipPort? chipPort)
     {
-        return base.InputPorts[0].Value.GetValue();
+        return InputPorts[0].Value.GetValue();
     }
 }
+
+// --- Normal Math ---
 
 public class AddChip : Chip
 {
@@ -1534,7 +1564,7 @@ public class AddChip : Chip
         AddPort("A", true, [typeof(int), typeof(float)]);
         AddPort("B", true, [typeof(int), typeof(float)]);
         AddPort("Output", false, [typeof(int), typeof(float)]);
-        base.OutputPorts[0].Value.ValueFunction = AddOutput;
+        OutputPorts[0].Value.ValueFunction = AddOutput;
     }
 
     public Values AddOutput(ChipPort? chipPort)
@@ -1574,7 +1604,7 @@ public class AddChip : Chip
         }
         else
         {
-            Type? newType = chipPort?.PortType ?? null;
+            Type? newType = chipPort.PortType ?? null;
             foreach (var port in InputPorts)
             {
                 port.PortType = newType;
@@ -1597,7 +1627,7 @@ public class SubtractChip : Chip
         AddPort("A", true, [typeof(int), typeof(float)]);
         AddPort("B", true, [typeof(int), typeof(float)]);
         AddPort("Output", false, [typeof(int), typeof(float)]);
-        base.OutputPorts[0].Value.ValueFunction = AddOutput;
+        OutputPorts[0].Value.ValueFunction = AddOutput;
     }
 
     public Values AddOutput(ChipPort? chipPort)
@@ -1659,7 +1689,7 @@ public class DivideChip : Chip
         AddPort("A", true, [typeof(int), typeof(float)]);
         AddPort("B", true, [typeof(int), typeof(float)]);
         AddPort("Output", false, [typeof(int), typeof(float)]);
-        base.OutputPorts[0].Value.ValueFunction = AddOutput;
+        OutputPorts[0].Value.ValueFunction = AddOutput;
     }
 
     public Values AddOutput(ChipPort? chipPort)
@@ -1721,7 +1751,7 @@ public class MultiplyChip : Chip
         AddPort("A", true, [typeof(int), typeof(float)]);
         AddPort("B", true, [typeof(int), typeof(float)]);
         AddPort("Output", false, [typeof(int), typeof(float)]);
-        base.OutputPorts[0].Value.ValueFunction = AddOutput;
+        OutputPorts[0].Value.ValueFunction = AddOutput;
     }
 
     public Values AddOutput(ChipPort? chipPort)
@@ -1783,7 +1813,7 @@ public class PowerChip : Chip
         AddPort("A", true, [typeof(int), typeof(float)]);
         AddPort("B", true, [typeof(int), typeof(float)]);
         AddPort("Output", false, [typeof(int), typeof(float)]);
-        base.OutputPorts[0].Value.ValueFunction = AddOutput;
+        OutputPorts[0].Value.ValueFunction = AddOutput;
     }
 
     public Values AddOutput(ChipPort? chipPort)
@@ -1795,7 +1825,7 @@ public class PowerChip : Chip
         }
         else if (InputPorts[0].PortType == typeof(int))
         {
-            value.Int = (int)Math.Pow((double)InputPorts[0].Value.GetValue().Int, (double)InputPorts[1].Value.GetValue().Int);
+            value.Int = (int)Math.Pow(InputPorts[0].Value.GetValue().Int, InputPorts[1].Value.GetValue().Int);
         }
 
         return value;
@@ -1855,6 +1885,60 @@ public class PiConstant : Chip
     }
 }
 
+// --- Vector2 Math ---
+
+public class Vector2Add : Chip
+{
+    public static readonly string Description = "Adds two vectors together.";
+    public Vector2Add(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        AddPort("X", true, [typeof(Vector2)]);
+        AddPort("Y", true, [typeof(Vector2)]);
+        AddPort("Result", false, [typeof(Vector2)]);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Vector2? x = InputPorts[0].Value.GetValue().Vector2;
+        Vector2? y = InputPorts[1].Value.GetValue().Vector2;
+        Values resultantValues = new Values();
+        
+        if (x.HasValue && y.HasValue)
+        {
+            resultantValues.Vector2 = x.Value + y.Value;
+        }
+
+        return resultantValues;
+    }
+}
+
+public class Vector2Scale : Chip
+{
+    public static readonly string Description = "Multiply a vector2 by a float";
+    public Vector2Scale(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        AddPort("Vector2", true, [typeof(Vector2)]);
+        AddPort("Multiplier", true, [typeof(float)]);
+        AddPort("Resultant", false, [typeof(Vector2)]);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Vector2? vector = InputPorts[0].Value.GetValue().Vector2;
+        float? multiplier = InputPorts[1].Value.GetValue().Float;
+        Values resultantValues = new Values();
+
+        if (vector.HasValue && multiplier.HasValue)
+        {
+            resultantValues.Vector2 = vector.Value * multiplier.Value;
+        }
+
+        return resultantValues;
+    }
+}
+
 public class TestButton : Chip
 {
     public static readonly string Description = "A simple button on the chip that fires an execution pulse when clicked in the editor.";
@@ -1877,19 +1961,17 @@ public class TestButton : Chip
 public class BoolVariable : Chip
 {
     public static readonly string Description = "Sets (on execute) or gets (on output) a global boolean variable by name.";
-    private Values varValues;
     public BoolVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
-        varValues = new Values();
         AddPort("Input", true, [typeof(bool)]);
         AddPort("Output", false, [typeof(bool)]);
-        base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        OutputPorts[0].Value.ValueFunction = VarOutput;
         nameBuffer = new byte[128];
         byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
         Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
     }
 
-    public Values VarOutput(ChipPort port)
+    private Values VarOutput(ChipPort port)
     {
         if (VariableManager.Variables.TryGetValue(Name, out var value))
         {
@@ -1950,13 +2032,11 @@ public class BoolVariable : Chip
 public class FloatVariable : Chip
 {
     public static readonly string Description = "Sets (on execute) or gets (on output) a global float variable by name.";
-    private Values varValues;
     public FloatVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
-        varValues = new Values();
         AddPort("Input", true, [typeof(float)]);
-        AddPort("Output", false, [typeof(float)]);
-        base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        AddPort("Output", false, [typeof(float)]); 
+        OutputPorts[0].Value.ValueFunction = VarOutput;
         nameBuffer = new byte[128];
         byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
         Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
@@ -2023,13 +2103,11 @@ public class FloatVariable : Chip
 public class IntVariable : Chip
 {
     public static readonly string Description = "Sets (on execute) or gets (on output) a global integer variable by name.";
-    private Values varValues;
     public IntVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
-        varValues = new Values();
         AddPort("Input", true, [typeof(int)]);
         AddPort("Output", false, [typeof(int)]);
-        base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        OutputPorts[0].Value.ValueFunction = VarOutput;
         nameBuffer = new byte[128];
         byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
         Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
@@ -2096,13 +2174,11 @@ public class IntVariable : Chip
 public class StringVariable : Chip
 {
     public static readonly string Description = "Sets (on execute) or gets (on output) a global string variable by name.";
-    private Values varValues;
     public StringVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
-        varValues = new Values();
         AddPort("Input", true, [typeof(string)]);
         AddPort("Output", false, [typeof(string)]);
-        base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        OutputPorts[0].Value.ValueFunction = VarOutput;
         nameBuffer = new byte[128];
         byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
         Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
@@ -2169,13 +2245,11 @@ public class StringVariable : Chip
 public class Vector2Variable : Chip
 {
     public static readonly string Description = "Sets (on execute) or gets (on output) a global Vector2 variable by name.";
-    private Values varValues;
     public Vector2Variable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
-        varValues = new Values();
         AddPort("Input", true, [typeof(Vector2)]);
         AddPort("Output", false, [typeof(Vector2)]);
-        base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        OutputPorts[0].Value.ValueFunction = VarOutput;
         nameBuffer = new byte[128];
         byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
         Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
@@ -2242,13 +2316,11 @@ public class Vector2Variable : Chip
 public class GameObjectVariable : Chip
 {
     public static readonly string Description = "Sets (on execute) or gets (on output) a global GameObject variable by name.";
-    private Values varValues;
     public GameObjectVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
-        varValues = new Values();
         AddPort("Input", true, [typeof(GameObject)]);
         AddPort("Output", false, [typeof(GameObject)]);
-        base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        OutputPorts[0].Value.ValueFunction = VarOutput;
         nameBuffer = new byte[128];
         byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
         Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
@@ -2320,13 +2392,11 @@ public class GameObjectVariable : Chip
 public class AudioInfoVariable : Chip
 {
     public static readonly string Description = "Sets (on execute) or gets (on output) a global Audio INfo variable by name.";
-    private Values varValues;
     public AudioInfoVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
-        varValues = new Values();
         AddPort("Input", true, [typeof(AudioInfo)]);
         AddPort("Output", false, [typeof(AudioInfo)]);
-        base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        OutputPorts[0].Value.ValueFunction = VarOutput;
         nameBuffer = new byte[128];
         byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
         Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
@@ -2393,13 +2463,11 @@ public class AudioInfoVariable : Chip
 public class ComponentHolderVariable : Chip
 {
     public static readonly string Description = "Sets (on execute) or gets (on output) a global Component variable by name.";
-    private Values varValues;
     public ComponentHolderVariable(int id, string name, Vector2 position) : base(id, name, position, true)
     {
-        varValues = new Values();
         AddPort("Input", true, [typeof(ComponentHolder)]);
         AddPort("Output", false, [typeof(ComponentHolder)]);
-        base.OutputPorts[0].Value.ValueFunction = VarOutput;
+        OutputPorts[0].Value.ValueFunction = VarOutput;
         nameBuffer = new byte[128];
         byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
         Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
@@ -2598,7 +2666,7 @@ public class GreaterThanChip : Chip
         AddPort("A", true, [typeof(int), typeof(float)]);
         AddPort("B", true, [typeof(int), typeof(float)]);
         AddPort("Output", false, [typeof(bool)]);
-        base.OutputPorts[0].Value.ValueFunction = ChipOutput;
+        OutputPorts[0].Value.ValueFunction = ChipOutput;
     }
 
     public Values ChipOutput(ChipPort? chipPort)
@@ -2657,7 +2725,7 @@ public class GreaterThanOrEqualsChip : Chip
         AddPort("A", true, [typeof(int), typeof(float)]);
         AddPort("B", true, [typeof(int), typeof(float)]);
         AddPort("Output", false, [typeof(bool)]);
-        base.OutputPorts[0].Value.ValueFunction = ChipOutput;
+        OutputPorts[0].Value.ValueFunction = ChipOutput;
     }
 
     public Values ChipOutput(ChipPort? chipPort)
@@ -2716,7 +2784,7 @@ public class LessThanChip : Chip
         AddPort("A", true, [typeof(int), typeof(float)]);
         AddPort("B", true, [typeof(int), typeof(float)]);
         AddPort("Output", false, [typeof(bool)]);
-        base.OutputPorts[0].Value.ValueFunction = ChipOutput;
+        OutputPorts[0].Value.ValueFunction = ChipOutput;
     }
 
     public Values ChipOutput(ChipPort? chipPort)
@@ -2775,7 +2843,7 @@ public class LessThanOrEqualsChip : Chip
         AddPort("A", true, [typeof(int), typeof(float)]);
         AddPort("B", true, [typeof(int), typeof(float)]);
         AddPort("Output", false, [typeof(bool)]);
-        base.OutputPorts[0].Value.ValueFunction = ChipOutput;
+        OutputPorts[0].Value.ValueFunction = ChipOutput;
     }
 
     public Values ChipOutput(ChipPort? chipPort)
@@ -2836,7 +2904,7 @@ public class EqualsChip : Chip
         AddPort("B", true, [typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2), typeof(GameObject), 
             typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton)]);
         AddPort("Output", false, [typeof(bool)]);
-        base.OutputPorts[0].Value.ValueFunction = ChipOutput;
+        OutputPorts[0].Value.ValueFunction = ChipOutput;
     }
 
     public Values ChipOutput(ChipPort? chipPort)
@@ -2923,7 +2991,7 @@ public class EqualsChip : Chip
 // Event Chip
 public class EventChip : Chip
 {
-    public static readonly string Description = "Sends (on execute) or recieves (on event) a named event with custom parameters. Also has predefined events that can be used such as: OnUpdate, OnStart...";
+    public static readonly string Description = "Sends (on execute) or receives (on event) a named event with custom parameters. Also has predefined events that can be used such as: OnUpdate, OnStart...";
     public Event? SelectedEvent;
     private EventMode Mode = EventMode.Receive;
     private Action<EventValues>? ListenerAction;
