@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using CSCanbulatEngine.Audio;
 using CSCanbulatEngine.EngineComponents;
+using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.GameObjectScripts;
 using ImGuiNET;
 using Silk.NET.Input;
@@ -40,6 +41,10 @@ public class Values()
     public List<Key>? KeyList = new();
     public MouseButton? MouseButton = null;
     public List<MouseButton>? MouseButtonList = null;
+
+    public PrefabReference? PrefabReference = new();
+    public List<PrefabReference>? PrefabReferenceList = new();
+    
     
     public Type? ActiveType { get; set; }
 }
@@ -77,6 +82,9 @@ public class ChipPortValue
     public List<Key>? KeyList { get; set; }
     public MouseButton? MouseButton { get; set; }
     public List<MouseButton>? MouseButtonList { get; set; }
+    
+    public PrefabReference? PrefabReference { get; set; }
+    public List<PrefabReference>? PrefabReferenceList { get; set; }
 
     public byte[] S_bufer = new byte[100];
 
@@ -231,6 +239,18 @@ public class ChipPortValue
                 AssignedChipPort.PortType = typeof(T);
                 return true;
             }
+            else if (typeof(T) == typeof(PrefabReference))
+            {
+                PrefabReference = value as PrefabReference;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(List<PrefabReference>))
+            {
+                PrefabReferenceList = value as List<PrefabReference>;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
             
         }
         else if (AssignedChipPort.acceptedTypes.Contains(typeof(string)))
@@ -280,6 +300,8 @@ public class ChipPortValue
                 values.KeyList = KeyList ?? null;
                 values.MouseButton = MouseButton ?? null;
                 values.MouseButtonList = MouseButtonList ?? null;
+                values.PrefabReference = PrefabReference ?? null;
+                values.PrefabReferenceList = PrefabReferenceList ?? null;
                 return values;
             }
         }
@@ -1461,6 +1483,12 @@ public static class CircuitEditor
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
                         ImGui.LabelText($"##{port.Id}", port.Value.GetValue().MouseButton.ToString());
                     }
+                    else if (port.PortType == typeof(PrefabReference))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().PrefabReference?.FilePath is not null? FileHandling.FileHandling.GetNameOfFile(port.Value.GetValue().PrefabReference?.FilePath) : "").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().PrefabReference?.FilePath is not null? FileHandling.FileHandling.GetNameOfFile(port.Value.GetValue().PrefabReference?.FilePath) : "");
+                    }
                 }
                 else if (port.acceptedTypes != null)
                 {
@@ -1672,6 +1700,18 @@ public static class CircuitEditor
                         textWidth = ImGui.CalcTextSize(port.Value.GetValue().MouseButtonList is not null && port.Value.GetValue().MouseButtonList is not null? port.Value.GetValue().MouseButtonList.Count().ToString() : "").X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
                         ImGui.LabelText($"##{port.Id}", port.Value.GetValue().MouseButtonList is not null && port.Value.GetValue().MouseButtonList is not null? port.Value.GetValue().MouseButtonList.Count().ToString() : "");
+                    }
+                    else if (port.PortType == typeof(PrefabReference))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().PrefabReference?.FilePath is not null? FileHandling.FileHandling.GetNameOfFile(port.Value.GetValue().PrefabReference?.FilePath) : "").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", port.Value.GetValue().PrefabReference?.FilePath is not null? FileHandling.FileHandling.GetNameOfFile(port.Value.GetValue().PrefabReference?.FilePath) : "");
+                    }
+                    else if (port.PortType == typeof(List<PrefabReference>))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().PrefabReferenceList is not null? port.Value.GetValue().PrefabReferenceList.Count().ToString() : "null").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().PrefabReferenceList is not null? port.Value.GetValue().PrefabReferenceList.Count().ToString() : "null"));
                     }
                 }
                 else if (port.acceptedTypes != null)
@@ -1938,7 +1978,7 @@ public static class CircuitEditor
 /// </summary>
 public enum ChipTypes
 {
-    Default, Bool, Int, Float, String, Vector2, GameObject, Exec, BoolList, IntList, FloatList, StringList, Vector2List, GameObjectList, AudioInfo, AudioInfoList, ComponentHolder, ComponentHolderList, Key, KeyList, MouseButton, MouseButtonList
+    Default, Bool, Int, Float, String, Vector2, GameObject, Exec, BoolList, IntList, FloatList, StringList, Vector2List, GameObjectList, AudioInfo, AudioInfoList, ComponentHolder, ComponentHolderList, Key, KeyList, MouseButton, MouseButtonList, PrefabReference, PrefabReferenceList
 }
 
 /// <summary>
@@ -1946,8 +1986,8 @@ public enum ChipTypes
 /// </summary>
 public static class TypeHelper
 {
-    public static Type[] AllNonListTypes = [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton)];
-    public static Type[] AllListTypes = [typeof(List<bool>), typeof(List<float>), typeof(List<int>), typeof(List<string>), typeof(List<Vector2>), typeof(List<GameObject>), typeof(List<AudioInfo>), typeof(List<ComponentHolder>), typeof(List<Key>), typeof(List<MouseButton>)];
+    public static Type[] AllNonListTypes = [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton), typeof(PrefabReference)];
+    public static Type[] AllListTypes = [typeof(List<bool>), typeof(List<float>), typeof(List<int>), typeof(List<string>), typeof(List<Vector2>), typeof(List<GameObject>), typeof(List<AudioInfo>), typeof(List<ComponentHolder>), typeof(List<Key>), typeof(List<MouseButton>), typeof(List<PrefabReference>)];
     public static string GetName(Type type)
     {
             if (type == typeof(bool))
@@ -2030,6 +2070,14 @@ public static class TypeHelper
             {
                 return "List<MouseButton>";
             }
+            else if (type == typeof(PrefabReference))
+            {
+                return "PrefabReference";
+            }
+            else if (type == typeof(List<PrefabReference>))
+            {
+                return "List<PrefabReference>";
+            }
             else
             {
                 return "";
@@ -2077,10 +2125,14 @@ public static class TypeHelper
                 return typeof(Key);
             case "list<key>":
                 return typeof(List<Key>);
-            case "mouseButton":
+            case "mousebutton":
                 return typeof(MouseButton);
             case "list<mousebutton>":
                 return typeof(List<MouseButton>);
+            case "prefabreference":
+                return typeof(PrefabReference);
+            case "list<prefabreference>":
+                return typeof(List<PrefabReference>);
         }
 
         return null;
@@ -2098,6 +2150,7 @@ public static class TypeHelper
         else if (listType == typeof(List<ComponentHolder>)) return typeof(ComponentHolder);
         else if (listType == typeof(List<Key>)) return typeof(Key);
         else if (listType == typeof(List<MouseButton>)) return typeof(MouseButton);
+        else if (listType == typeof(List<PrefabReference>)) return typeof(PrefabReference);
         else return null;
     }
 
@@ -2113,6 +2166,7 @@ public static class TypeHelper
         else if (type == typeof(ComponentHolder)) return typeof(List<ComponentHolder>);
         else if (type == typeof(Key)) return typeof(List<Key>);
         else if (type == typeof(MouseButton)) return typeof(List<MouseButton>);
+        else if  (type == typeof(PrefabReference)) return typeof(List<PrefabReference>);
         else return null;
     }
     
@@ -2191,6 +2245,11 @@ public static class ChipColor
             case ChipTypes.MouseButtonList:
                 return new Vector4(1f, 1f, 0.35f, 1f);
                 break;
+            case ChipTypes.PrefabReference:
+                return new Vector4(1f, 0.89f, 0.15f, 1f);
+                break;
+            case ChipTypes.PrefabReferenceList:
+                return new Vector4(1f, 1f, 0.35f, 1f);
             default:
                 return Vector4.One;
                 break;
@@ -2276,6 +2335,14 @@ public static class ChipColor
             return new Vector4(1f, 0.89f, 0.15f, 1f);
         }
         else if (type == typeof(List<MouseButton>))
+        {
+            return new Vector4(1f, 1f, 0.35f, 1f);
+        }
+        else if (type == typeof(PrefabReference))
+        {
+            return new Vector4(1f, 0.89f, 0.15f, 1f);
+        }
+        else if (type == typeof(List<PrefabReference>))
         {
             return new Vector4(1f, 1f, 0.35f, 1f);
         }

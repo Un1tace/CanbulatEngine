@@ -22,6 +22,9 @@ public class SceneData
         public int? ParentObjectID { get; set; }
         public List<string>? Tags { get; set; }
         public ObjectType? ObjectType { get; set; }
+        
+        // Used in prefabs
+        public List<GameObjectData>? Children { get; set; }
     }
 
     public record EventData
