@@ -38,6 +38,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Constants/String Constant", StringConstantChip.Description, (pos) => new StringConstantChip(CircuitEditor.GetNextAvaliableChipID(), "String Constant", pos)),
         ("Constants/Vector2 Constant", Vector2ConstantChip.Description, (pos) => new Vector2ConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Constant", pos)),
         ("Constants/Audio Info Constant", AudioConstant.Description, (pos) => new AudioConstant(CircuitEditor.GetNextAvaliableChipID(), "Audio Constant", pos)),
+        ("Constants/Prefab Constant", PrefabConstantChip.Description, (pos) => new PrefabConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Prefab Constant", pos)),
         ("Constants/Key Constant", KeyConstantChip.Description, (pos) => new KeyConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Key Constant", pos)),
         ("Constants/MouseButton Constant", MouseButtonConstantChip.Description, (pos) => new MouseButtonConstantChip(CircuitEditor.GetNextAvaliableChipID(), "MouseButton Constant", pos)),
         
@@ -77,8 +78,9 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
 
         ("Object/This", thisChip.Description, (pos) => new thisChip(CircuitEditor.GetNextAvaliableChipID(), "This", pos)),
         ("Object/Find By ID", FindObjectByID.Description, (pos) => new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID", pos)),
-        ("Object/Find First With Tag", FindFirstObjectWithTag.Description, (pos) => new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", pos)),
-        ("Object/Find All With Tag", FindAllObjectsWithTag.Description, (pos) => new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", pos)),
+        ("Object/Find First Object With Tag", FindFirstObjectWithTag.Description, (pos) => new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", pos)),
+        ("Object/Find All Objects With Tag", FindAllObjectsWithTag.Description, (pos) => new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", pos)),
+        ("Object/Instantiate Prefab", InstantiatePrefabChip.Description, (pos) => new InstantiatePrefabChip(CircuitEditor.GetNextAvaliableChipID(), "Instantiate Prefab", pos)),
         ("Object/Components/Get Component", GetComponentChip.Description, (pos) => new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Get Component", pos)),
         ("Object/Components/Has Component", HasComponentChip.Description, (pos) => new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Has Component", pos)),
         ("Object/Components/Set Main Camera", SetMainCameraChip.Description, (pos) => new SetMainCameraChip(CircuitEditor.GetNextAvaliableChipID(), "Set Main Camera", pos)),
@@ -299,6 +301,20 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Audio Info Constant");
                         ImGui.Separator();
                         ImGui.Text(AudioConstant.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Prefab Constant"))
+                    {
+                        CircuitEditor.chips.Add(new PrefabConstantChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Prefab Constant", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Prefab Constant");
+                        ImGui.Separator();
+                        ImGui.Text(PrefabConstantChip.Description);
                         ImGui.EndTooltip();
                     }
                     
@@ -824,6 +840,20 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Find All Objects With Tag Chip");
                         ImGui.Separator();
                         ImGui.Text(FindAllObjectsWithTag.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Instantiate Prefab Chip"))
+                    {
+                        CircuitEditor.chips.Add(new InstantiatePrefabChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Instantiate Prefab", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Instantiate Prefab Chip");
+                        ImGui.Separator();
+                        ImGui.Text(InstantiatePrefabChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -5409,7 +5439,29 @@ public class AudioConstant : Chip
         return theValue;
     }
 
-    #if EDITOR
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Name", out string name) && properties.TryGetValue("Path", out string pathToAudio))
+        {
+            audioInfo.Name = name;
+            audioInfo.pathToAudio = pathToAudio;
+            if (!Engine.Audio._loadedClips.ContainsKey(audioInfo.Name))
+            {
+                Engine.Audio.LoadSound(audioInfo.Name, audioInfo.pathToAudio, false);
+            }
+        }
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        return new Dictionary<string, string>()
+        {
+            {"Name", audioInfo.Name},
+            {"Path", audioInfo.pathToAudio}
+        };
+    }
+
+#if EDITOR
     public override void ChipInspectorProperties()
     {
         if (ImGui.ImageButton("SearchImage", (IntPtr)LoadIcons.icons["MagnifyingGlass.png"], new Vector2(20, 20)))
@@ -6321,5 +6373,136 @@ public class RemoveScoreChip : Chip
         {
             GameConsole.Log("[Remove Score] An Error Occurred: " + e.Message);
         }
+    }
+}
+
+public class PrefabConstantChip : Chip
+{
+    public static readonly string Description = "Outputs a constant prefab value";
+    private PrefabReference prefab = new ();
+    private bool searchButtonClicked = false;
+
+    public PrefabConstantChip(int id, string name, Vector2 pos) : base(id, name, pos)
+    {
+        AddPort("Prefab", false, [typeof(PrefabReference)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+    
+    private Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new();
+        values.PrefabReference = prefab;
+        return values;
+    }
+    
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Path", out string path))
+        {
+            prefab.FilePath = path;
+        }
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        return new Dictionary<string, string>()
+        {
+            {"Path", prefab.FilePath}
+        };
+    }
+    
+    #if EDITOR
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.ImageButton("SearchImage", (IntPtr)LoadIcons.icons["MagnifyingGlass.png"], new Vector2(20, 20)))
+        {
+            searchButtonClicked = true;
+        }
+
+        Vector2 buttonPos = ImGui.GetItemRectMin();
+        
+        if (searchButtonClicked)
+        {
+            ImGui.SetNextWindowPos(buttonPos, ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
+            ImGui.SetNextWindowSize(new Vector2(240, 300), ImGuiCond.Appearing);
+            ImGui.Begin("Search", ref searchButtonClicked, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize);
+            ImGui.Columns(3, "Image Column", false);
+            var imageFiles = ProjectSerialiser.ScanAssetsForFilesWithExtension([".cfab"]);
+            foreach (var path in imageFiles)
+            {
+                ImGui.BeginGroup();
+                if (ImGui.ImageButton(path, (IntPtr)LoadIcons.icons["Prefab.png"], new Vector2(60, 60)))
+                {
+                    prefab.FilePath = path;
+                    searchButtonClicked = false;
+                }
+                float textWidth = ImGui.CalcTextSize(Path.GetFileNameWithoutExtension(prefab.FilePath)).X;
+                float currentIconWidth = ImGui.GetItemRectSize().X;
+                float textPadding = (currentIconWidth - textWidth) * 0.5f;
+                if (textPadding > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + textPadding);
+                ImGui.Text(Path.GetFileNameWithoutExtension(path));
+                ImGui.EndGroup();
+                
+                ImGui.NextColumn();
+            }
+            ImGui.Columns(1);
+            ImGui.End();
+        }
+    }
+#endif
+}
+
+public class InstantiatePrefabChip : Chip
+{
+    public static readonly string Description = "Instantiates a prefab";
+    private GameObject? spawnedObject = null;
+    public InstantiatePrefabChip(int id, string name, Vector2 position) : base(id, name, position, true)
+    {
+        AddPort("Prefab" , true, [typeof(PrefabReference)], true);
+        AddPort("World Position", true, [typeof(Vector2)], true);
+
+        AddPort("Instantiated Object", false, [typeof(GameObject)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public override void OnExecute(ExecPort? execPort)
+    {
+        try
+        {
+            PrefabReference? prefabRef = InputPorts[0].Value.GetValue().PrefabReference;
+            Vector2? spawnPos = InputPorts[1].Value.GetValue().Vector2;
+
+            if (prefabRef == null || string.IsNullOrWhiteSpace(prefabRef.FilePath))
+            {
+                GameConsole.Log("[InstantiatePrefabChip] Prefab reference is null");
+                return;
+            }
+
+            if (spawnPos is null)
+            {
+                GameConsole.Log("[InstantiatePrefabChip] Vector2 is null");
+                return;
+            }
+
+            spawnedObject = PrefabManager.LoadPrefab(prefabRef.FilePath);
+
+            if (spawnedObject != null)
+            {
+                spawnedObject.GetComponent<Transform>().WorldPosition = spawnPos.Value;
+            }
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[InstantiatePrefabChip] An Error Occurred: " + e.Message);
+            return;
+        }
+        
+    }
+
+    private Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        values.GameObject = spawnedObject;
+        return values;
     }
 }

@@ -1,1 +1,1 @@
-FileTypes = .cbp (Canbulat Engine Project), .ccs (Canbulat Circuit Script), .cbl (Canbulat Leaderboard), .cbs (Canbulat Engine Scene)
+FileTypes = .cbp (Canbulat Engine Project), .ccs (Canbulat Circuit Script), .cbl (Canbulat Leaderboard), .cbs (Canbulat Engine Scene), .cfab (Canbulat Prefab)
