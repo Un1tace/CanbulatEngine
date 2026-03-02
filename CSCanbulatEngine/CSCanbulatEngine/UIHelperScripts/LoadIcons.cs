@@ -27,11 +27,7 @@ public class LoadIcons
             foreach (string file in filesFound)
             {
                 string baseFile = FileHandling.FileHandling.GetNameOfFile(file);
-                if (!file.EndsWith("png"))
-                {
-                    filesFound.Remove(file);
-                }
-                else
+                if (file.ToLower().EndsWith("png"))
                 {
                     Vector2D<int> size = new Vector2D<int>(0, 0);
                     uint textureID = TextureLoader.Load(Engine.gl, file, out size);
@@ -39,7 +35,12 @@ public class LoadIcons
                     iconSizes.Add(baseFile, size);
                     EngineLog.Log($"[IconLoader] {baseFile} has been loaded");
                 }
+                else
+                {
+                    filesFound.Remove(file);
+                }
             }
+            EngineLog.Log($"[IconLoader] Loaded {icons.Count} files");
         }
         catch (Exception ex)
         {

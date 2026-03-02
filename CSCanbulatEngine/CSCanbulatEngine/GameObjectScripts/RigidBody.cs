@@ -49,19 +49,23 @@ public class Rigidbody : Component
     
         Vector2 acceleration = Vector2.Zero;
     
+        // Gravity
         if (UseGravity) acceleration += ChernikovEngine.Gravity;
 
+        // Any drag in acceleration
         if (LinearDrag > 0f) acceleration += -Velocity * LinearDrag;
 
         Velocity += acceleration * deltaTime;
 
+        // Friction
         if (Friction > 0f && MathF.Abs(Velocity.X) > 0.01f)
         {
             Velocity.X *= MathF.Pow(1.0f - Friction, deltaTime * 10f);
         }
-
+        
         Vector2 pos = transform.WorldPosition;
 
+        // New pos after velocity frame
         if (!FreezeX) pos.X += Velocity.X * deltaTime;
         if (!FreezeY) pos.Y += Velocity.Y * deltaTime;
     
@@ -74,6 +78,7 @@ public class Rigidbody : Component
             AngularVelocity *= MathF.Exp(-AngularDrag * deltaTime);
         }
     
+        // Change rotation
         transform.WorldRotation += AngularVelocity * deltaTime;
     }
 

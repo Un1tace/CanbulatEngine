@@ -694,8 +694,10 @@ public class ExecPort : ChipPort
     /// </summary>
     public void Execute()
     {
+        // Checks if input or output
         if (IsInput)
         {
+            // If there are input ports then play pulse animation
             if (InputConnections != null)
             {
                 foreach(var outputPort in InputConnections)
@@ -708,10 +710,12 @@ public class ExecPort : ChipPort
             
             animationManagerEndWire.SetUpPulseAnimation(Color, Vector4.Clamp(Color + new Vector4(1f, 1f, 1f, 0f), Vector4.Zero, Vector4.One), 200);
             
+            // Executes chip OnExecute method
             Parent.OnExecute(this);
         }
         else
         {
+            // Execute every input port connected the the output port
             foreach (ChipPort port in outputConnectedPorts)
             {
                 ExecPort? execPort = port as ExecPort;
@@ -771,7 +775,7 @@ public class ExecPort : ChipPort
 /// <summary>
 /// A class for hold functions for the circuits logic and in the editor
 /// </summary>
-public abstract class Chip
+public class Chip
 {
     public bool LoadedInBackground = false;
     public int Id { get; }
@@ -816,13 +820,17 @@ public abstract class Chip
         Id = id;
         Name = name;
         Position = position;
+        // If chip requires execution then add execution ports
         if (requiresExec)
         {
             InputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Input", this, true));
             OutputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Output", this, false));
         }
 
+        // Calculates size of chip
         Size = CalculateSize();
+        
+        // Executes this for any logic on the chips creation
         OnInstantiation();
     }
 

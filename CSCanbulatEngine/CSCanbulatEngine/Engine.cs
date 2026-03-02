@@ -98,6 +98,13 @@ public class Engine
     
     //Audio Engine
     public static AudioEngine Audio;
+    
+    
+    //Size of the viewport
+    private static Silk.NET.Maths.Vector2D<int> ViewportSize;
+    
+    public static Matrix4x4 FinalView = Matrix4x4.Identity;
+    public static Matrix4x4 FinalProj = Matrix4x4.Identity;
 
 #if EDITOR
     //--- Editor Only Resources ---
@@ -109,9 +116,6 @@ public class Engine
     private static uint Fbo;
     private static uint FboTexture;
     private static uint Rbo;
-    
-    //Size of the viewport
-    private static Silk.NET.Maths.Vector2D<int> ViewportSize;
     
     // Font
     private static ImFontPtr _customFont;
@@ -156,9 +160,6 @@ public class Engine
 
     private RectangleF _projectManagerBounds;
     private string[]? _pendingDroppedFiles = null;
-    
-    public static Matrix4x4 FinalView = Matrix4x4.Identity;
-    public static Matrix4x4 FinalProj = Matrix4x4.Identity;
     
     //Console
     public static bool _forceSetConsoleTab = false;
@@ -587,183 +588,13 @@ public class Engine
         
         RenderEditorUI();
         
-        // For Menu Bar > {Object.name} > Rename Object 
-        if (ImGui.BeginPopupModal("Rename Object", ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            ImGui.Text("Enter a new name for the object.");
-            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
-
-            if (ImGui.Button("OK"))
-            {
-                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
-                if (!string.IsNullOrWhiteSpace(newName) && Engine._selectedGameObject != null)
-                {
-                    _selectedGameObject.gameObject.Name = newName;
-                }
-
-                renamePopupOpen = false;
-                ImGui.CloseCurrentPopup();
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel"))
-            {
-                renamePopupOpen = false;
-                ImGui.CloseCurrentPopup();
-                
-            }
-            ImGui.EndPopup();
-        }
-        
-        // For Menu Bar > File > Name Scene
-        if (ImGui.BeginPopupModal("Name Scene", ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            ImGui.Text("Enter a name for the scene");
-            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
-
-            if (ImGui.Button("OK"))
-            {
-                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
-                if (!string.IsNullOrWhiteSpace(newName))
-                {
-                    currentScene.SceneName = newName;
-                }
-
-                nameScenePopupOpen = false;
-                ImGui.CloseCurrentPopup();
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel"))
-            {
-                nameScenePopupOpen = false;
-                ImGui.CloseCurrentPopup();
-                
-            }
-            ImGui.EndPopup();
-        }
-        
-        //Before using Save as
-        if (ImGui.BeginPopupModal("Name Scene As", ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            ImGui.Text("Enter a name for the scene");
-            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
-
-            if (ImGui.Button("OK"))
-            {
-                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
-                if (!string.IsNullOrWhiteSpace(newName))
-                {
-                    currentScene.SceneName = newName;
-                    SaveSceneAsContinued();
-                }
-
-                nameSceneAsPopup = false;
-                ImGui.CloseCurrentPopup();
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel"))
-            {
-                nameSceneAsPopup = false;
-                ImGui.CloseCurrentPopup();
-                
-            }
-            ImGui.EndPopup();
-        }
-        
-        if (ImGui.BeginPopupModal("Name Circuit Script As", ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            ImGui.Text("Enter a name for the circuit script");
-            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
-
-            if (ImGui.Button("OK"))
-            {
-                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
-                if (!string.IsNullOrWhiteSpace(newName))
-                {
-                    CircuitEditor.CircuitScriptName = newName;
-                    SaveAsCircuitScriptContinued();
-                }
-
-                renameCircuitFileAsPopup = false;
-                ImGui.CloseCurrentPopup();
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel"))
-            {
-                renameCircuitFileAsPopup = false;
-                ImGui.CloseCurrentPopup();
-                
-            }
-            ImGui.EndPopup();
-        }
-        
-        if (openSpawnMenuNextFrame)
-        {
-            var canvasPos = ImGui.GetCursorScreenPos();
-            var io = ImGui.GetIO();
-            
-            Vector2 mousePosInWorld = (io.MousePos - canvasPos - CircuitEditor.panning) / CircuitEditor.Zoom;
-            
-            CircuitChips.SetSpawnPos(mousePosInWorld);
-            
-            ImGui.BeginPopupContextWindow("SpawnChipMenu");
-
-            openSpawnMenuNextFrame = false;
-        }
-        
-        //Renaming a file in project manager
-        if (ImGui.BeginPopupModal("Rename File", ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            ImGui.Text("Enter a new name for the file.");
-            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
-
-            if (ImGui.Button("OK"))
-            {
-                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
-                if (!string.IsNullOrWhiteSpace(newName) && Engine._selectedGameObject != null)
-                {
-                    ProjectManager.RenameFileContinued(newName);
-                }
-
-                renameFilePopupOpen = false;
-                ImGui.CloseCurrentPopup();
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel"))
-            {
-                renameFilePopupOpen = false;
-                ImGui.CloseCurrentPopup();
-                
-            }
-            ImGui.EndPopup();
-        }
-
-        if (buildMenuOpen)
-        {
-            BuildManager.BuildWindow();
-        }
-        
-        ProjectSerialiser.CreateProjectPopUp();
-        
-        ProjectSerialiser.ProjectAlreadyHerePopup();
-        
-        ImGui.PopFont();
-
-        imGuiController.Render();
-        
-        if (currentProject.ProjectName == "")
-        {
-            currentProject.ProjectName = " ";
-            ProjectSerialiser.CreateOrLoadProjectFile();
-        }
-        
-
-        
 #else
         //-------------------Game-----------------
         gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
-        DrawGameScene(window.FramebufferSize, _cameraZoom);
+        DrawGameScene();
 #endif
     }
+    
 #if EDITOR
     /// <summary>
     /// Renders all the game engine's editor UI
@@ -1323,6 +1154,175 @@ public class Engine
         ImGui.End();
         
         SetLook();
+        
+        // For Menu Bar > {Object.name} > Rename Object 
+        if (ImGui.BeginPopupModal("Rename Object", ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("Enter a new name for the object.");
+            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
+
+            if (ImGui.Button("OK"))
+            {
+                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
+                if (!string.IsNullOrWhiteSpace(newName) && Engine._selectedGameObject != null)
+                {
+                    _selectedGameObject.gameObject.Name = newName;
+                }
+
+                renamePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                renamePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+                
+            }
+            ImGui.EndPopup();
+        }
+        
+        // For Menu Bar > File > Name Scene
+        if (ImGui.BeginPopupModal("Name Scene", ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("Enter a name for the scene");
+            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
+
+            if (ImGui.Button("OK"))
+            {
+                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
+                if (!string.IsNullOrWhiteSpace(newName))
+                {
+                    currentScene.SceneName = newName;
+                }
+
+                nameScenePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                nameScenePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+                
+            }
+            ImGui.EndPopup();
+        }
+        
+        //Before using Save as
+        if (ImGui.BeginPopupModal("Name Scene As", ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("Enter a name for the scene");
+            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
+
+            if (ImGui.Button("OK"))
+            {
+                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
+                if (!string.IsNullOrWhiteSpace(newName))
+                {
+                    currentScene.SceneName = newName;
+                    SaveSceneAsContinued();
+                }
+
+                nameSceneAsPopup = false;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                nameSceneAsPopup = false;
+                ImGui.CloseCurrentPopup();
+                
+            }
+            ImGui.EndPopup();
+        }
+        
+        if (ImGui.BeginPopupModal("Name Circuit Script As", ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("Enter a name for the circuit script");
+            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
+
+            if (ImGui.Button("OK"))
+            {
+                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
+                if (!string.IsNullOrWhiteSpace(newName))
+                {
+                    CircuitEditor.CircuitScriptName = newName;
+                    SaveAsCircuitScriptContinued();
+                }
+
+                renameCircuitFileAsPopup = false;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                renameCircuitFileAsPopup = false;
+                ImGui.CloseCurrentPopup();
+                
+            }
+            ImGui.EndPopup();
+        }
+        
+        if (openSpawnMenuNextFrame)
+        {
+            var canvasPos = ImGui.GetCursorScreenPos();
+            var io = ImGui.GetIO();
+            
+            Vector2 mousePosInWorld = (io.MousePos - canvasPos - CircuitEditor.panning) / CircuitEditor.Zoom;
+            
+            CircuitChips.SetSpawnPos(mousePosInWorld);
+            
+            ImGui.BeginPopupContextWindow("SpawnChipMenu");
+
+            openSpawnMenuNextFrame = false;
+        }
+        
+        //Renaming a file in project manager
+        if (ImGui.BeginPopupModal("Rename File", ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("Enter a new name for the file.");
+            ImGui.InputText("##NameInput", Engine._nameBuffer, (uint)Engine._nameBuffer.Length);
+
+            if (ImGui.Button("OK"))
+            {
+                string newName = Encoding.UTF8.GetString(Engine._nameBuffer).TrimEnd('\0');
+                if (!string.IsNullOrWhiteSpace(newName) && Engine._selectedGameObject != null)
+                {
+                    ProjectManager.RenameFileContinued(newName);
+                }
+
+                renameFilePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                renameFilePopupOpen = false;
+                ImGui.CloseCurrentPopup();
+                
+            }
+            ImGui.EndPopup();
+        }
+
+        if (buildMenuOpen)
+        {
+            BuildManager.BuildWindow();
+        }
+        
+        ProjectSerialiser.CreateProjectPopUp();
+        
+        ProjectSerialiser.ProjectAlreadyHerePopup();
+        
+        ImGui.PopFont();
+
+        imGuiController.Render();
+        
+        if (currentProject.ProjectName == "")
+        {
+            currentProject.ProjectName = " ";
+            ProjectSerialiser.CreateOrLoadProjectFile();
+        }
     }
     
     /// <summary>
@@ -1428,6 +1428,11 @@ public class Engine
                 }
                 
                 return;
+            }
+
+            if (ImGui.MenuItem("Make Prefab"))
+            {
+                PrefabManager.SavePrefab(gameObject, Path.Combine(ProjectSerialiser.GetAssetsFolder(), "GameObjects"));
             }
 
             if (gameObject.ParentObject != null)

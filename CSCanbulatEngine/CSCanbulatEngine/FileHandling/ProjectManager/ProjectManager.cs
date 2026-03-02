@@ -142,6 +142,9 @@ public static class ProjectManager
                 case ".ccs":
                     iconName = "Circuit.png";
                     break;
+                case ".cfab":
+                    iconName = "Prefab.png";
+                    break;
                 case null:
                     break;
                 
@@ -186,6 +189,10 @@ public static class ProjectManager
                     else if (Path.GetExtension(name) == ".ccs")
                     {
                         Engine.LoadCircuitScript(name);
+                    }
+                    else if (Path.GetExtension(name) == ".cfab")
+                    {
+                        PrefabManager.LoadPrefab(name);
                     }
                 }
                 ImGui.PopStyleColor();

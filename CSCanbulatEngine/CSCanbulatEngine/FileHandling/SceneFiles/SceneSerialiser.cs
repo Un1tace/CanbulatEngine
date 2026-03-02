@@ -78,8 +78,14 @@ public class SceneSerialiser
         return sceneData;
     }
 
+    /// <summary>
+    /// Gets the GameObjectData from game object
+    /// </summary>
+    /// <param name="obj">GameObject</param>
+    /// <returns>GameObjectData</returns>
     public static SceneData.GameObjectData GetGameObjectData(GameObject obj)
     {
+        // Create data object for components
         List<SceneData.ComponentData> componentData = new();
         foreach (var component in obj.Components)
         {
@@ -92,7 +98,8 @@ public class SceneSerialiser
             };
             componentData.Add(toAdd);
         }
-
+        
+        // Gets data from objects and returns it
         return new SceneData.GameObjectData()
         {
             Name = obj.Name, ObjectID = obj.ID, Tags = obj.Tags, ParentObjectID = obj.ParentObject?.ID,
@@ -102,6 +109,12 @@ public class SceneSerialiser
     
 #endif
     
+    /// <summary>
+    /// Sets a gameobject already made to data provided
+    /// </summary>
+    /// <param name="setToObj">Object to set data to</param>
+    /// <param name="objData">Object Data</param>
+    /// <param name="meshToUse">Mesh to use</param>
     public static void SetGameObjectData(GameObject setToObj, SceneData.GameObjectData objData, GameObjectScripts.Mesh meshToUse)
     {
         setToObj.Tags = objData.Tags ?? new List<string>();
@@ -132,38 +145,38 @@ public class SceneSerialiser
         }
     }
 
+    /// <summary>
+    /// Creates game object from data provided
+    /// </summary>
+    /// <param name="objData">Game object data</param>
+    /// <param name="useNextAvaliableID">Determines if old id is needed or a new one</param>
+    /// <returns></returns>
     public static GameObject CreateGameObjectFromData(SceneData.GameObjectData objData, bool useNextAvaliableID = true)
     {
         GameObject obj;
         GameObjectScripts.Mesh meshToUse;
+        // Gets mesh based on type
+        if (objData.ObjectType == ObjectType.Circle)
+        {
+            meshToUse = ChunFactory.CreateCircle(32);
+        }
+        else if (objData.ObjectType == ObjectType.Triangle)
+        {
+            meshToUse = ChunFactory.CreateTriangle();
+        }
+        else meshToUse = ChunFactory.CreateQuad();
+        
+        // Determines type of constructor to use
         if (useNextAvaliableID)
         {
-            
-            if (objData.ObjectType == ObjectType.Circle)
-            {
-                meshToUse = ChunFactory.CreateCircle(32);
-            }
-            else if (objData.ObjectType == ObjectType.Triangle)
-            {
-                meshToUse = ChunFactory.CreateTriangle();
-            }
-            else meshToUse = ChunFactory.CreateQuad();
             obj = new GameObject(meshToUse, objData.ObjectType?? ObjectType.Quad, objData.Name, false);
         }
         else
         {
-            if (objData.ObjectType == ObjectType.Circle)
-            {
-                meshToUse = ChunFactory.CreateCircle(32);
-            }
-            else if (objData.ObjectType == ObjectType.Triangle)
-            {
-                meshToUse = ChunFactory.CreateTriangle();
-            }
-            else meshToUse = ChunFactory.CreateQuad();
             obj = new GameObject(objData.Name, objData.ObjectID.Value, meshToUse, objData.ObjectType?? ObjectType.Quad);
         }
             
+        // Sets game object data
         SetGameObjectData(obj, objData, meshToUse);
 
         return obj;
@@ -176,7 +189,9 @@ public class SceneSerialiser
         //Reset managers
         VariableManager.Clear();
         EventManager.Clear();
+        #if EDITOR
         Engine._selectedGameObject = null;
+#endif
         while (Engine.currentScene.GameObjects.Any())
         {
             Engine.currentScene.GameObjects[0].DeleteObject();

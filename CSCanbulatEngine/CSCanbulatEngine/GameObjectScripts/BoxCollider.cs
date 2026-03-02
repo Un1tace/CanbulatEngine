@@ -33,6 +33,7 @@ public class BoxCollider : Component
 
         Vector2 half = (Size * worldScale) * 0.5f;
 
+        // Base corners
         Vector2[] corners =
         {
             new Vector2(-half.X, -half.Y),
@@ -41,12 +42,14 @@ public class BoxCollider : Component
             new Vector2(-half.X, half.Y)
         };
         
+        // Rotation of object
         float cos = MathF.Cos(rotation);
         float sin = MathF.Sin(rotation);
         
         Vector2 min = new Vector2(float.MaxValue, float.MaxValue);
         Vector2 max = new Vector2(float.MinValue, float.MinValue);
 
+        // Change position of vertices based on rotation of object
         foreach (var corner in corners)
         {
             Vector2 rotated = new Vector2(corner.X * cos - corner.Y * sin, corner.X * sin + corner.Y * cos) + (t.WorldPosition + Offset);
