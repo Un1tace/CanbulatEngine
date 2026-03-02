@@ -771,7 +771,7 @@ public class ExecPort : ChipPort
 /// <summary>
 /// A class for hold functions for the circuits logic and in the editor
 /// </summary>
-public class Chip
+public abstract class Chip
 {
     public bool LoadedInBackground = false;
     public int Id { get; }

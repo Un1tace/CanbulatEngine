@@ -3736,7 +3736,7 @@ public class DelayChip : Chip
                 float timeToRun = InputPorts[0].Value.GetValue().Float;
                 if (timeToRun < 0)
                 {
-                    GameConsole.Log("[Delay Chip] Delay time cannot be negative.");
+                    GameConsole.Log("[Delay Chip] Delay time cannot be negative.", LogType.Error);
                     return;
                 }
 
@@ -3756,7 +3756,7 @@ public class DelayChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[Delay Chip] An error occurred: " + e.Message);
+            GameConsole.Log("[Delay Chip] An error occurred: " + e.Message, LogType.Error);
             return;
         }
     }
@@ -3775,7 +3775,7 @@ public class DelayChip : Chip
                 }
                 catch (Exception e)
                 {
-                    GameConsole.Log("[Delay Chip] An error occurred: " + e.Message);
+                    GameConsole.Log("[Delay Chip] An error occurred: " + e.Message, LogType.Error);
                     ChipExecManager.RemoveChip(this);
                 }
             }
@@ -3793,8 +3793,16 @@ public class LogChip : Chip
 
     public override void OnExecute(ExecPort? execPort)
     {
-        GameConsole.Log(InputPorts[0].Value.GetValue().String);
-        base.OnExecute(execPort);
+        try
+        {
+            GameConsole.Log(InputPorts[0].Value.GetValue().String);
+            base.OnExecute(execPort);
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Log Chip] An error occurred: " + e.Message, LogType.Error);
+            return;
+        }
     }
 }
 
@@ -3808,8 +3816,16 @@ public class LogWarningChip : Chip
 
     public override void OnExecute(ExecPort? execPort)
     {
-        GameConsole.Log(InputPorts[0].Value.GetValue().String, LogType.Warning);
-        base.OnExecute(execPort);
+        try
+        {
+            GameConsole.Log(InputPorts[0].Value.GetValue().String, LogType.Warning);
+            base.OnExecute(execPort);
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Log Chip] An error occurred: " + e.Message, LogType.Error);
+            return;
+        }
     }
 }
 
@@ -3823,8 +3839,16 @@ public class LogErrorChip : Chip
 
     public override void OnExecute(ExecPort? execPort)
     {
-        GameConsole.Log(InputPorts[0].Value.GetValue().String, LogType.Error);
-        base.OnExecute(execPort);
+        try
+        {
+            GameConsole.Log(InputPorts[0].Value.GetValue().String, LogType.Error);
+            base.OnExecute(execPort);
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Log Chip] An error occurred: " + e.Message, LogType.Error);
+            return;
+        }
     }
 }
 
@@ -5149,13 +5173,13 @@ public class SetMainCameraChip : Chip
 
             if (componentHolder is null)
             {
-                GameConsole.Log("[Set Main Camera Chip] ComponentHolder is null");
+                GameConsole.Log("[Set Main Camera Chip] ComponentHolder is null", LogType.Error);
                 return;
             }
 
             if (componentHolder.Component is not Camera)
             {
-                GameConsole.Log("[Set Main Camera Chip] ComponentHolder is not Camera");
+                GameConsole.Log("[Set Main Camera Chip] ComponentHolder is not Camera", LogType.Error);
             }
 
             Camera? newMainCam = componentHolder.Component as Camera;
@@ -5220,13 +5244,13 @@ public class SetCameraZoomChip : Chip
 
             if (cameraHolder is null)
             {
-                GameConsole.Log("[Set Camera Zoom Chip] ComponentHolder is null");
+                GameConsole.Log("[Set Camera Zoom Chip] ComponentHolder is null", LogType.Error);
                 return;
             }
 
             if (cameraHolder.Component is not Camera)
             {
-                GameConsole.Log("[Set Camera Zoom Chip] ComponentHolder is not Camera");
+                GameConsole.Log("[Set Camera Zoom Chip] ComponentHolder is not Camera", LogType.Error);
                 return;
             }
             
@@ -5234,7 +5258,7 @@ public class SetCameraZoomChip : Chip
 
             if (camera is null)
             {
-                GameConsole.Log("[Set Camera Zoom Chip] ComponentHolder is not Camera");
+                GameConsole.Log("[Set Camera Zoom Chip] ComponentHolder is not Camera", LogType.Error);
                 return;
             }
 
@@ -5242,7 +5266,7 @@ public class SetCameraZoomChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[Set Camera Zoom Chip] Error Executing: " + e.Message);
+            GameConsole.Log("[Set Camera Zoom Chip] Error Executing: " + e.Message, LogType.Error);
             return;
         }
         
@@ -5270,13 +5294,13 @@ public class GetCameraZoomChip : Chip
             ComponentHolder? cameraHolder = InputPorts[0].Value.GetValue().ComponentHolder;
             if (cameraHolder is null)
             {
-                GameConsole.Log("[Get Camera Zoom Chip] ComponentHolder is null");
+                GameConsole.Log("[Get Camera Zoom Chip] ComponentHolder is null", LogType.Error);
                 return new Values();
             }
 
             if (cameraHolder.Component is not Camera)
             {
-                GameConsole.Log("[Get Camera Zoom Chip] ComponentHolder is not Camera");
+                GameConsole.Log("[Get Camera Zoom Chip] ComponentHolder is not Camera", LogType.Error);
                 return new Values();
             }
             
@@ -5284,7 +5308,7 @@ public class GetCameraZoomChip : Chip
 
             if (camera is null)
             {
-                GameConsole.Log("[Get Camera Zoom Chip] ComponentHolder is not Camera");
+                GameConsole.Log("[Get Camera Zoom Chip] ComponentHolder is not Camera", LogType.Error);
                 return new Values();
             }
 
@@ -5296,7 +5320,7 @@ public class GetCameraZoomChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[Get Camera Zoom Chip] Error getting value: " + e.Message);
+            GameConsole.Log("[Get Camera Zoom Chip] Error getting value: " + e.Message, LogType.Error);
             return new Values();
         }
     }
@@ -5328,7 +5352,7 @@ public class IfChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log($"[If] Error executing condition: {e.Message}");
+            GameConsole.Log($"[If] Error executing condition: {e.Message}", LogType.Error);
             return;
         }
     }
@@ -5994,7 +6018,7 @@ public class StringFormatChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log(e.ToString());
+            GameConsole.Log("[String Format Chip] Error Occured: " + e.Message, LogType.Error);
             return theValue;
         }
     }
@@ -6242,7 +6266,7 @@ public class AddScoreChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[Add Score] An error occured: " + e.Message);
+            GameConsole.Log("[Add Score] An error occured: " + e.Message, LogType.Error);
             return;
         }
     }
@@ -6272,13 +6296,13 @@ public class GetLeaderboardIndexChip : Chip
 
             if (index < 0)
             {
-                GameConsole.Log("[Get Leaderboard] Index provided is less than 0");
+                GameConsole.Log("[Get Leaderboard] Index provided is less than 0", LogType.Error);
                 return;
             }
 
             if (board.Count < index + 1)
             {
-                GameConsole.Log("[Get Leaderboard] Index is greater than the count of the leaderboard");
+                GameConsole.Log("[Get Leaderboard] Index is greater than the count of the leaderboard", LogType.Error);
                 return;
             }
 
@@ -6290,7 +6314,7 @@ public class GetLeaderboardIndexChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[Get Leaderboard] An error occured: " + e.Message);
+            GameConsole.Log("[Get Leaderboard] An error occured: " + e.Message, LogType.Error);
             return;
         }
     }
@@ -6332,7 +6356,7 @@ public class GetLeaderboardCountChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[Get Leaderboard] An error occured: " + e.Message);
+            GameConsole.Log("[Get Leaderboard] An error occured: " + e.Message, LogType.Error);
             return;
         }
     }
@@ -6361,7 +6385,7 @@ public class RemoveScoreChip : Chip
             int index = InputPorts[0].Value.GetValue().Int;
             if (index < 0 || index > entries.Count + 1)
             {
-                GameConsole.Log("[Remove Leaderboard] Index provided is out of range");
+                GameConsole.Log("[Remove Leaderboard] Index provided is out of range", LogType.Error);
                 return;
             }
             
@@ -6371,7 +6395,7 @@ public class RemoveScoreChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[Remove Score] An Error Occurred: " + e.Message);
+            GameConsole.Log("[Remove Score] An Error Occurred: " + e.Message, LogType.Error);
         }
     }
 }
@@ -6474,13 +6498,13 @@ public class InstantiatePrefabChip : Chip
 
             if (prefabRef == null || string.IsNullOrWhiteSpace(prefabRef.FilePath))
             {
-                GameConsole.Log("[InstantiatePrefabChip] Prefab reference is null");
+                GameConsole.Log("[InstantiatePrefabChip] Prefab reference is null", LogType.Error);
                 return;
             }
 
             if (spawnPos is null)
             {
-                GameConsole.Log("[InstantiatePrefabChip] Vector2 is null");
+                GameConsole.Log("[InstantiatePrefabChip] Vector2 is null", LogType.Error);
                 return;
             }
 
@@ -6493,7 +6517,7 @@ public class InstantiatePrefabChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[InstantiatePrefabChip] An Error Occurred: " + e.Message);
+            GameConsole.Log("[InstantiatePrefabChip] An Error Occurred: " + e.Message, LogType.Error);
             return;
         }
         

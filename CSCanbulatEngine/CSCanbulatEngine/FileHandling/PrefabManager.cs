@@ -30,8 +30,10 @@ public class PrefabManager
     /// <returns></returns>
     private static SceneData.GameObjectData SerialiseObjectRecursive(GameObject obj)
     {
+        // Calls GetGameObjectData to encode the logic
         SceneData.GameObjectData data = SceneSerialiser.GetGameObjectData(obj);
 
+        // Recursively goes through children to get data
         data.Children = new List<SceneData.GameObjectData>();
         foreach (GameObject child in obj.ChildObjects)
         {
@@ -74,9 +76,11 @@ public class PrefabManager
     /// <returns>GameObject</returns>
     private static GameObject DeserialiseObjectRecursive(SceneData.GameObjectData data)
     {
+        // Calls method from scene serialiser to create game object from data
         GameObject newObj = SceneSerialiser.CreateGameObjectFromData(data, true);
-        newObj.Name = data.Name + " (Clone)";
+        newObj.Name = data.Name + " (Clone)"; // new name
 
+        // Recursively calls method to create children if any
         if (data.Children != null || data.Children.Count > 0)
         {
             foreach (SceneData.GameObjectData childData in data.Children)
