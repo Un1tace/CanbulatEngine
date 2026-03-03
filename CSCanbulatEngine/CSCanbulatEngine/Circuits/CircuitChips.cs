@@ -80,9 +80,12 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Object/Find By ID", FindObjectByID.Description, (pos) => new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID", pos)),
         ("Object/Find First Object With Tag", FindFirstObjectWithTag.Description, (pos) => new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", pos)),
         ("Object/Find All Objects With Tag", FindAllObjectsWithTag.Description, (pos) => new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", pos)),
+        ("Object/Get Parent Object", GetParentObjectChip.Description, (pos) => new GetParentObjectChip(CircuitEditor.GetNextAvaliableChipID(), "Get Parent Object", pos)),
+        ("Object/Get Child Objects", GetChildObjectsChip.Description, (pos) => new GetChildObjectsChip(CircuitEditor.GetNextAvaliableChipID(), "Get Child Objects", pos)),
         ("Object/Instantiate Prefab", InstantiatePrefabChip.Description, (pos) => new InstantiatePrefabChip(CircuitEditor.GetNextAvaliableChipID(), "Instantiate Prefab", pos)),
         ("Object/Components/Get Component", GetComponentChip.Description, (pos) => new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Get Component", pos)),
         ("Object/Components/Has Component", HasComponentChip.Description, (pos) => new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Has Component", pos)),
+        ("Object/Components/Set Rigidbody Mass", SetRigidbodyMassChip.Description, (pos) => new SetRigidbodyMassChip(CircuitEditor.GetNextAvaliableChipID(), "Set Rigidbody Mass", pos)),
         ("Object/Components/Set Main Camera", SetMainCameraChip.Description, (pos) => new SetMainCameraChip(CircuitEditor.GetNextAvaliableChipID(), "Set Main Camera", pos)),
         ("Object/Components/Get Main Camera", GetMainCameraChip.Description, (pos) => new GetMainCameraChip(CircuitEditor.GetNextAvaliableChipID(), "Get Main Camera", pos)),
         ("Object/Components/Set Camera Zoom", SetCameraZoomChip.Description, (pos) => new SetCameraZoomChip(CircuitEditor.GetNextAvaliableChipID(), "Set Camera Zoom", pos)),
@@ -840,6 +843,34 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Find All Objects With Tag Chip");
                         ImGui.Separator();
                         ImGui.Text(FindAllObjectsWithTag.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get Parent Object Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetParentObjectChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Get Parent Object", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Parent Object Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetParentObjectChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get Child Objects Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetChildObjectsChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Get Child Objects", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Child Objects Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetChildObjectsChip.Description);
                         ImGui.EndTooltip();
                     }
                     
@@ -4838,6 +4869,7 @@ public class SetVelocityChip : Chip
             GameConsole.Log($"[Set Velocity Chip] Error: {e.Message}", LogType.Error);
             return;
         }
+        base.OnExecute(execPort);
     }
 }
 
@@ -4895,6 +4927,7 @@ public class AddVelocityChip : Chip
             GameConsole.Log($"[Add Velocity Chip] Error: {e.Message}", LogType.Error);
             return;
         }
+        base.OnExecute(execPort);
     }
 }
 
@@ -6500,7 +6533,8 @@ public class InstantiatePrefabChip : Chip
             GameConsole.Log("[InstantiatePrefabChip] An Error Occurred: " + e.Message);
             return;
         }
-        
+
+        base.OnExecute(execPort);
     }
 
     private Values OutputFunction(ChipPort? chipPort)
@@ -6508,5 +6542,98 @@ public class InstantiatePrefabChip : Chip
         Values values = new Values();
         values.GameObject = spawnedObject;
         return values;
+    }
+}
+
+public class GetParentObjectChip : Chip
+{
+    public static readonly string Description = "Gets the parent object of an object.";
+    public GetParentObjectChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("Parent GameObject", false, [typeof(GameObject)], true);
+        
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    private Values OutputFunction(ChipPort? chipPort)
+    {
+        GameObject? gameObject = InputPorts[0].Value.GetValue().GameObject;
+        Values values = new Values();
+        if (gameObject is not null && gameObject.ParentObject is not null)
+        {
+            values.GameObject = gameObject.ParentObject;
+        }
+
+        return values;
+    }
+}
+
+public class GetChildObjectsChip : Chip
+{
+    public static readonly string Description = "Gets the child objects of an object.";
+    public GetChildObjectsChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("Child GameObjects", false, [typeof(List<GameObject>)], true);
+
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    private Values OutputFunction(ChipPort? chipPort)
+    {
+        GameObject? gameObject = InputPorts[0].Value.GetValue().GameObject;
+        Values values = new Values();
+        if (gameObject is not null)
+        {
+            List<GameObject> childObjects = new();
+            
+            childObjects.AddRange(gameObject.ChildObjects);
+
+            values.GameObjectList = childObjects;
+        }
+
+        return values;
+    }
+}
+
+public class SetRigidbodyMassChip : Chip
+{
+    public static readonly string Description = "Sets the mass of a rigidbody when executed.";
+    public SetRigidbodyMassChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Rigidbody Component", true, [typeof(ComponentHolder)], true);
+        AddPort("Mass", true, [typeof(float)], true);
+    }
+
+    public override void OnExecute(ExecPort? port)
+    {
+        try
+        {
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
+            float mass = InputPorts[1].Value.GetValue().Float;
+
+            if (componentHolder is null)
+            {
+                GameConsole.Log("[SetRigidbodyMassChip] Rigidbody is null");
+                return;
+            }
+
+            if (componentHolder.Component is not Rigidbody)
+            {
+                GameConsole.Log("[SetRigidbodyMassChip] ComponentHolder is not Rigidbody");
+                return;
+            }
+            
+            Rigidbody rigidbody =  componentHolder.Component as Rigidbody;
+
+            rigidbody.Mass = mass;
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[SetRigidbodyMassChip] An Error Occurred: " + e.Message);
+            return;
+        }
+        base.OnExecute(port);
     }
 }
