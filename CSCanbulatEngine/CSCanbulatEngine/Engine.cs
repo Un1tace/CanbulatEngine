@@ -679,6 +679,11 @@ public class Engine
                 {
                     SaveSceneAs();
                 }
+
+                if (ImGui.MenuItem("Open Project Settings Window"))
+                {
+                    SceneSettings.isOpen = true;
+                }
                 ImGui.EndMenu();
             }
 
