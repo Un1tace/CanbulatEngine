@@ -201,3 +201,25 @@ public class MeshRenderer : Component
     }
 #endif
 }
+
+public class Colour
+{
+    public float r = 0f;
+    public float g = 0f;
+    public float b = 0f;
+    public float a = 0f;
+    
+    public Vector4 colour {
+        get
+        {
+            return new Vector4(r, g, b, a);
+        }
+        set
+        {
+            r = value.X;
+            g = value.Y;
+            b = value.Z;
+            a = value.W;
+        }
+    }
+}

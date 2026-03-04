@@ -42,5 +42,7 @@ public class SceneData
         public string SceneName { get; set; }
         public List<GameObjectData> GameObjects { get; set; }
         public List<EventData> Events { get; set; }
+        
+        public Dictionary<string, string> SceneSettings { get; set; } = new();
     }
 }

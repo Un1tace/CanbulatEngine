@@ -8,6 +8,7 @@ using CSCanbulatEngine.EngineComponents;
 using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.GameObjectScripts;
 using ImGuiNET;
+using MiniAudioEx.Core.StandardAPI;
 using Silk.NET.Input;
 using SixLabors.ImageSharp.ColorSpaces.Companding;
 
@@ -44,6 +45,9 @@ public class Values()
 
     public PrefabReference? PrefabReference = new();
     public List<PrefabReference>? PrefabReferenceList = new();
+
+    public Colour? Colour = new();
+    public List<Colour>? ColourList = null;
     
     
     public Type? ActiveType { get; set; }
@@ -85,6 +89,9 @@ public class ChipPortValue
     
     public PrefabReference? PrefabReference { get; set; }
     public List<PrefabReference>? PrefabReferenceList { get; set; }
+    
+    public Colour? Colour { get; set; }
+    public List<Colour>? ColourList { get; set; }
 
     public byte[] S_bufer = new byte[100];
 
@@ -251,7 +258,18 @@ public class ChipPortValue
                 AssignedChipPort.PortType = typeof(T);
                 return true;
             }
-            
+            else if (typeof(T) == typeof(Colour))
+            {
+                Colour = value as Colour;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
+            else if (typeof(T) == typeof(List<Colour>))
+            {
+                ColourList = value as List<Colour>;
+                AssignedChipPort.PortType = typeof(T);
+                return true;
+            }
         }
         else if (AssignedChipPort.acceptedTypes.Contains(typeof(string)))
         {
@@ -302,6 +320,8 @@ public class ChipPortValue
                 values.MouseButtonList = MouseButtonList ?? null;
                 values.PrefabReference = PrefabReference ?? null;
                 values.PrefabReferenceList = PrefabReferenceList ?? null;
+                values.Colour = Colour ?? null;
+                values.ColourList = ColourList ?? null;
                 return values;
             }
         }
@@ -971,7 +991,7 @@ public class Chip
     /// Used for calculating the size of the chip
     /// </summary>
     /// <returns></returns>
-    private Vector2 CalculateSize()
+    protected Vector2 CalculateSize()
     {
         Vector2 minimumSize = new Vector2(150, 100);
         const float portSpacing = 25f;
@@ -1497,6 +1517,19 @@ public static class CircuitEditor
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
                         ImGui.LabelText($"##{port.Id}", port.Value.GetValue().PrefabReference?.FilePath is not null? FileHandling.FileHandling.GetNameOfFile(port.Value.GetValue().PrefabReference?.FilePath) : "");
                     }
+                    else if (port.PortType == typeof(Colour))
+                    {
+                        bool anyValueNull = port.Value.GetValue().Colour is null || 
+                                            port.Value.GetValue().Colour?.r is null ||
+                                            port.Value.GetValue().Colour?.g is null ||
+                                            port.Value.GetValue().Colour?.b is null ||
+                                            port.Value.GetValue().Colour?.a is null;
+
+                        string text = !anyValueNull ? port.Value.GetValue().Colour.colour.ToString() : "";
+                        textWidth = ImGui.CalcTextSize(text).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", text);
+                    }
                 }
                 else if (port.acceptedTypes != null)
                 {
@@ -1720,6 +1753,25 @@ public static class CircuitEditor
                         textWidth = ImGui.CalcTextSize(port.Value.GetValue().PrefabReferenceList is not null? port.Value.GetValue().PrefabReferenceList.Count().ToString() : "null").X;
                         ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
                         ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().PrefabReferenceList is not null? port.Value.GetValue().PrefabReferenceList.Count().ToString() : "null"));
+                    }
+                    else if (port.PortType == typeof(Colour))
+                    {
+                        bool anyValueNull = port.Value.GetValue().Colour is null || 
+                                            port.Value.GetValue().Colour?.r is null ||
+                                            port.Value.GetValue().Colour?.g is null ||
+                                            port.Value.GetValue().Colour?.b is null ||
+                                            port.Value.GetValue().Colour?.a is null;
+
+                        string text = !anyValueNull ? port.Value.GetValue().Colour.colour.ToString() : "";
+                        textWidth = ImGui.CalcTextSize(text).X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", text);
+                    }
+                    else if (port.PortType == typeof(List<Colour>))
+                    {
+                        textWidth = ImGui.CalcTextSize(port.Value.GetValue().ColourList is not null? port.Value.GetValue().ColourList.Count().ToString() : "null").X;
+                        ImGui.SetCursorScreenPos(portPos + new Vector2(-textWidth/2, -25));
+                        ImGui.LabelText($"##{port.Id}", (port.Value.GetValue().ColourList is not null? port.Value.GetValue().ColourList.Count().ToString() : "null"));
                     }
                 }
                 else if (port.acceptedTypes != null)
@@ -1986,7 +2038,7 @@ public static class CircuitEditor
 /// </summary>
 public enum ChipTypes
 {
-    Default, Bool, Int, Float, String, Vector2, GameObject, Exec, BoolList, IntList, FloatList, StringList, Vector2List, GameObjectList, AudioInfo, AudioInfoList, ComponentHolder, ComponentHolderList, Key, KeyList, MouseButton, MouseButtonList, PrefabReference, PrefabReferenceList
+    Default, Bool, Int, Float, String, Vector2, GameObject, Exec, BoolList, IntList, FloatList, StringList, Vector2List, GameObjectList, AudioInfo, AudioInfoList, ComponentHolder, ComponentHolderList, Key, KeyList, MouseButton, MouseButtonList, PrefabReference, PrefabReferenceList, Colour, ColourList
 }
 
 /// <summary>
@@ -1994,8 +2046,8 @@ public enum ChipTypes
 /// </summary>
 public static class TypeHelper
 {
-    public static Type[] AllNonListTypes = [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton), typeof(PrefabReference)];
-    public static Type[] AllListTypes = [typeof(List<bool>), typeof(List<float>), typeof(List<int>), typeof(List<string>), typeof(List<Vector2>), typeof(List<GameObject>), typeof(List<AudioInfo>), typeof(List<ComponentHolder>), typeof(List<Key>), typeof(List<MouseButton>), typeof(List<PrefabReference>)];
+    public static Type[] AllNonListTypes = [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton), typeof(PrefabReference), typeof(Colour)];
+    public static Type[] AllListTypes = [typeof(List<bool>), typeof(List<float>), typeof(List<int>), typeof(List<string>), typeof(List<Vector2>), typeof(List<GameObject>), typeof(List<AudioInfo>), typeof(List<ComponentHolder>), typeof(List<Key>), typeof(List<MouseButton>), typeof(List<PrefabReference>), typeof(List<Colour>)];
     public static string GetName(Type type)
     {
             if (type == typeof(bool))
@@ -2086,6 +2138,14 @@ public static class TypeHelper
             {
                 return "List<PrefabReference>";
             }
+            else if (type == typeof(Colour))
+            {
+                return "Colour";
+            }
+            else if (type == typeof(List<Colour>))
+            {
+                return "List<Colour>";
+            }
             else
             {
                 return "";
@@ -2141,6 +2201,10 @@ public static class TypeHelper
                 return typeof(PrefabReference);
             case "list<prefabreference>":
                 return typeof(List<PrefabReference>);
+            case "colour":
+                return typeof(Colour);
+            case "list<colour>":
+                return typeof(List<Colour>);
         }
 
         return null;
@@ -2159,6 +2223,7 @@ public static class TypeHelper
         else if (listType == typeof(List<Key>)) return typeof(Key);
         else if (listType == typeof(List<MouseButton>)) return typeof(MouseButton);
         else if (listType == typeof(List<PrefabReference>)) return typeof(PrefabReference);
+        else if (listType == typeof(List<Colour>)) return typeof(Colour);
         else return null;
     }
 
@@ -2174,11 +2239,10 @@ public static class TypeHelper
         else if (type == typeof(ComponentHolder)) return typeof(List<ComponentHolder>);
         else if (type == typeof(Key)) return typeof(List<Key>);
         else if (type == typeof(MouseButton)) return typeof(List<MouseButton>);
-        else if  (type == typeof(PrefabReference)) return typeof(List<PrefabReference>);
+        else if (type == typeof(PrefabReference)) return typeof(List<PrefabReference>);
+        else if (type == typeof(Colour)) return typeof(List<Colour>);
         else return null;
     }
-    
-    
 }
 
 public static class ChipColor
@@ -2258,6 +2322,13 @@ public static class ChipColor
                 break;
             case ChipTypes.PrefabReferenceList:
                 return new Vector4(1f, 1f, 0.35f, 1f);
+                break;
+            case ChipTypes.Colour:
+                return new Vector4(0.051f, 0.035f, 0.921f, 1f);
+                break;
+            case ChipTypes.ColourList:
+                return new Vector4(0.33f, 0.33f, 0.812f, 1f);
+                break;
             default:
                 return Vector4.One;
                 break;
@@ -2353,6 +2424,14 @@ public static class ChipColor
         else if (type == typeof(List<PrefabReference>))
         {
             return new Vector4(1f, 1f, 0.35f, 1f);
+        }
+        else if (type == typeof(Colour))
+        {
+            return new Vector4(0.051f, 0.035f, 0.921f, 1f);
+        }
+        else if (type == typeof(List<Colour>))
+        {
+            return new Vector4(0.33f, 0.33f, 0.812f, 1f);
         }
         else
         {

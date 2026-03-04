@@ -22,7 +22,7 @@ public class SceneSerialiser
         _defaultMesh = defaultMesh;
     }
 #if EDITOR
-    public void SaveScene(string sceneName = "Example Scene")
+    public static void SaveScene(string sceneName = "Example Scene")
     {
         string filePath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Scenes");
         var sceneData = SceneDataFromCurrentScene(sceneName);
@@ -41,6 +41,7 @@ public class SceneSerialiser
         
         sceneData.SceneFilePath = filePath;
         sceneData.SceneName = sceneName;
+        sceneData.SceneSettings = SceneSettings.GetSceneSettings();
         sceneData.GameObjects = new List<SceneData.GameObjectData>();
         sceneData.Events = new List<SceneData.EventData>();
 
@@ -201,6 +202,8 @@ public class SceneSerialiser
         Engine.currentScene.SceneName = sceneData.SceneName;
         Engine.currentScene.SceneFilePath = sceneData.SceneFilePath;
         Engine.currentScene.SceneSavedOnce = true;
+        
+        SceneSettings.SetSceneSettings(sceneData.SceneSettings);
 
         if (sceneData.Events != null)
         {

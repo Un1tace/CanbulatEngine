@@ -37,6 +37,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Constants/Int Constant", IntConstantChip.Description, (pos) => new IntConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Int Constant", pos)),
         ("Constants/String Constant", StringConstantChip.Description, (pos) => new StringConstantChip(CircuitEditor.GetNextAvaliableChipID(), "String Constant", pos)),
         ("Constants/Vector2 Constant", Vector2ConstantChip.Description, (pos) => new Vector2ConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Constant", pos)),
+        ("Constants/Colour Constant", ColourConstantChip.Description, (pos) => new ColourConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Colour Constant", pos)),
         ("Constants/Audio Info Constant", AudioConstant.Description, (pos) => new AudioConstant(CircuitEditor.GetNextAvaliableChipID(), "Audio Constant", pos)),
         ("Constants/Prefab Constant", PrefabConstantChip.Description, (pos) => new PrefabConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Prefab Constant", pos)),
         ("Constants/Key Constant", KeyConstantChip.Description, (pos) => new KeyConstantChip(CircuitEditor.GetNextAvaliableChipID(), "Key Constant", pos)),
@@ -83,6 +84,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Object/Get Parent Object", GetParentObjectChip.Description, (pos) => new GetParentObjectChip(CircuitEditor.GetNextAvaliableChipID(), "Get Parent Object", pos)),
         ("Object/Get Child Objects", GetChildObjectsChip.Description, (pos) => new GetChildObjectsChip(CircuitEditor.GetNextAvaliableChipID(), "Get Child Objects", pos)),
         ("Object/Instantiate Prefab", InstantiatePrefabChip.Description, (pos) => new InstantiatePrefabChip(CircuitEditor.GetNextAvaliableChipID(), "Instantiate Prefab", pos)),
+        ("Object/Destroy Object", DestroyObjectChip.Description, (pos) => new DestroyObjectChip(CircuitEditor.GetNextAvaliableChipID(), "Destroy Object", pos)),
         ("Object/Components/Get Component", GetComponentChip.Description, (pos) => new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Get Component", pos)),
         ("Object/Components/Has Component", HasComponentChip.Description, (pos) => new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(), "Has Component", pos)),
         ("Object/Components/Set Rigidbody Mass", SetRigidbodyMassChip.Description, (pos) => new SetRigidbodyMassChip(CircuitEditor.GetNextAvaliableChipID(), "Set Rigidbody Mass", pos)),
@@ -134,6 +136,13 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Miscellaneous/Remove Score Chip", RemoveScoreChip.Description, (pos) => new RemoveScoreChip(CircuitEditor.GetNextAvaliableChipID(), "Remove Score Chip", pos)),
         ("Miscellaneous/Get Leaderboard Index Chip", GetLeaderboardIndexChip.Description, (pos) => new GetLeaderboardIndexChip(CircuitEditor.GetNextAvaliableChipID(), "Get Leaderboard Index Chip", pos)),
         ("Miscellaneous/Get Leaderboard Count Chip", GetLeaderboardCountChip.Description, (pos) => new GetLeaderboardCountChip(CircuitEditor.GetNextAvaliableChipID(), "Get Leaderboard Count Chip", pos)),
+        ("Miscellaneous/Create Colour", CreateColourChip.Description, (pos) => new CreateColourChip(CircuitEditor.GetNextAvaliableChipID(), "Create Colour", pos)),
+        ("Miscellaneous/Colour Split", ColourSplitChip.Description, (pos) => new ColourSplitChip(CircuitEditor.GetNextAvaliableChipID(), "ColourSplitChip", pos)),
+        ("Miscellaneous/Colour Split", ColourSplitChip.Description, (pos) => new ColourSplitChip(CircuitEditor.GetNextAvaliableChipID(), "ColourSplitChip", pos)),
+        ("Miscellaneous/Set Mesh Renderer Colour", SetMeshRendererColourChip.Description, (pos) => new SetMeshRendererColourChip(CircuitEditor.GetNextAvaliableChipID(), "Set Mesh Renderer Colour", pos)),
+        ("Miscellaneous/Get Mesh Renderer Colour", GetMeshRendererColourChip.Description, (pos) => new GetMeshRendererColourChip(CircuitEditor.GetNextAvaliableChipID(), "Get Mesh Renderer Colour", pos)),
+        ("Miscellaneous/Set Background Colour", SetBackgroundColourChip.Description, (pos) => new SetBackgroundColourChip(CircuitEditor.GetNextAvaliableChipID(), "Set Background Colour", pos)),
+        ("Miscellaneous/Get Background Colour", GetBackgroundColourChip.Description, (pos) => new GetBackgroundColourChip(CircuitEditor.GetNextAvaliableChipID(), "Get Background Colour", pos)),
     };
     
     
@@ -290,6 +299,20 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Vector2 Constant");
                         ImGui.Separator();
                         ImGui.Text(Vector2ConstantChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Colour Constant"))
+                    {
+                        CircuitEditor.chips.Add(new ColourConstantChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Colour Constant", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Colour Constant");
+                        ImGui.Separator();
+                        ImGui.Text(ColourConstantChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -885,6 +908,20 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Instantiate Prefab Chip");
                         ImGui.Separator();
                         ImGui.Text(InstantiatePrefabChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Destroy Object Chip"))
+                    {
+                        CircuitEditor.chips.Add(new DestroyObjectChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Destroy Object", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Destroy Object Chip");
+                        ImGui.Separator();
+                        ImGui.Text(DestroyObjectChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -1583,6 +1620,34 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Get Leaderboard Count Chip");
                         ImGui.Separator();
                         ImGui.Text(GetLeaderboardCountChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Set Background Colour Chip"))
+                    {
+                        CircuitEditor.chips.Add(new SetBackgroundColourChip(CircuitEditor.GetNextAvaliableChipID(), "Set Background Colour Chip",
+                            _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Set Background Colour Chip");
+                        ImGui.Separator();
+                        ImGui.Text(SetBackgroundColourChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get Background Colour Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetBackgroundColourChip(CircuitEditor.GetNextAvaliableChipID(), "Get Background Colour Chip",
+                            _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Background Colour Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetBackgroundColourChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -3254,6 +3319,12 @@ public class EventChip : Chip
             foreach (var key in SelectedEvent.baseValues.MouseButtons)
                 AddPort(key, false, [typeof(MouseButton)], true).Value.ValueFunction = (p) => new Values
                     { MouseButton = LastRecievedPayload.MouseButtons.GetValueOrDefault(p.Name) };
+            foreach (var key in SelectedEvent.baseValues.Prefabs)
+                AddPort(key, false, [typeof(PrefabReference)], true).Value.ValueFunction = (p) => new Values
+                    { PrefabReference = LastRecievedPayload.PrefabReferences.GetValueOrDefault(p.Name) };
+            foreach (var key in SelectedEvent.baseValues.Colours)
+                AddPort(key, false, [typeof(Colour)], true).Value.ValueFunction = (p) => new Values
+                    { Colour = LastRecievedPayload.Colours.GetValueOrDefault(p.Name) };
 
             ListenerAction = (payload) =>
             {
@@ -3291,11 +3362,16 @@ public class EventChip : Chip
                 AddPort(key, true, [typeof(Key)], true);
             foreach (var key in SelectedEvent.baseValues.MouseButtons)
                 AddPort(key, true, [typeof(MouseButton)], true);
+            foreach (var key in SelectedEvent.baseValues.Prefabs)
+                AddPort(key, true, [typeof(PrefabReference)], true);
+            foreach (var key in SelectedEvent.baseValues.Colours)
+                AddPort(key, true, [typeof(Colour)], true);
         }
 
         #if EDITOR
-        Size = new Vector2(Size.X, ((CircuitEditor.portSpacing/CircuitEditor.Zoom) * (SelectedEvent.baseValues.bools.Count() + SelectedEvent.baseValues.floats.Count() + SelectedEvent.baseValues.ints.Count() + SelectedEvent.baseValues.strings.Count() + SelectedEvent.baseValues.Vector2s.Count() + SelectedEvent.baseValues.GameObjects.Count())) + 75);
-        #endif
+        // Size = new Vector2(Size.X, ((CircuitEditor.portSpacing/CircuitEditor.Zoom) * (SelectedEvent.baseValues.bools.Count() + SelectedEvent.baseValues.floats.Count() + SelectedEvent.baseValues.ints.Count() + SelectedEvent.baseValues.strings.Count() + SelectedEvent.baseValues.Vector2s.Count() + SelectedEvent.baseValues.GameObjects.Count())) + 75);
+        Size = base.CalculateSize();
+#endif
     }
 
     public override void OnExecute(ExecPort? execPort)
@@ -3315,6 +3391,8 @@ public class EventChip : Chip
                 else if (port.PortType == typeof(ComponentHolder)) payload.ComponentHolders[port.Name] = port.Value.GetValue().ComponentHolder;
                 else if (port.PortType == typeof(Key)) payload.Keys[port.Name] = port.Value.GetValue().Key.Value;
                 else if (port.PortType == typeof(MouseButton)) payload.MouseButtons[port.Name] = port.Value.GetValue().MouseButton.Value;
+                else if (port.PortType == typeof(PrefabReference)) payload.PrefabReferences[port.Name] = port.Value.GetValue().PrefabReference;
+                else if (port.PortType == typeof(Colour)) payload.Colours[port.Name] = port.Value.GetValue().Colour;
             }
             
             EventManager.Trigger(SelectedEvent, payload);
@@ -3417,7 +3495,7 @@ public class EventChip : Chip
             portTypes = new List<Type>();
 
             BaseEventValues baseValues = SelectedEvent.baseValues;
-            allPortTypes = new List<List<string>>() {baseValues.bools, baseValues.floats, baseValues.ints, baseValues.strings, baseValues.Vector2s, baseValues.GameObjects, baseValues.AudioInfos, baseValues.ComponentHolders};
+            allPortTypes = new List<List<string>>() {baseValues.bools, baseValues.floats, baseValues.ints, baseValues.strings, baseValues.Vector2s, baseValues.GameObjects, baseValues.AudioInfos, baseValues.ComponentHolders, baseValues.Keys, baseValues.MouseButtons, baseValues.Prefabs, baseValues.Colours};
             
             foreach (var port in baseValues.bools)
             {
@@ -3472,10 +3550,23 @@ public class EventChip : Chip
                 ports.Add(port);
                 portTypes.Add(typeof(Key));
             }
+            
             foreach (var port in baseValues.MouseButtons)
             {
                 ports.Add(port);
                 portTypes.Add(typeof(MouseButton));
+            }
+            
+            foreach (var port in baseValues.Prefabs)
+            {
+                ports.Add(port);
+                portTypes.Add(typeof(PrefabReference));
+            }
+            
+            foreach (var port in baseValues.Colours)
+            {
+                ports.Add(port);
+                portTypes.Add(typeof(Colour));
             }
             
             //Ports Menu
@@ -3688,6 +3779,16 @@ public class EventChip : Chip
         else if (type == typeof(MouseButton))
         {
             return 9;
+        }
+        
+        else if (type == typeof(PrefabReference))
+        {
+            return 10;
+        }
+        
+        else if (type == typeof(Colour))
+        {
+            return 11;
         }
 
         return 0;
@@ -3920,10 +4021,7 @@ public class CreateList : Chip
     public CreateList(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("List", false,
-        [
-            typeof(List<bool>), typeof(List<int>), typeof(List<float>), typeof(List<string>), typeof(List<Vector2>),
-            typeof(List<GameObject>), typeof(List<AudioInfo>), typeof(List<ComponentHolder>)
-        ], true);
+            TypeHelper.AllListTypes.ToList(), true);
         
         OutputPorts[0].Value.ValueFunction = ListFunction;
     }
@@ -3987,9 +4085,7 @@ public class CreateList : Chip
     }
     public ChipPort AddElementPort()
     {
-        var thePort = AddPort("Element " + InputPorts.Count(), true, [typeof(bool), typeof(int), typeof(float),
-            typeof(string), typeof(Vector2),
-            typeof(GameObject), typeof(AudioInfo), typeof(ComponentHolder)], false);
+        var thePort = AddPort("Element " + InputPorts.Count(), true, TypeHelper.AllNonListTypes.ToList(), false);
         InputPorts.Last().PortType = ChipPortsType;
         #if EDITOR
         Size = new Vector2(Size.X, (CircuitEditor.portSpacing / CircuitEditor.Zoom) * InputPorts.Count() + 75);
@@ -5858,7 +5954,7 @@ public class ToString : Chip
     public static readonly string Description = "Convert Data types (bools, ints, floats and Vector2s) into string format.";
     public ToString(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
-        AddPort("Input", true, [typeof(bool), typeof(int), typeof(float), typeof(Vector2)]);
+        AddPort("Input", true, [typeof(bool), typeof(int), typeof(float), typeof(Vector2), typeof(Colour)]);
         AddPort("Output", false, [typeof(string)]);
         OutputPorts[0].Value.ValueFunction = OutputFunction;
     }
@@ -5884,6 +5980,10 @@ public class ToString : Chip
         else if (typeBeingUsed == typeof(Vector2))
         {
             theValues.String = InputPorts[0].Value.GetValue().Vector2.ToString();
+        }
+        else if (typeBeingUsed == typeof(Colour))
+        {
+            theValues.String = InputPorts[0].Value.GetValue().Colour?.colour.ToString() ?? "";
         }
 
         return theValues;
@@ -6279,7 +6379,7 @@ public class AddScoreChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[Add Score] An error occured: " + e.Message);
+            GameConsole.Log("[Add Score] An error occured: " + e.Message, LogType.Error);
             return;
         }
     }
@@ -6309,13 +6409,13 @@ public class GetLeaderboardIndexChip : Chip
 
             if (index < 0)
             {
-                GameConsole.Log("[Get Leaderboard] Index provided is less than 0");
+                GameConsole.Log("[Get Leaderboard] Index provided is less than 0", LogType.Error);
                 return;
             }
 
             if (board.Count < index + 1)
             {
-                GameConsole.Log("[Get Leaderboard] Index is greater than the count of the leaderboard");
+                GameConsole.Log("[Get Leaderboard] Index is greater than the count of the leaderboard", LogType.Error);
                 return;
             }
 
@@ -6327,7 +6427,7 @@ public class GetLeaderboardIndexChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[Get Leaderboard] An error occured: " + e.Message);
+            GameConsole.Log("[Get Leaderboard] An error occured: " + e.Message, LogType.Error);
             return;
         }
     }
@@ -6369,7 +6469,7 @@ public class GetLeaderboardCountChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[Get Leaderboard] An error occured: " + e.Message);
+            GameConsole.Log("[Get Leaderboard] An error occured: " + e.Message, LogType.Error);
             return;
         }
     }
@@ -6398,7 +6498,7 @@ public class RemoveScoreChip : Chip
             int index = InputPorts[0].Value.GetValue().Int;
             if (index < 0 || index > entries.Count + 1)
             {
-                GameConsole.Log("[Remove Leaderboard] Index provided is out of range");
+                GameConsole.Log("[Remove Leaderboard] Index provided is out of range", LogType.Error);
                 return;
             }
             
@@ -6408,7 +6508,7 @@ public class RemoveScoreChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[Remove Score] An Error Occurred: " + e.Message);
+            GameConsole.Log("[Remove Score] An Error Occurred: " + e.Message, LogType.Error);
         }
     }
 }
@@ -6511,13 +6611,13 @@ public class InstantiatePrefabChip : Chip
 
             if (prefabRef == null || string.IsNullOrWhiteSpace(prefabRef.FilePath))
             {
-                GameConsole.Log("[InstantiatePrefabChip] Prefab reference is null");
+                GameConsole.Log("[InstantiatePrefabChip] Prefab reference is null", LogType.Error);
                 return;
             }
 
             if (spawnPos is null)
             {
-                GameConsole.Log("[InstantiatePrefabChip] Vector2 is null");
+                GameConsole.Log("[InstantiatePrefabChip] Vector2 is null", LogType.Error);
                 return;
             }
 
@@ -6530,7 +6630,7 @@ public class InstantiatePrefabChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[InstantiatePrefabChip] An Error Occurred: " + e.Message);
+            GameConsole.Log("[InstantiatePrefabChip] An Error Occurred: " + e.Message, LogType.Error);
             return;
         }
 
@@ -6542,6 +6642,37 @@ public class InstantiatePrefabChip : Chip
         Values values = new Values();
         values.GameObject = spawnedObject;
         return values;
+    }
+}
+
+public class DestroyObjectChip : Chip
+{
+    public static readonly string Description = "Destroys object inputted when executed";
+    public DestroyObjectChip(int id, string name, Vector2 position) : base(id, name, position, true)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], true);
+    }
+
+    public override void OnExecute(ExecPort? execPort)
+    {
+        try
+        {
+            GameObject? gameObject = InputPorts[0].Value.GetValue().GameObject;
+
+            if (gameObject is null)
+            {
+                GameConsole.Log("[Destroy Object Chip] GameObject specified is null", LogType.Error);
+                return;
+            }
+            
+            gameObject.DeleteObject();
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Destroy Object Chip] An Error Occurred: " + e.Message, LogType.Error);
+            return;
+        }
+        base.OnExecute(execPort);
     }
 }
 
@@ -6615,13 +6746,13 @@ public class SetRigidbodyMassChip : Chip
 
             if (componentHolder is null)
             {
-                GameConsole.Log("[SetRigidbodyMassChip] Rigidbody is null");
+                GameConsole.Log("[Set Rigidbody Mass Chip] Rigidbody is null", LogType.Error);
                 return;
             }
 
             if (componentHolder.Component is not Rigidbody)
             {
-                GameConsole.Log("[SetRigidbodyMassChip] ComponentHolder is not Rigidbody");
+                GameConsole.Log("[Set Rigidbody Mass Chip] ComponentHolder is not Rigidbody", LogType.Error);
                 return;
             }
             
@@ -6631,9 +6762,315 @@ public class SetRigidbodyMassChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[SetRigidbodyMassChip] An Error Occurred: " + e.Message);
+            GameConsole.Log("[Set Rigidbody Mass Chip] An Error Occurred: " + e.Message, LogType.Error);
             return;
         }
         base.OnExecute(port);
+    }
+}
+
+public class ColourConstantChip : Chip
+{
+    public static readonly string Description = "Outputs a constant colour value.";
+    private Vector4 colour = Vector4.Zero;
+    public ColourConstantChip(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        AddPort("Output", false, [typeof(Colour)]);
+        OutputPorts[0].Value.ValueFunction = ConstantOutput;
+    }
+
+    public Values ConstantOutput(ChipPort? chipPort)
+    {
+        Values values = new Values()
+        {
+            Colour = new()
+        };
+
+        values.Colour.colour = colour;
+
+        return values;
+    }
+
+    public override void ChipInspectorProperties()
+    {
+        ImGui.ColorEdit4("Colour", ref colour);
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("r", out string? value))
+        {
+            if (value is null) return;
+            if (float.TryParse(value, out float result))
+            {
+                colour.X = result;
+            }
+        }
+        
+        if (properties.TryGetValue("g", out string? value2))
+        {
+            if (value is null) return;
+            if (float.TryParse(value2, out float result))
+            {
+                colour.Y = result;
+            }
+        }
+        
+        if (properties.TryGetValue("b", out string? value3))
+        {
+            if (value is null) return;
+            if (float.TryParse(value3, out float result))
+            {
+                colour.Z = result;
+            }
+        }
+        
+        if (properties.TryGetValue("a", out string? value4))
+        {
+            if (value is null) return;
+            if (float.TryParse(value4, out float result))
+            {
+                colour.W = result;
+            }
+        }
+    }
+
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        return new Dictionary<string, string>()
+        {
+            { "r", colour.X.ToString(CultureInfo.InvariantCulture) },
+            { "g", colour.Y.ToString(CultureInfo.InvariantCulture) },
+            { "b", colour.Z.ToString(CultureInfo.InvariantCulture) },
+            { "a", colour.W.ToString(CultureInfo.InvariantCulture) }
+        };
+    }
+}
+
+public class CreateColourChip : Chip
+{
+    public static readonly string Description = "Creates colour data type from 4 float values";
+    public CreateColourChip(int id, string name, Vector2 pos) : base(id, name, pos)
+    {
+        AddPort("R", true, [typeof(float)], true);
+        AddPort("G", true, [typeof(float)], true);
+        AddPort("B", true, [typeof(float)], true);
+        AddPort("A", true, [typeof(float)], true);
+        
+        AddPort("Colour", false, [typeof(Colour)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        float r = InputPorts[0].Value.GetValue().Float;
+        float g = InputPorts[1].Value.GetValue().Float;
+        float b = InputPorts[2].Value.GetValue().Float;
+        float a = InputPorts[3].Value.GetValue().Float;
+
+        Values values = new();
+        values.Colour = new();
+        values.Colour.r = Math.Clamp(r, 0, 1);
+        values.Colour.g = Math.Clamp(g, 0, 1);
+        values.Colour.b = Math.Clamp(b, 0, 1);
+        values.Colour.a = Math.Clamp(a, 0, 1);
+
+        return values;
+    }
+}
+
+public class ColourSplitChip : Chip
+{
+    public static readonly string Description = "Splits a colour into its 4 float values";
+    public ColourSplitChip(int id, string name, Vector2 pos) : base(id, name, pos)
+    {
+        AddPort("Colour", true, [typeof(Colour)], true);
+
+        AddPort("R", false, [typeof(float)], true);
+        OutputPorts[0].Value.ValueFunction = ROutput;
+        AddPort("G", false, [typeof(float)], true);
+        OutputPorts[1].Value.ValueFunction = GOutput;
+        AddPort("B", false, [typeof(float)], true);
+        OutputPorts[2].Value.ValueFunction = BOutput;
+        AddPort("A", false, [typeof(float)], true);
+        OutputPorts[3].Value.ValueFunction = AOutput;
+    }
+
+    public Values ROutput(ChipPort? chipPort)
+    {
+        Colour? colour = InputPorts[0].Value.GetValue().Colour;
+
+        if (colour is null) return new Values();
+        
+        Values values = new Values();
+        
+        values.Float = colour.r;
+
+        return values;
+    }
+    
+    public Values GOutput(ChipPort? chipPort)
+    {
+        Colour? colour = InputPorts[0].Value.GetValue().Colour;
+
+        if (colour is null) return new Values();
+        
+        Values values = new Values();
+        
+        values.Float = colour.g;
+
+        return values;
+    }
+    
+    public Values BOutput(ChipPort? chipPort)
+    {
+        Colour? colour = InputPorts[0].Value.GetValue().Colour;
+
+        if (colour is null) return new Values();
+        
+        Values values = new Values();
+        
+        values.Float = colour.b;
+
+        return values;
+    }
+    
+    public Values AOutput(ChipPort? chipPort)
+    {
+        Colour? colour = InputPorts[0].Value.GetValue().Colour;
+
+        if (colour is null) return new Values();
+        
+        Values values = new Values();
+        
+        values.Float = colour.a;
+
+        return values;
+    }
+}
+
+public class SetMeshRendererColourChip : Chip
+{
+    public static readonly string Description = "Sets the colour of a Mesh Renderer.";
+    public SetMeshRendererColourChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Mesh Renderer", true, [typeof(ComponentHolder)], true);
+        AddPort("Colour", true, [typeof(Colour)], true);
+    }
+
+    public override void OnExecute(ExecPort? port)
+    {
+        try
+        {
+            ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
+            Colour? colour = InputPorts[0].Value.GetValue().Colour;
+
+            if (componentHolder is null)
+            {
+                GameConsole.Log("[Set Mesh Renderer Colour] Mesh Renderer is null", LogType.Error);
+                return;
+            }
+
+            if (colour is null)
+            {
+                GameConsole.Log("[Set Mesh Renderer Colour] Colour is null", LogType.Error);
+                return;
+            }
+
+            if (componentHolder.Component is not MeshRenderer)
+            {
+                GameConsole.Log("[Set Mesh Renderer Colour] Component is not a Mesh Renderer", LogType.Error);
+            }
+
+            MeshRenderer mr = componentHolder.Component as MeshRenderer;
+            
+            mr.Color = colour.colour;
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Set Mesh Renderer Colour] An error occured" + e.Message, LogType.Error);
+            return;
+        }
+        base.OnExecute(port);
+    }
+}
+
+public class GetMeshRendererColourChip : Chip
+{
+    public static readonly string Description = "Gets the colour of the Mesh Renderer.";
+    public GetMeshRendererColourChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Mesh Renderer", true, [typeof(ComponentHolder)], true);
+        AddPort("Colour", false, [typeof(Colour)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        ComponentHolder componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
+
+        if (componentHolder is null || componentHolder.Component is null) return new Values();
+        MeshRenderer mr = componentHolder.Component as MeshRenderer;
+
+        Values values = new();
+
+        values.Colour = new();
+
+        values.Colour.colour = mr.Color;
+
+        return values;
+    }
+}
+
+public class SetBackgroundColourChip : Chip
+{
+    public static readonly string Description = "Sets the colour of the background on execution.";
+    public SetBackgroundColourChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Colour", true, [typeof(Colour)], true);
+    }
+
+    public override void OnExecute(ExecPort? port)
+    {
+        try
+        {
+            Colour? colour = InputPorts[0].Value.GetValue().Colour;
+
+            if (colour is null)
+            {
+                GameConsole.Log("[Set Background Colour] Colour is null", LogType.Error);
+                return;
+            }
+
+            Engine.BackgroundColour.colour = colour.colour;
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Set Background Colour Chip] An Error Occured: " + e.Message);
+            return;
+        }
+        base.OnExecute(port);
+    }
+}
+
+public class GetBackgroundColourChip : Chip
+{
+    public static readonly string Description = "Gets the colour of the background";
+    public GetBackgroundColourChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("Colour", false, [typeof(Colour)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;   
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values()
+        {
+            Colour = new()
+        };
+
+        values.Colour.colour = Engine.BackgroundColour.colour;
+
+        return values;
     }
 }

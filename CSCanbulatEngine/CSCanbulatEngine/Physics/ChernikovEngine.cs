@@ -9,7 +9,7 @@ namespace CSCanbulatEngine.Physics;
 /// </summary>
 public static class ChernikovEngine
 {
-    public static Vector2 Gravity => ProjectSettings.Gravity;
+    public static Vector2 Gravity => SceneSettings.Gravity;
 
     private static readonly List<Rigidbody> _rigidbodies = new();
 

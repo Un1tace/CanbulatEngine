@@ -77,6 +77,14 @@ public class Engine
 
     // Plain white default camera
     public static uint _whiteTexture;
+
+    public static Colour BackgroundColour = new Colour()
+    {
+        r = Color.CornflowerBlue.R / 255f,
+        g = Color.CornflowerBlue.G / 255f,
+        b = Color.CornflowerBlue.B / 255f,
+        a = Color.CornflowerBlue.A / 255f
+    };
     
     //Engine state config
     private static EngineState _currentState = EngineState.Editor;
@@ -583,7 +591,7 @@ public class Engine
         
         gl.Viewport(0, 0, (uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
         
-        gl.ClearColor(Color.Black);
+        gl.ClearColor(Color.FromArgb((int)(BackgroundColour.a * 255), (int)(BackgroundColour.r * 255), (int)(BackgroundColour.g * 255), (int)(BackgroundColour.b * 255)));
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         
         RenderEditorUI();
@@ -705,7 +713,7 @@ public class Engine
                 {
                 }
 
-                if (ImGui.MenuItem("Project Settings Window Open", "", ref ProjectSettings.isOpen))
+                if (ImGui.MenuItem("Scene Settings Window Open", "", ref SceneSettings.isOpen))
                 {
                     
                 }
@@ -760,9 +768,9 @@ public class Engine
             ImGui.End();
         }
 
-        if (ProjectSettings.isOpen)
+        if (SceneSettings.isOpen)
         {
-            ProjectSettings.ProjectSettingsWindow();
+            SceneSettings.SceneSettingsWindow();
         }
         
         // ----- Main Editor UI Elements ------
@@ -1534,7 +1542,7 @@ public class Engine
     /// </summary>
     private unsafe void DrawGameScene()
     {
-        gl.ClearColor(Color.CornflowerBlue);
+        gl.ClearColor(Color.FromArgb((int)(BackgroundColour.a * 255), (int)(BackgroundColour.r * 255), (int)(BackgroundColour.g * 255), (int)(BackgroundColour.b * 255)));
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         
         float aspect = ViewportSize.X / (float)ViewportSize.Y;
@@ -1692,8 +1700,7 @@ public class Engine
     private static void SaveSceneAsContinued()
     {
             if (String.IsNullOrWhiteSpace(currentScene.SceneName)) currentScene.SceneName = "ExampleScene";
-            SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);
-            ss.SaveScene(currentScene.SceneName);
+            SceneSerialiser.SaveScene(currentScene.SceneName);
     }
 
     /// <summary>
@@ -1703,8 +1710,7 @@ public class Engine
     {
         if (!String.IsNullOrWhiteSpace(currentScene.SceneFilePath) && !String.IsNullOrWhiteSpace(currentScene.SceneName) && currentScene.SceneSavedOnce)
         {
-            SceneSerialiser ss = new SceneSerialiser(gl, _squareMesh);
-            ss.SaveScene(currentScene.SceneName);
+            SceneSerialiser.SaveScene(currentScene.SceneName);
             if (currentProject.ProjectFolderPath != null && currentProject.ProjectName != null)
             {
                 ProjectSerialiser.SaveProjectFile(currentProject.ProjectFolderPath, currentProject.ProjectName);

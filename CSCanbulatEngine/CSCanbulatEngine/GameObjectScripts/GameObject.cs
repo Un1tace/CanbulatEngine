@@ -190,6 +190,9 @@ public class GameObject
     }
     
 
+    /// <summary>
+    /// Deletes the object from the scene.
+    /// </summary>
     public void DeleteObject()
     {
         if (ParentObject != null)

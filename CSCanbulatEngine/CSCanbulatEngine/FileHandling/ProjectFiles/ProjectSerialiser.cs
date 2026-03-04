@@ -124,8 +124,6 @@ public class ProjectSerialiser
         Engine.currentProject.LastOpenedSceneName = projectData.LastOpenedScene;
         Engine.currentProject.LastOpenedScenePath = projectData.LastOpenedScenePath;
         Engine.currentProject.StartupSceneName = projectData.StartupSceneName;
-
-        ProjectSettings.SetProjectSettings(projectData.ProjectSettings);
         
         ProjectManager.ProjectManager.selectedDir = GetAssetsFolder();
 
@@ -203,7 +201,7 @@ public class ProjectSerialiser
         projectData.LastOpenedScene = Engine.currentScene?.SceneName;
         projectData.LastOpenedScenePath = Engine.currentScene?.SceneFilePath;
         projectData.StartupSceneName = Engine.currentProject?.StartupSceneName;
-        projectData.ProjectSettings = ProjectSettings.GetProjectSettings();
+        
 
         string projectJson = JsonConvert.SerializeObject(projectData);
         File.WriteAllText(Path.Combine(projectFolderPath, projectName + ".cbp"), projectJson);

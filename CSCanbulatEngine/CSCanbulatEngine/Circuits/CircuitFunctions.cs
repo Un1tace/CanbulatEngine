@@ -5,6 +5,7 @@ using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 using CSCanbulatEngine.Audio;
+using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.GameObjectScripts;
 using ImGuiNET;
 using MiniAudioEx.Core.StandardAPI;
@@ -175,6 +176,8 @@ public class EventValues
     public Dictionary<string, ComponentHolder> ComponentHolders = new();
     public Dictionary<string, Key> Keys = new Dictionary<string, Key>();
     public Dictionary<string, MouseButton> MouseButtons = new Dictionary<string, MouseButton>();
+    public Dictionary<string, PrefabReference> PrefabReferences = new Dictionary<string, PrefabReference>();
+    public Dictionary<string, Colour> Colours = new Dictionary<string, Colour>();
 }
 
 public class BaseEventValues
@@ -189,6 +192,8 @@ public class BaseEventValues
     public List<string> ComponentHolders = new();
     public List<string> Keys = new();
     public List<string> MouseButtons = new();
+    public List<string> Prefabs = new();
+    public List<string> Colours = new();
 }
 
 public class Event(string eventName, bool canSend = true, bool canReceive = true, bool canConfig = true, string description = "")
@@ -275,7 +280,7 @@ public static void ShowEventPortConfigWindow() // Removed unused parameters
             if (ImGui.BeginCombo("Port Type", TypeHelper.GetName(MainChip.portTypes[index])))
             {
                 List<Type> availableTypes =
-                    [typeof(bool), typeof(float), typeof(int), typeof(string), typeof(Vector2), typeof(GameObject)];
+                    TypeHelper.AllNonListTypes.ToList();
 
                 foreach (var type in availableTypes)
                 {
