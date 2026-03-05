@@ -7,6 +7,7 @@ using CSCanbulatEngine.Audio;
 using CSCanbulatEngine.FileHandling;
 using CSCanbulatEngine.GameObjectScripts;
 using CSCanbulatEngine.UIHelperScripts;
+using CSCanbulatEngine.Utilities;
 using ImGuiNET;
 using Microsoft.IdentityModel.Tokens;
 using Silk.NET.Input;
@@ -49,6 +50,10 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Math/Divide", DivideChip.Description, (pos) => new DivideChip(CircuitEditor.GetNextAvaliableChipID(), "Divide", pos)),
         ("Math/Power", PowerChip.Description, (pos) => new PowerChip(CircuitEditor.GetNextAvaliableChipID(), "Power", pos)),
         ("Math/Pi Constant", PiConstant.Description, (pos) => new PiConstant(CircuitEditor.GetNextAvaliableChipID(), "Pi", pos)),
+        ("Math/Noise 1D", Noise1DChip.Description, (pos) => new Noise1DChip(CircuitEditor.GetNextAvaliableChipID(), "Noise 1D", pos)),
+        ("Math/Noise 2D", Noise2DChip.Description, (pos) => new Noise2DChip(CircuitEditor.GetNextAvaliableChipID(), "Noise 2D", pos)),
+        ("Math/Int To Float", IntToFloat.Description, (pos) => new IntToFloat(CircuitEditor.GetNextAvaliableChipID(), "Int To Float", pos)),
+        ("Math/Round To Int", RoundToInt.Description, (pos) => new RoundToInt(CircuitEditor.GetNextAvaliableChipID(), "Round To Int", pos)),
         ("Math/Vector Math/Vector2 Add", Vector2Add.Description, (pos) => new Vector2Add(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Add", pos)),
         ("Math/Vector Math/Vector2 Scale", Vector2Scale.Description, (pos) => new Vector2Scale(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Scale", pos)),
         ("Math/Vector Math/Distance", DistanceChip.Description, (pos) => new DistanceChip(CircuitEditor.GetNextAvaliableChipID(), "Distance", pos)),
@@ -76,6 +81,10 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Variables/GameObject Variable", GameObjectVariable.Description, (pos) => new GameObjectVariable(CircuitEditor.GetNextAvaliableChipID(), "GameObject Variable", pos)),
         ("Variables/Audio Info Variable", AudioInfoVariable.Description, (pos) => new AudioInfoVariable(CircuitEditor.GetNextAvaliableChipID(), "Audio Info Variable", pos)),
         ("Variables/Component Holder Variable", ComponentHolderVariable.Description, (pos) => new ComponentHolderVariable(CircuitEditor.GetNextAvaliableChipID(), "Component Holder Variable", pos)),
+        ("Variables/Key Variable", KeyVariable.Description, (pos) => new KeyVariable(CircuitEditor.GetNextAvaliableChipID(), "Key Variable", pos)),
+        ("Variables/Mouse Button Variable", MouseButtonVariable.Description, (pos) => new MouseButtonVariable(CircuitEditor.GetNextAvaliableChipID(), "Mouse Button Variable", pos)),
+        ("Variables/Prefab Reference Variable", PrefabReferenceVariable.Description, (pos) => new PrefabReferenceVariable(CircuitEditor.GetNextAvaliableChipID(), "Prefab Reference Variable", pos)),
+        ("Variables/Colour Variable", ColourVariable.Description, (pos) => new ColourVariable(CircuitEditor.GetNextAvaliableChipID(), "Colour Variable", pos)),
 
         ("Object/This", thisChip.Description, (pos) => new thisChip(CircuitEditor.GetNextAvaliableChipID(), "This", pos)),
         ("Object/Find By ID", FindObjectByID.Description, (pos) => new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID", pos)),
@@ -124,6 +133,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Miscellaneous/Log Warning", LogWarningChip.Description, (pos) => new LogWarningChip(CircuitEditor.GetNextAvaliableChipID(), "Log Warning Chip", pos)),
         ("Miscellaneous/Log Error", LogErrorChip.Description, (pos) => new LogErrorChip(CircuitEditor.GetNextAvaliableChipID(), "Log Error Chip", pos)),
         ("Miscellaneous/List/Get Element At", GetElementAt.Description, (pos) => new GetElementAt(CircuitEditor.GetNextAvaliableChipID(), "Get Element At", pos)),
+        ("Miscellaneous/List/For", ForChip.Description, (pos) => new ForChip(CircuitEditor.GetNextAvaliableChipID(), "For", pos)),
         ("Miscellaneous/List/Create List", CreateList.Description, (pos) => new CreateList(CircuitEditor.GetNextAvaliableChipID(), "Create List", pos)),
         ("Miscellaneous/Vector2 Create", Vector2Create.Description, (pos) => new Vector2Create(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Create", pos)),
         ("Miscellaneous/Vector2 Split", Vector2Split.Description, (pos) => new Vector2Split(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Split", pos)),
@@ -138,11 +148,12 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Miscellaneous/Get Leaderboard Count Chip", GetLeaderboardCountChip.Description, (pos) => new GetLeaderboardCountChip(CircuitEditor.GetNextAvaliableChipID(), "Get Leaderboard Count Chip", pos)),
         ("Miscellaneous/Create Colour", CreateColourChip.Description, (pos) => new CreateColourChip(CircuitEditor.GetNextAvaliableChipID(), "Create Colour", pos)),
         ("Miscellaneous/Colour Split", ColourSplitChip.Description, (pos) => new ColourSplitChip(CircuitEditor.GetNextAvaliableChipID(), "ColourSplitChip", pos)),
-        ("Miscellaneous/Colour Split", ColourSplitChip.Description, (pos) => new ColourSplitChip(CircuitEditor.GetNextAvaliableChipID(), "ColourSplitChip", pos)),
         ("Miscellaneous/Set Mesh Renderer Colour", SetMeshRendererColourChip.Description, (pos) => new SetMeshRendererColourChip(CircuitEditor.GetNextAvaliableChipID(), "Set Mesh Renderer Colour", pos)),
         ("Miscellaneous/Get Mesh Renderer Colour", GetMeshRendererColourChip.Description, (pos) => new GetMeshRendererColourChip(CircuitEditor.GetNextAvaliableChipID(), "Get Mesh Renderer Colour", pos)),
         ("Miscellaneous/Set Background Colour", SetBackgroundColourChip.Description, (pos) => new SetBackgroundColourChip(CircuitEditor.GetNextAvaliableChipID(), "Set Background Colour", pos)),
         ("Miscellaneous/Get Background Colour", GetBackgroundColourChip.Description, (pos) => new GetBackgroundColourChip(CircuitEditor.GetNextAvaliableChipID(), "Get Background Colour", pos)),
+        ("Miscellaneous/Random Int", RandomIntChip.Description, (pos) => new RandomIntChip(CircuitEditor.GetNextAvaliableChipID(), "Random Int", pos)),
+        ("Miscellaneous/Random Float", RandomFloatChip.Description, (pos) => new RandomFloatChip(CircuitEditor.GetNextAvaliableChipID(), "Random Float", pos)),
     };
     
     
@@ -458,6 +469,62 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Pi Constant");
                         ImGui.Separator();
                         ImGui.Text(PiConstant.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Noise 1D"))
+                    {
+                        CircuitEditor.chips.Add(
+                            new Noise1DChip(CircuitEditor.GetNextAvaliableChipID(), "Noise 1D", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Noise 1D");
+                        ImGui.Separator();
+                        ImGui.Text(Noise1DChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Noise 2D"))
+                    {
+                        CircuitEditor.chips.Add(
+                            new Noise2DChip(CircuitEditor.GetNextAvaliableChipID(), "Noise 2D", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Noise 2D");
+                        ImGui.Separator();
+                        ImGui.Text(Noise2DChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Int To Float"))
+                    {
+                        CircuitEditor.chips.Add(
+                            new IntToFloat(CircuitEditor.GetNextAvaliableChipID(), "Int To Float", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Int To Float");
+                        ImGui.Separator();
+                        ImGui.Text(IntToFloat.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Round To Int"))
+                    {
+                        CircuitEditor.chips.Add(
+                            new RoundToInt(CircuitEditor.GetNextAvaliableChipID(), "Round To Int", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Round To Int");
+                        ImGui.Separator();
+                        ImGui.Text(RoundToInt.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -808,7 +875,62 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.EndTooltip();
                     }
 
-
+                    if (ImGui.MenuItem("Create Key Variable"))
+                    {
+                        CircuitEditor.chips.Add(new KeyVariable(CircuitEditor.GetNextAvaliableChipID(),
+                            "Key Variable", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Key Variable");
+                        ImGui.Separator();
+                        ImGui.Text(KeyVariable.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Mouse Button Variable"))
+                    {
+                        CircuitEditor.chips.Add(new MouseButtonVariable(CircuitEditor.GetNextAvaliableChipID(),
+                            "Mouse Button Variable", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Mouse Button Variable");
+                        ImGui.Separator();
+                        ImGui.Text(MouseButtonVariable.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Prefab Reference Variable"))
+                    {
+                        CircuitEditor.chips.Add(new PrefabReferenceVariable(CircuitEditor.GetNextAvaliableChipID(),
+                            "Prefab Reference Variable", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Prefab Reference Variable");
+                        ImGui.Separator();
+                        ImGui.Text(PrefabReferenceVariable.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Colour Variable"))
+                    {
+                        CircuitEditor.chips.Add(new ColourVariable(CircuitEditor.GetNextAvaliableChipID(),
+                            "Colour Variable", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Colour Variable");
+                        ImGui.Separator();
+                        ImGui.Text(ColourVariable.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
                     ImGui.EndMenu();
                 }
 
@@ -932,7 +1054,6 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                             CircuitEditor.chips.Add(new GetComponentChip(CircuitEditor.GetNextAvaliableChipID(),
                                 "Get Component", _spawnPos));
                         }
-
                         if (ImGui.IsItemHovered())
                         {
                             ImGui.BeginTooltip();
@@ -947,7 +1068,6 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                             CircuitEditor.chips.Add(new HasComponentChip(CircuitEditor.GetNextAvaliableChipID(),
                                 "Has Component", _spawnPos));
                         }
-
                         if (ImGui.IsItemHovered())
                         {
                             ImGui.BeginTooltip();
@@ -962,7 +1082,6 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                             CircuitEditor.chips.Add(new SetMainCameraChip(CircuitEditor.GetNextAvaliableChipID(),
                                 "Set Main Camera", _spawnPos));
                         }
-
                         if (ImGui.IsItemHovered())
                         {
                             ImGui.BeginTooltip();
@@ -977,7 +1096,6 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                             CircuitEditor.chips.Add(new GetMainCameraChip(CircuitEditor.GetNextAvaliableChipID(),
                                 "Get Main Camera", _spawnPos));
                         }
-
                         if (ImGui.IsItemHovered())
                         {
                             ImGui.BeginTooltip();
@@ -992,7 +1110,6 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                             CircuitEditor.chips.Add(new SetCameraZoomChip(CircuitEditor.GetNextAvaliableChipID(),
                                 "Set Camera Zoom", _spawnPos));
                         }
-
                         if (ImGui.IsItemHovered())
                         {
                             ImGui.BeginTooltip();
@@ -1007,13 +1124,40 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                             CircuitEditor.chips.Add(new GetCameraZoomChip(CircuitEditor.GetNextAvaliableChipID(),
                                 "Get Camera Zoom", _spawnPos));
                         }
-
                         if (ImGui.IsItemHovered())
                         {
                             ImGui.BeginTooltip();
                             ImGui.Text("Get Camera Zoom Chip");
                             ImGui.Separator();
                             ImGui.Text(GetCameraZoomChip.Description);
+                            ImGui.EndTooltip();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Set Mesh Renderer Colour Chip"))
+                        {
+                            CircuitEditor.chips.Add(new SetMeshRendererColourChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Set Mesh Renderer Colour", _spawnPos));
+                        }
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Set Mesh Renderer Colour Chip");
+                            ImGui.Separator();
+                            ImGui.Text(SetMeshRendererColourChip.Description);
+                            ImGui.EndTooltip();
+                        }
+                        
+                        if (ImGui.MenuItem("Create Get Mesh Renderer Colour Chip"))
+                        {
+                            CircuitEditor.chips.Add(new GetMeshRendererColourChip(CircuitEditor.GetNextAvaliableChipID(),
+                                "Get Mesh Renderer Colour", _spawnPos));
+                        }
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Get Mesh Renderer Colour Chip");
+                            ImGui.Separator();
+                            ImGui.Text(GetMeshRendererColourChip.Description);
                             ImGui.EndTooltip();
                         }
 
@@ -1455,6 +1599,20 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text(GetElementAt.Description);
                         ImGui.EndTooltip();
                     }
+                    
+                    if (ImGui.MenuItem("Create For Chip"))
+                    {
+                        CircuitEditor.chips.Add(new ForChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "For", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("For Chip");
+                        ImGui.Separator();
+                        ImGui.Text(ForChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     if (ImGui.MenuItem("Create List Chip"))
                     {
@@ -1650,6 +1808,34 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text(GetBackgroundColourChip.Description);
                         ImGui.EndTooltip();
                     }
+                    
+                    if (ImGui.MenuItem("Create Random Int Chip"))
+                    {
+                        CircuitEditor.chips.Add(new RandomIntChip(CircuitEditor.GetNextAvaliableChipID(), "Random Int Chip",
+                            _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Random Int Chip");
+                        ImGui.Separator();
+                        ImGui.Text(RandomIntChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Random Float Chip"))
+                    {
+                        CircuitEditor.chips.Add(new RandomFloatChip(CircuitEditor.GetNextAvaliableChipID(), "Random Float Chip",
+                            _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Random Float Chip");
+                        ImGui.Separator();
+                        ImGui.Text(RandomFloatChip.Description);
+                        ImGui.EndTooltip();
+                    }
 
                     ImGui.EndMenu();
                 }
@@ -1664,6 +1850,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         {
                             var newChip = createAction(_spawnPos);
                             CircuitEditor.chips.Add(newChip);
+                            _chipSearchBuffer = new byte[256];
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -2777,6 +2964,290 @@ public class ComponentHolderVariable : Chip
     }
 }
 
+public class KeyVariable : Chip
+{
+    public static readonly string Description = "Sets (on execute) or gets (on output) a global Component variable by name.";
+    public KeyVariable(int id, string name, Vector2 position) : base(id, name, position, true)
+    {
+        AddPort("Input", true, [typeof(Key)]);
+        AddPort("Output", false, [typeof(Key)]);
+        OutputPorts[0].Value.ValueFunction = VarOutput;
+        nameBuffer = new byte[128];
+        byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
+        Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
+    }
+
+    public Values VarOutput(ChipPort port)
+    {
+        if (VariableManager.Variables.TryGetValue(Name, out var value))
+        {
+            return value;
+        }
+        
+        return new Values {ComponentHolder = null};
+    }
+
+    public override void OnExecute(ExecPort? execPort)
+    {
+        VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
+        base.OnExecute(execPort);
+    }
+    
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.InputText("Name", nameBuffer,128))
+        {
+            
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Set"))
+        {
+            string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
+            string oldName = Name;
+            
+            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+            {
+                if (VariableManager.Variables.TryGetValue(oldName, out var value))
+                {
+                    VariableManager.Variables.Remove(oldName);
+                    VariableManager.Variables[newName] = value;
+                }
+                Name = newName;
+            }
+        }
+    }
+    
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        var properties = new Dictionary<string, string>();
+        
+        properties["Name"] = Name;
+
+        return properties;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Name", out var name))
+        {
+            Name = name;
+        }
+    }
+}
+
+public class MouseButtonVariable : Chip
+{
+    public static readonly string Description = "Sets (on execute) or gets (on output) a global Component variable by name.";
+    public MouseButtonVariable(int id, string name, Vector2 position) : base(id, name, position, true)
+    {
+        AddPort("Input", true, [typeof(MouseButton)]);
+        AddPort("Output", false, [typeof(MouseButton)]);
+        OutputPorts[0].Value.ValueFunction = VarOutput;
+        nameBuffer = new byte[128];
+        byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
+        Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
+    }
+
+    public Values VarOutput(ChipPort port)
+    {
+        if (VariableManager.Variables.TryGetValue(Name, out var value))
+        {
+            return value;
+        }
+        
+        return new Values {ComponentHolder = null};
+    }
+
+    public override void OnExecute(ExecPort? execPort)
+    {
+        VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
+        base.OnExecute(execPort);
+    }
+    
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.InputText("Name", nameBuffer,128))
+        {
+            
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Set"))
+        {
+            string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
+            string oldName = Name;
+            
+            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+            {
+                if (VariableManager.Variables.TryGetValue(oldName, out var value))
+                {
+                    VariableManager.Variables.Remove(oldName);
+                    VariableManager.Variables[newName] = value;
+                }
+                Name = newName;
+            }
+        }
+    }
+    
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        var properties = new Dictionary<string, string>();
+        
+        properties["Name"] = Name;
+
+        return properties;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Name", out var name))
+        {
+            Name = name;
+        }
+    }
+}
+
+public class PrefabReferenceVariable : Chip
+{
+    public static readonly string Description = "Sets (on execute) or gets (on output) a global Component variable by name.";
+    public PrefabReferenceVariable(int id, string name, Vector2 position) : base(id, name, position, true)
+    {
+        AddPort("Input", true, [typeof(PrefabReference)]);
+        AddPort("Output", false, [typeof(PrefabReference)]);
+        OutputPorts[0].Value.ValueFunction = VarOutput;
+        nameBuffer = new byte[128];
+        byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
+        Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
+    }
+
+    public Values VarOutput(ChipPort port)
+    {
+        if (VariableManager.Variables.TryGetValue(Name, out var value))
+        {
+            return value;
+        }
+        
+        return new Values {ComponentHolder = null};
+    }
+
+    public override void OnExecute(ExecPort? execPort)
+    {
+        VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
+        base.OnExecute(execPort);
+    }
+    
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.InputText("Name", nameBuffer,128))
+        {
+            
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Set"))
+        {
+            string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
+            string oldName = Name;
+            
+            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+            {
+                if (VariableManager.Variables.TryGetValue(oldName, out var value))
+                {
+                    VariableManager.Variables.Remove(oldName);
+                    VariableManager.Variables[newName] = value;
+                }
+                Name = newName;
+            }
+        }
+    }
+    
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        var properties = new Dictionary<string, string>();
+        
+        properties["Name"] = Name;
+
+        return properties;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Name", out var name))
+        {
+            Name = name;
+        }
+    }
+}
+
+public class ColourVariable : Chip
+{
+    public static readonly string Description = "Sets (on execute) or gets (on output) a global Component variable by name.";
+    public ColourVariable(int id, string name, Vector2 position) : base(id, name, position, true)
+    {
+        AddPort("Input", true, [typeof(Colour)]);
+        AddPort("Output", false, [typeof(Colour)]);
+        OutputPorts[0].Value.ValueFunction = VarOutput;
+        nameBuffer = new byte[128];
+        byte[] quickNameBuffer = Encoding.UTF8.GetBytes(name);
+        Array.Copy(quickNameBuffer, nameBuffer, quickNameBuffer.Length);
+    }
+
+    public Values VarOutput(ChipPort port)
+    {
+        if (VariableManager.Variables.TryGetValue(Name, out var value))
+        {
+            return value;
+        }
+        
+        return new Values {ComponentHolder = null};
+    }
+
+    public override void OnExecute(ExecPort? execPort)
+    {
+        VariableManager.Variables[Name] = InputPorts[0].Value.GetValue();
+        base.OnExecute(execPort);
+    }
+    
+    public override void ChipInspectorProperties()
+    {
+        if (ImGui.InputText("Name", nameBuffer,128))
+        {
+            
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Set"))
+        {
+            string newName = Encoding.UTF8.GetString(nameBuffer).TrimEnd('\0');
+            string oldName = Name;
+            
+            if (!string.IsNullOrWhiteSpace(newName) && oldName != newName)
+            {
+                if (VariableManager.Variables.TryGetValue(oldName, out var value))
+                {
+                    VariableManager.Variables.Remove(oldName);
+                    VariableManager.Variables[newName] = value;
+                }
+                Name = newName;
+            }
+        }
+    }
+    
+    public override Dictionary<string, string> GetCustomProperties()
+    {
+        var properties = new Dictionary<string, string>();
+        
+        properties["Name"] = Name;
+
+        return properties;
+    }
+
+    public override void SetCustomProperties(Dictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("Name", out var name))
+        {
+            Name = name;
+        }
+    }
+}
+
 // Logic Chips
 public class AndChip : Chip
 {
@@ -3146,9 +3617,9 @@ public class EqualsChip : Chip
     public EqualsChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("A", true, [typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2), typeof(GameObject), 
-            typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton)]);
+            typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton), typeof(PrefabReference), typeof(Colour)]);
         AddPort("B", true, [typeof(bool), typeof(int), typeof(float), typeof(string), typeof(Vector2), typeof(GameObject), 
-            typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton)]);
+            typeof(AudioInfo), typeof(ComponentHolder), typeof(Key), typeof(MouseButton), typeof(PrefabReference), typeof(Colour)]);
         AddPort("Output", false, [typeof(bool)]);
         OutputPorts[0].Value.ValueFunction = ChipOutput;
     }
@@ -3196,6 +3667,14 @@ public class EqualsChip : Chip
         else if (InputPorts[0].PortType == typeof(MouseButton))
         {
             value.Bool = InputPorts[0].Value.GetValue().MouseButton == InputPorts[1].Value.GetValue().MouseButton;
+        }
+        else if (InputPorts[0].PortType == typeof(PrefabReference))
+        {
+            value.Bool = InputPorts[0].Value.GetValue().PrefabReference == InputPorts[1].Value.GetValue().PrefabReference;
+        }
+        else if (InputPorts[0].PortType == typeof(Colour))
+        {
+            value.Bool = InputPorts[0].Value.GetValue().Colour == InputPorts[1].Value.GetValue().Colour;
         }
 
         return value;
@@ -4328,6 +4807,61 @@ public class GetElementAt : Chip
         }
         
         return new Values();
+    }
+}
+
+public class ForChip : Chip
+{
+    public static readonly string Description = "Goes through an amount of numbers.";
+    private int at = 0;
+    public ForChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddExecPort("Exec", true, false);
+        AddPort("From", true, [typeof(int)], true);
+        AddPort("To", true, [typeof(int)], true);
+
+        AddExecPort("Next", false, true);
+        AddPort("Index", false, [typeof(int)], true);
+        AddExecPort("End", false, true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public override void OnExecute(ExecPort? startPort)
+    {
+        try
+        {
+            if (startPort.Name == "Exec")
+            {
+                int from = InputPorts[0].Value.GetValue().Int;
+                int to = InputPorts[1].Value.GetValue().Int;
+                
+                if (to < from)
+                {
+                    OutputExecPorts.Find(port => port.Name == "End")?.Execute();
+                    return;
+                }
+                
+                for (int i = from; i < to; i++)
+                {
+                    at = i;
+                    OutputExecPorts.Find(port => port.Name == "Next")?.Execute();
+                }
+                
+                OutputExecPorts.Find(port => port.Name == "End")?.Execute();
+            }
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[For] An Error Occured: " + e.Message);
+            return;
+        }
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        values.Int = at;
+        return values;
     }
 }
 
@@ -6191,6 +6725,8 @@ public class SerialisationChip : Chip
     public byte[] stringSerialisationValue = new byte[128];
     private byte[] editorStringDefValue = new byte[128];
     
+    Vector4 colourStuff = Vector4.Zero;
+    
     private string NameOfValue
     {
         get { return _nameOfValue;} set
@@ -6273,6 +6809,14 @@ public class SerialisationChip : Chip
             ImGui.PushItemWidth(90 * CircuitEditor.Zoom);
             if (ImGui.InputFloat2($"##{Id}", ref defaultValues.Vector2))
             {
+            }
+        }
+        else if (serialisationType == typeof(Colour))
+        {
+            ImGui.PushItemWidth(150 * CircuitEditor.Zoom);
+            if (ImGui.ColorEdit4($"##{Id}", ref colourStuff))
+            {
+                defaultValues.Colour.colour = colourStuff;
             }
         }
         else if (serialisationType == typeof(string))
@@ -6772,7 +7316,7 @@ public class SetRigidbodyMassChip : Chip
 public class ColourConstantChip : Chip
 {
     public static readonly string Description = "Outputs a constant colour value.";
-    private Vector4 colour = Vector4.Zero;
+    private Vector4 colour = Vector4.One;
     public ColourConstantChip(int id, string name, Vector2 position) : base(id, name, position)
     {
         AddPort("Output", false, [typeof(Colour)]);
@@ -6963,7 +7507,7 @@ public class SetMeshRendererColourChip : Chip
         try
         {
             ComponentHolder? componentHolder = InputPorts[0].Value.GetValue().ComponentHolder;
-            Colour? colour = InputPorts[0].Value.GetValue().Colour;
+            Colour? colour = InputPorts[1].Value.GetValue().Colour;
 
             if (componentHolder is null)
             {
@@ -6998,7 +7542,7 @@ public class SetMeshRendererColourChip : Chip
 public class GetMeshRendererColourChip : Chip
 {
     public static readonly string Description = "Gets the colour of the Mesh Renderer.";
-    public GetMeshRendererColourChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    public GetMeshRendererColourChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddPort("Mesh Renderer", true, [typeof(ComponentHolder)], true);
         AddPort("Colour", false, [typeof(Colour)], true);
@@ -7046,7 +7590,7 @@ public class SetBackgroundColourChip : Chip
         }
         catch (Exception e)
         {
-            GameConsole.Log("[Set Background Colour Chip] An Error Occured: " + e.Message);
+            GameConsole.Log("[Set Background Colour Chip] An Error Occured: " + e.Message, LogType.Error);
             return;
         }
         base.OnExecute(port);
@@ -7071,6 +7615,168 @@ public class GetBackgroundColourChip : Chip
 
         values.Colour.colour = Engine.BackgroundColour.colour;
 
+        return values;
+    }
+}
+
+public class RandomIntChip : Chip
+{
+    public static readonly string Description = "Generates a random int on execution";
+    private int randomNum = 0;
+    public RandomIntChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Min", true, [typeof(int)], true);
+        AddPort("Max", true, [typeof(int)], true);
+
+        AddPort("Random", false, [typeof(int)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public override void OnExecute(ExecPort? port)
+    {
+        try
+        {
+            Random random = new Random();
+            randomNum = random.Next(InputPorts[0].Value.GetValue().Int, InputPorts[1].Value.GetValue().Int);
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Random Int] An error occurred" + e.Message, LogType.Error);
+            return;
+        }
+        base.OnExecute(port);
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        values.Int = randomNum;
+        return values;
+    }
+}
+
+public class RandomFloatChip : Chip
+{
+    public static readonly string Description = "Generates a random float on execution";
+    private float randomNum = 0;
+    public RandomFloatChip(int id, string name, Vector2 pos) : base(id, name, pos, true)
+    {
+        AddPort("Min", true, [typeof(float)], true);
+        AddPort("Max", true, [typeof(float)], true);
+
+        AddPort("Random", false, [typeof(float)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public override void OnExecute(ExecPort? port)
+    {
+        try
+        {
+            float min = InputPorts[0].Value.GetValue().Float;
+            float max = InputPorts[1].Value.GetValue().Float;
+            Random random = new Random();
+            randomNum = (random.NextSingle() * (max - min)) + min;
+        }
+        catch (Exception e)
+        {
+            GameConsole.Log("[Random Float] An error occurred" + e.Message, LogType.Error);
+            return;
+        }
+        base.OnExecute(port);
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        values.Float = randomNum;
+        return values;
+    }
+}
+
+public class Noise1DChip : Chip
+{
+    public static readonly string Description = "Generates noise based off a float value";
+    private PerlinNoise? perlin;
+    public Noise1DChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("X", true, [typeof(float)], true);
+        AddPort("Seed", true, [typeof(int)], true);
+
+        AddPort("Noise", false, [typeof(float)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        if (perlin is null || perlin.seed == InputPorts[1].Value.GetValue().Int)
+        {
+            perlin = new PerlinNoise(InputPorts[1].Value.GetValue().Int);
+        }
+
+        values.Float = perlin.Noise1D(InputPorts[0].Value.GetValue().Float);
+        return values;
+    }
+}
+
+public class Noise2DChip : Chip
+{
+    public static readonly string Description = "Generates noise based off a Vector2 value";
+    private PerlinNoise? perlin;
+    public Noise2DChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("Vector2", true, [typeof(Vector2)], true);
+        AddPort("Seed", true, [typeof(int)], true);
+
+        AddPort("Noise", false, [typeof(float)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        if (perlin is null || perlin.seed == InputPorts[1].Value.GetValue().Int)
+        {
+            perlin = new PerlinNoise(InputPorts[1].Value.GetValue().Int);
+        }
+
+        values.Float = perlin.Noise2D(InputPorts[0].Value.GetValue().Vector2.X, InputPorts[0].Value.GetValue().Vector2.Y);
+        return values;
+    }
+}
+
+public class IntToFloat : Chip
+{
+    public static readonly string Description = "Turns an int to a float";
+    public IntToFloat(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("int", true, [typeof(int)], false);
+        AddPort("float", false, [typeof(float)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        values.Float = InputPorts[0].Value.GetValue().Int;
+        return values;
+    }
+}
+
+public class RoundToInt : Chip
+{
+    public static readonly string Description = "Rounds a float to an int";
+    public RoundToInt(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("float", true, [typeof(float)], false);
+        AddPort("int", false, [typeof(int)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        values.Int = (int)MathF.Round(InputPorts[0].Value.GetValue().Float);
         return values;
     }
 }

@@ -951,29 +951,31 @@ public class Engine
 
             Vector2 remainingSpace = ImGui.GetContentRegionAvail();
             
-            if (remainingSpace.Y < 0) remainingSpace.Y = 0;
-            if (remainingSpace.X < 1) remainingSpace.X = 1;
-            
-            ImGui.InvisibleButton("###HierarchyEmptySpace", remainingSpace);
-            
-            if (ImGui.BeginDragDropTarget())
+            if (remainingSpace.Y > 0 && remainingSpace.X > 0)
             {
-                var payload = ImGui.AcceptDragDropPayload("HIERARCHY_GAMEOBJECT");
-
-                if (payload.NativePtr != null && payload.Data != IntPtr.Zero)
+                ImGui.InvisibleButton("###HierarchyEmptySpace", remainingSpace);
+                
+                if (ImGui.BeginDragDropTarget())
                 {
-                    int draggedId = *(int*)payload.Data;
-
-                    GameObject draggedObject = GameObject.FindGameObject(draggedId);
-
-                    if (draggedObject != null)
+                    var payload = ImGui.AcceptDragDropPayload("HIERARCHY_GAMEOBJECT");
+                
+                    if (payload.NativePtr != null && payload.Data != IntPtr.Zero)
                     {
-                        draggedObject.RemoveParentObject();
+                        int draggedId = *(int*)payload.Data;
+                
+                        GameObject draggedObject = GameObject.FindGameObject(draggedId);
+                
+                        if (draggedObject != null)
+                        {
+                            draggedObject.RemoveParentObject();
+                        }
                     }
+                
+                    ImGui.EndDragDropTarget();
                 }
-
-                ImGui.EndDragDropTarget();
             }
+            
+            
 
             if (ImGui.BeginPopupContextItem())
             {
@@ -1441,6 +1443,19 @@ public class Engine
                 }
                 
                 return;
+            }
+            
+            if (ImGui.MenuItem("Rename"))
+            {
+                Array.Clear(Engine._nameBuffer, 0, Engine._nameBuffer.Length);
+                if (Engine._selectedGameObject != null)
+                {
+                    byte[] currentNameBytes = Encoding.UTF8.GetBytes(Engine._selectedGameObject.gameObject.Name);
+                    Array.Copy(currentNameBytes, Engine._nameBuffer, currentNameBytes.Length);
+                    Engine.renamePopupOpen = true;
+                }
+                // ImGui.OpenPopup("Rename Object");
+                
             }
 
             if (ImGui.MenuItem("Make Prefab"))

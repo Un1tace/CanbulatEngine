@@ -33,11 +33,13 @@ public static class EventManager
     /// </summary>
     public static void PredefineMainEvents()
     {
+        // Game Events
         RegisterEvent(new Event("OnStart", false, true, false, "Executes when the game first loads."));
         var updateEvent = new Event("OnUpdate", false, true, false, "Executes every frame and provides delta time.");
         updateEvent.baseValues.floats.Add("Delta Time");
         RegisterEvent(updateEvent);
         
+        // Keys
         var keyPressedEvent = new Event("OnKeyPressed", false, true, false, "Executes on the frame a key is pressed.");
         keyPressedEvent.baseValues.Keys.Add("Key");
         RegisterEvent(keyPressedEvent);
@@ -46,6 +48,7 @@ public static class EventManager
         keyReleasedEvent.baseValues.Keys.Add("Key");
         RegisterEvent(keyReleasedEvent);
         
+        // Mouse buttons
         var mouseButtonPressedEvent = new Event("OnMouseButtonPressed", false, true, false, "Executes when any mouse is pressed down.");
         mouseButtonPressedEvent.baseValues.MouseButtons.Add("MouseButton");
         RegisterEvent(mouseButtonPressedEvent);
@@ -59,6 +62,17 @@ public static class EventManager
         doubleClickedEvent.baseValues.Vector2s.Add("Position");
         RegisterEvent(doubleClickedEvent);
         RegisterEvent(new Event("OnMouseScrolled", false, true, false, "Executes when the mouse is scrolling."));
+        
+        // Collision Events
+        var onCollisionEnteredEvent = new Event("OnCollisionEntered", false, true, false, "Executes when two objects collide");
+        onCollisionEnteredEvent.baseValues.GameObjects.Add("Object A");
+        onCollisionEnteredEvent.baseValues.GameObjects.Add("Object B");
+        RegisterEvent(onCollisionEnteredEvent);
+        
+        var onCollisionExitedEvent = new Event("OnCollisionExited", false, true, false, "Executes when two objects stop colliding");
+        onCollisionExitedEvent.baseValues.GameObjects.Add("Object A");
+        onCollisionExitedEvent.baseValues.GameObjects.Add("Object B");
+        RegisterEvent(onCollisionExitedEvent);
     }
     
     /// <summary>

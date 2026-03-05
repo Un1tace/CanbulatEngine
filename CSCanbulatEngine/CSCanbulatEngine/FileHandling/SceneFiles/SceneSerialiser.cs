@@ -30,7 +30,7 @@ public class SceneSerialiser
         string json = JsonConvert.SerializeObject(sceneData, Formatting.Indented);
         File.WriteAllText(Path.Combine(filePath, sceneName + ".cbs"), json);
         Engine.currentScene.SceneFilePath = Path.Combine(filePath, sceneName + ".cbs");
-        EngineLog.Log($"Saved scene: {filePath}");
+        EngineLog.Log($"Saved scene: {Path.Combine(filePath, sceneName + ".cbs")}");
         Engine.currentScene.SceneSavedOnce = true;
     }
     

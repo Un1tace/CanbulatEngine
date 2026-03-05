@@ -41,13 +41,13 @@ public class Values()
     public Key? Key = null;
     public List<Key>? KeyList = new();
     public MouseButton? MouseButton = null;
-    public List<MouseButton>? MouseButtonList = null;
+    public List<MouseButton>? MouseButtonList = new ();
 
     public PrefabReference? PrefabReference = new();
     public List<PrefabReference>? PrefabReferenceList = new();
 
     public Colour? Colour = new();
-    public List<Colour>? ColourList = null;
+    public List<Colour>? ColourList = new();
     
     
     public Type? ActiveType { get; set; }

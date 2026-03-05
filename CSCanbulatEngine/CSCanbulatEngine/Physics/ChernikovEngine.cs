@@ -1,6 +1,8 @@
 using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
+using CSCanbulatEngine.Circuits;
 using CSCanbulatEngine.GameObjectScripts;
+using SixLabors.ImageSharp.Formats.Tiff.Constants;
 
 namespace CSCanbulatEngine.Physics;
 
@@ -14,6 +16,9 @@ public static class ChernikovEngine
     private static readonly List<Rigidbody> _rigidbodies = new();
 
     private const int SubSteps = 4;
+
+    private static HashSet<CollisionPair> _currentCollisions = new HashSet<CollisionPair>();
+    private static HashSet<CollisionPair> _previousCollisions = new HashSet<CollisionPair>(); // Last frame
 
     /// <summary>
     /// Register a rigidbody to the ChernikovEngine
@@ -58,6 +63,8 @@ public static class ChernikovEngine
                 BoxCollider? collider = go.GetComponent<BoxCollider>();
                 if (collider != null && collider.isEnabled) colliders.Add(collider);
             }
+            
+            _currentCollisions.Clear();
 
             for (int i = 0; i < colliders.Count; i++)
             {
@@ -68,29 +75,57 @@ public static class ChernikovEngine
 
                     if (Intersects(a, b))
                     {
-                        if (a.isTrigger || b.isTrigger) continue;
 
                         var rbA = a.AttachedGameObject.GetComponent<Rigidbody>();
                         var rbB = b.AttachedGameObject.GetComponent<Rigidbody>();
+                        var pair = new CollisionPair() {A = a, B = b};
 
                         bool aDynamic = rbA != null && rbA.IsSimulated;
                         bool bDynamic = rbB != null && rbB.IsSimulated;
+                        bool anyTrigger = (a != null && a.isTrigger) || (b != null && b.isTrigger);
 
-                        if (aDynamic && !bDynamic)
+                        if (!anyTrigger)
                         {
-                            ResolvePenetration(a, b, stepDelta);
+                            if (aDynamic && !bDynamic)
+                            {
+                                ResolvePenetration(a, b, stepDelta);
+                            }
+                            else if (!aDynamic && bDynamic)
+                            {
+                                ResolvePenetration(b, a, stepDelta);
+                            }
+                            else if (aDynamic && bDynamic)
+                            {
+                                ResolvePenetration(a, b, stepDelta);
+                            }
                         }
-                        else if (!aDynamic && bDynamic)
+                        
+                        _currentCollisions.Add(pair);
+
+                        if (!_previousCollisions.Contains(pair))
                         {
-                            ResolvePenetration(b, a, stepDelta);
-                        }
-                        else if (aDynamic && bDynamic)
-                        {
-                            ResolvePenetration(a, b, stepDelta);
+                            var payload = new EventValues();
+                            payload.GameObjects["Object A"] = a.AttachedGameObject;
+                            payload.GameObjects["Object B"] = b.AttachedGameObject;
+                            var collisionEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnCollisionEntered");
+                            EventManager.Trigger(collisionEvent, payload);
                         }
                     }
                 }
             }
+            
+            foreach (var prevPair in _previousCollisions)
+            {
+                if (!_currentCollisions.Contains(prevPair))
+                {
+                    var payload = new EventValues();
+                    payload.GameObjects["Object A"] = prevPair.A.AttachedGameObject;
+                    payload.GameObjects["Object B"] = prevPair.B.AttachedGameObject;
+                    var collisionEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnCollisionExited");
+                    EventManager.Trigger(collisionEvent, payload);
+                }
+            }
+            _previousCollisions = new HashSet<CollisionPair>(_currentCollisions);
         }
     }
 
@@ -303,5 +338,23 @@ public static class ChernikovEngine
         {
             rb.Velocity = Vector2.Zero;
         }
+    }
+}
+
+public struct CollisionPair
+{
+    public BoxCollider A;
+    public BoxCollider B;
+    
+    public bool Equals(CollisionPair other)
+    {
+        // Treat (A,B) as the same pair as (B,A)
+        return (A == other.A && B == other.B) || (A == other.B && B == other.A);
+    }
+
+    public override int GetHashCode()
+    {
+        // Order-independent hash so (A,B) == (B,A)
+        return A.GetHashCode() ^ B.GetHashCode();
     }
 }

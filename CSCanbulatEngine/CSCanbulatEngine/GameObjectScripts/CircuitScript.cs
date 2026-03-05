@@ -191,6 +191,7 @@ public class CircuitScript : Component
     bool searchButtonClicked = false;
 
     #if EDITOR
+    Vector4 colourStuff = Vector4.Zero;
     /// <summary>
     /// Render the inspector for the circuit script component
     /// </summary>
@@ -279,6 +280,13 @@ public class CircuitScript : Component
                 {
                     if (ImGui.InputFloat2("##Value", ref chip.valuesHeld.Vector2))
                     {
+                    }
+                }
+                else if (chip.serialisationType == typeof(Colour))
+                {
+                    if (ImGui.ColorEdit4("##Value", ref colourStuff))
+                    {
+                        chip.valuesHeld.Colour.colour = colourStuff;
                     }
                 }
 
