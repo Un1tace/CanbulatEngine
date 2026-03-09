@@ -48,12 +48,16 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Math/Subtract", SubtractChip.Description, (pos) => new SubtractChip(CircuitEditor.GetNextAvaliableChipID(), "Subtract", pos)),
         ("Math/Multiply", MultiplyChip.Description, (pos) => new MultiplyChip(CircuitEditor.GetNextAvaliableChipID(), "Multiply", pos)),
         ("Math/Divide", DivideChip.Description, (pos) => new DivideChip(CircuitEditor.GetNextAvaliableChipID(), "Divide", pos)),
+        ("Math/Modulo", ModuloChip.Description, (pos) => new ModuloChip(CircuitEditor.GetNextAvaliableChipID(), "Modulo", pos)),
         ("Math/Power", PowerChip.Description, (pos) => new PowerChip(CircuitEditor.GetNextAvaliableChipID(), "Power", pos)),
         ("Math/Pi Constant", PiConstant.Description, (pos) => new PiConstant(CircuitEditor.GetNextAvaliableChipID(), "Pi", pos)),
         ("Math/Noise 1D", Noise1DChip.Description, (pos) => new Noise1DChip(CircuitEditor.GetNextAvaliableChipID(), "Noise 1D", pos)),
         ("Math/Noise 2D", Noise2DChip.Description, (pos) => new Noise2DChip(CircuitEditor.GetNextAvaliableChipID(), "Noise 2D", pos)),
         ("Math/Int To Float", IntToFloat.Description, (pos) => new IntToFloat(CircuitEditor.GetNextAvaliableChipID(), "Int To Float", pos)),
         ("Math/Round To Int", RoundToInt.Description, (pos) => new RoundToInt(CircuitEditor.GetNextAvaliableChipID(), "Round To Int", pos)),
+        ("Math/Round", RoundChip.Description, (pos) => new RoundChip(CircuitEditor.GetNextAvaliableChipID(), "Round", pos)),
+        ("Math/Ceil", CeilChip.Description, (pos) => new CeilChip(CircuitEditor.GetNextAvaliableChipID(), "Ceil", pos)),
+        ("Math/Floor", FloorChip.Description, (pos) => new FloorChip(CircuitEditor.GetNextAvaliableChipID(), "Floor", pos)),
         ("Math/Vector Math/Vector2 Add", Vector2Add.Description, (pos) => new Vector2Add(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Add", pos)),
         ("Math/Vector Math/Vector2 Scale", Vector2Scale.Description, (pos) => new Vector2Scale(CircuitEditor.GetNextAvaliableChipID(), "Vector2 Scale", pos)),
         ("Math/Vector Math/Distance", DistanceChip.Description, (pos) => new DistanceChip(CircuitEditor.GetNextAvaliableChipID(), "Distance", pos)),
@@ -444,6 +448,20 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.EndTooltip();
                     }
                     
+                    if (ImGui.MenuItem("Create Modulo Chip"))
+                    {
+                        CircuitEditor.chips.Add(
+                            new ModuloChip(CircuitEditor.GetNextAvaliableChipID(), "Modulo", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Modulo Chip");
+                        ImGui.Separator();
+                        ImGui.Text(ModuloChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
                     if (ImGui.MenuItem("Create Power Chip"))
                     {
                         CircuitEditor.chips.Add(
@@ -525,6 +543,48 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Round To Int");
                         ImGui.Separator();
                         ImGui.Text(RoundToInt.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Round"))
+                    {
+                        CircuitEditor.chips.Add(
+                            new RoundChip(CircuitEditor.GetNextAvaliableChipID(), "Round", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Round");
+                        ImGui.Separator();
+                        ImGui.Text(RoundChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Ceil"))
+                    {
+                        CircuitEditor.chips.Add(
+                            new CeilChip(CircuitEditor.GetNextAvaliableChipID(), "Ceil", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Ceil");
+                        ImGui.Separator();
+                        ImGui.Text(CeilChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Floor"))
+                    {
+                        CircuitEditor.chips.Add(
+                            new FloorChip(CircuitEditor.GetNextAvaliableChipID(), "Floor", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Floor");
+                        ImGui.Separator();
+                        ImGui.Text(FloorChip.Description);
                         ImGui.EndTooltip();
                     }
 
@@ -2107,6 +2167,68 @@ public class DivideChip : Chip
         else if (InputPorts[0].PortType == typeof(int))
         {
             value.Int = InputPorts[0].Value.GetValue().Int / InputPorts[1].Value.GetValue().Int;
+        }
+
+        return value;
+    }
+
+    public override void UpdateChipConfig()
+    {
+        
+    }
+
+    public override void PortTypeChanged(ChipPort? chipPort)
+    {
+        if (chipPort == null)
+        {
+            foreach (var port in InputPorts)
+            {
+                port._PortType = null;
+                port.UpdateColor();
+            }
+            foreach (var port in OutputPorts)
+            {
+                port._PortType = null;
+                port.UpdateColor();
+            }
+        }
+        else
+        {
+            foreach (var port in InputPorts)
+            {
+                port._PortType = chipPort?.PortType ?? null;
+                port.UpdateColor();
+            }
+            foreach (var port in OutputPorts)
+            {
+                port._PortType = chipPort?.PortType ?? null;
+                port.UpdateColor();
+            }
+        }
+    }
+}
+
+public class ModuloChip : Chip
+{
+    public static readonly string Description = "Outputs the remainder of A and B. (A % B). Works with Ints and Floats.";
+    public ModuloChip(int id, string name, Vector2 position) : base(id, name, position)
+    {
+        AddPort("A", true, [typeof(int), typeof(float)]);
+        AddPort("B", true, [typeof(int), typeof(float)]);
+        AddPort("Output", false, [typeof(int), typeof(float)]);
+        OutputPorts[0].Value.ValueFunction = AddOutput;
+    }
+
+    public Values AddOutput(ChipPort? chipPort)
+    {
+        Values value = new Values();
+        if (InputPorts[0].PortType == typeof(float))
+        {
+            value.Float = InputPorts[0].Value.GetValue().Float % InputPorts[1].Value.GetValue().Float;
+        }
+        else if (InputPorts[0].PortType == typeof(int))
+        {
+            value.Int = InputPorts[0].Value.GetValue().Int % InputPorts[1].Value.GetValue().Int;
         }
 
         return value;
@@ -7777,6 +7899,60 @@ public class RoundToInt : Chip
     {
         Values values = new Values();
         values.Int = (int)MathF.Round(InputPorts[0].Value.GetValue().Float);
+        return values;
+    }
+}
+
+public class RoundChip : Chip
+{
+    public static readonly string Description = "Rounds a float";
+    public RoundChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("float", true, [typeof(float)], false);
+        AddPort("float", false, [typeof(float)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        values.Float = MathF.Round(InputPorts[0].Value.GetValue().Float);
+        return values;
+    }
+}
+
+public class CeilChip : Chip
+{
+    public static readonly string Description = "Rounds a float up";
+    public CeilChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("float", true, [typeof(float)], false);
+        AddPort("float", false, [typeof(float)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        values.Float = MathF.Ceiling(InputPorts[0].Value.GetValue().Float);
+        return values;
+    }
+}
+
+public class FloorChip : Chip
+{
+    public static readonly string Description = "Rounds a float down";
+    public FloorChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("float", true, [typeof(float)], false);
+        AddPort("float", false, [typeof(float)], false);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        Values values = new Values();
+        values.Float = MathF.Floor(InputPorts[0].Value.GetValue().Float);
         return values;
     }
 }

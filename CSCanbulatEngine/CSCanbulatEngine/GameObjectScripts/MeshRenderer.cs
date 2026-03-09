@@ -204,10 +204,33 @@ public class MeshRenderer : Component
 
 public class Colour
 {
-    public float r = 0f;
-    public float g = 0f;
-    public float b = 0f;
-    public float a = 0f;
+    private float _r = 0f;
+    public float r
+    {
+        get { return _r; }
+        set { _r = Math.Clamp(value, 0, 1); }
+    }
+    
+    private float _g = 0f;
+    public float g 
+    {
+        get { return _g; }
+        set { _g = Math.Clamp(value, 0, 1); }
+    }
+    
+    private float _b = 0f;
+    public float b 
+    {
+        get { return _b; }
+        set { _b = Math.Clamp(value, 0, 1); }
+    }
+    
+    private float _a = 0f;
+    public float a 
+    {
+        get { return _a; }
+        set { _a = Math.Clamp(value, 0, 1); }
+    }
     
     public Vector4 colour {
         get
