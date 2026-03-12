@@ -48,6 +48,11 @@ public static class SceneSettings
          {
              ResetToDefaults();
          }
+
+         if (ImGui.Button("Reset Camera Position and Zoom"))
+         {
+             Engine.ResetCameraPosAndZoom();
+         }
          
          ImGui.End();
     }

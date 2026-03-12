@@ -1772,6 +1772,13 @@ public class Engine
     {
         currentScene = new Scene("New Scene");
         _selectedGameObject = null;
+        ResetCameraPosAndZoom();
+    }
+
+    public static void ResetCameraPosAndZoom()
+    {
+        _editorCameraPos = Vector2.Zero;
+        _editorCameraZoom = 1f;
     }
 
     // ----- Circuit file serialisation -----
