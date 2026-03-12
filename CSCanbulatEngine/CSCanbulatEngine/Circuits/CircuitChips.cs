@@ -94,6 +94,8 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
         ("Object/Find By ID", FindObjectByID.Description, (pos) => new FindObjectByID(CircuitEditor.GetNextAvaliableChipID(), "Find Object By ID", pos)),
         ("Object/Find First Object With Tag", FindFirstObjectWithTag.Description, (pos) => new FindFirstObjectWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find First Object With Tag", pos)),
         ("Object/Find All Objects With Tag", FindAllObjectsWithTag.Description, (pos) => new FindAllObjectsWithTag(CircuitEditor.GetNextAvaliableChipID(), "Find All Objects With Tag", pos)),
+        ("Object/Get Object Name", GetObjectNameChip.Description, (pos) => new GetObjectNameChip(CircuitEditor.GetNextAvaliableChipID(), "Get Object Name", pos)),
+        ("Object/Get Object ID", GetObjectIDChip.Description, (pos) => new GetObjectIDChip(CircuitEditor.GetNextAvaliableChipID(), "Get Object ID", pos)),
         ("Object/Get Parent Object", GetParentObjectChip.Description, (pos) => new GetParentObjectChip(CircuitEditor.GetNextAvaliableChipID(), "Get Parent Object", pos)),
         ("Object/Get Child Objects", GetChildObjectsChip.Description, (pos) => new GetChildObjectsChip(CircuitEditor.GetNextAvaliableChipID(), "Get Child Objects", pos)),
         ("Object/Instantiate Prefab", InstantiatePrefabChip.Description, (pos) => new InstantiatePrefabChip(CircuitEditor.GetNextAvaliableChipID(), "Instantiate Prefab", pos)),
@@ -1048,6 +1050,34 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         ImGui.Text("Find All Objects With Tag Chip");
                         ImGui.Separator();
                         ImGui.Text(FindAllObjectsWithTag.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get Object Name Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetObjectNameChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Get Object Name", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Object Name Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetObjectNameChip.Description);
+                        ImGui.EndTooltip();
+                    }
+                    
+                    if (ImGui.MenuItem("Create Get Object ID Chip"))
+                    {
+                        CircuitEditor.chips.Add(new GetObjectIDChip(CircuitEditor.GetNextAvaliableChipID(),
+                            "Get Object ID", _spawnPos));
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Get Object ID Chip");
+                        ImGui.Separator();
+                        ImGui.Text(GetObjectIDChip.Description);
                         ImGui.EndTooltip();
                     }
                     
@@ -4612,6 +4642,44 @@ public class FindAllObjectsWithTag : Chip
         {
             GameObjectList = Engine.currentScene.GameObjects.FindAll(e => e.Tags.Contains(InputPorts[0].Value.GetValue().String))
         };
+    }
+}
+
+public class GetObjectNameChip : Chip
+{
+    public static readonly string Description = "Gets the name of the object.";
+    public GetObjectNameChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("Name", true, [typeof(string)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        
+        Values values = new();
+        values.String = InputPorts[0].Value.GetValue().GameObject?.Name ?? "null";
+        return values;
+    }
+}
+
+public class GetObjectIDChip : Chip
+{
+    public static readonly string Description = "Gets the ID of the object.";
+    public GetObjectIDChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
+    {
+        AddPort("GameObject", true, [typeof(GameObject)], true);
+        AddPort("ID", true, [typeof(int)], true);
+        OutputPorts[0].Value.ValueFunction = OutputFunction;
+    }
+
+    public Values OutputFunction(ChipPort? chipPort)
+    {
+        
+        Values values = new();
+        values.Int = InputPorts[0].Value.GetValue().GameObject?.ID ?? -1;
+        return values;
     }
 }
 
