@@ -4461,11 +4461,13 @@ public class EventChip : Chip
         if (properties.TryGetValue("SelectedEvent", out var eventName))
         {
             SelectedEvent = EventManager.RegisteredEvents.Find(e => e.EventName == eventName);
+            EngineLog.Log(SelectedEvent != null? $"Event Chip set to {SelectedEvent.EventName}" : "No event found");
         }
 
         if (properties.TryGetValue("Mode", out var modeName))
         {
             Mode = (EventMode)Enum.Parse(typeof(EventMode), modeName);
+            EngineLog.Log(Mode == EventMode.Receive? "Set to receiving" : "Set to sending");
         }
 
         ConfigurePorts();
@@ -4484,7 +4486,7 @@ public class DelayChip : Chip
     {
         AddExecPort("Run", true, true);
         AddExecPort("Run", false, true);
-        AddPort("Seconds", true, [typeof(float)], true);
+        AddPort("Milliseconds", true, [typeof(float)], true);
         AddExecPort("Cancel", true, true);
         AddExecPort("After Delay", false, true);
         AddExecPort("Cancel", false, true);
@@ -4504,7 +4506,7 @@ public class DelayChip : Chip
                 }
 
                 startTime = currentTime;
-                endTime = startTime + (int)timeToRun * 1000;
+                endTime = startTime + (int)timeToRun;
                 ChipExecManager.AddChip(this);
                 isRunning = true;
                 OutputExecPorts.Find(e => e.Name == "Run").Execute();
@@ -5003,7 +5005,7 @@ public class GetElementAt : Chip
 public class ForChip : Chip
 {
     public static readonly string Description = "Goes through an amount of numbers.";
-    private int at = 0;
+    private int at = -1;
     public ForChip(int id, string name, Vector2 pos) : base(id, name, pos, false)
     {
         AddExecPort("Exec", true, false);
@@ -5011,9 +5013,10 @@ public class ForChip : Chip
         AddPort("To", true, [typeof(int)], true);
 
         AddExecPort("Next", false, true);
-        AddPort("Index", false, [typeof(int)], true);
+        ChipPort port = AddPort("Index", false, [typeof(int)], true);
         AddExecPort("End", false, true);
-        OutputPorts[0].Value.ValueFunction = OutputFunction;
+
+        port.Value.ValueFunction = OutputFunction;
     }
 
     public override void OnExecute(ExecPort? startPort)
@@ -7271,6 +7274,7 @@ public class PrefabConstantChip : Chip
         if (properties.TryGetValue("Path", out string path))
         {
             prefab.FilePath = path;
+            EngineLog.Log("Path Set: " + path);
         }
     }
 
@@ -7304,7 +7308,8 @@ public class PrefabConstantChip : Chip
                 ImGui.BeginGroup();
                 if (ImGui.ImageButton(path, (IntPtr)LoadIcons.icons["Prefab.png"], new Vector2(60, 60)))
                 {
-                    prefab.FilePath = path;
+                    prefab.FilePath = Path.Combine("Assets", Path.Combine("GameObjects", Path.GetFileName(path)));
+                    EngineLog.Log("Path Set: " + prefab.FilePath);
                     searchButtonClicked = false;
                 }
                 float textWidth = ImGui.CalcTextSize(Path.GetFileNameWithoutExtension(prefab.FilePath)).X;

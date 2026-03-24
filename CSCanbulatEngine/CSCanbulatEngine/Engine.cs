@@ -211,6 +211,11 @@ public class Engine
         window.Render += OnRender;
         window.Update += OnUpdate;
         window.Closing += OnClose;
+        window.Resize += size =>
+        {
+            ViewportSize = size;
+            gl.Viewport(0, 0, (uint)ViewportSize.X, (uint)ViewportSize.Y);
+        };
         
         #if EDITOR
         window.FileDrop += OnFileDrop;
@@ -272,6 +277,9 @@ public class Engine
             EngineLog.Log($"[Engine] Failed to initialize AudioEngine: {e.Message}");
             throw;
         }
+        
+        ViewportSize = window.Size;
+        gl.Viewport(0, 0, (uint)ViewportSize.X, (uint)ViewportSize.Y);
 
 #if EDITOR
         
@@ -395,6 +403,17 @@ public class Engine
         window.Title = BuildManager.LoadGameConfig()?? "CSCanbulatEngine";
 
         CurrentState = EngineState.Play;
+
+        var StartEvents = EventManager.RegisteredEvents.FindAll(e => e.EventName == "OnStart");
+
+        if (StartEvents.Count > 0)
+        {
+            var payload = new EventValues();
+            foreach (var e in StartEvents)
+            {
+                EventManager.Trigger(e, payload);
+            }
+        }
 #endif
 
     }
@@ -526,12 +545,16 @@ public class Engine
         if (CurrentState == EngineState.Play)
         {
             ChipExecManager.Update();
-            var updateEvent = EventManager.RegisteredEvents.Find(e => e.EventName == "OnUpdate");
-            if (updateEvent != null)
+            var updateEvent = EventManager.RegisteredEvents.FindAll(e => e.EventName == "OnUpdate");
+
+            if (updateEvent.Count > 0)
             {
                 var payload = new EventValues();
                 payload.floats["Delta Time"] = (float)deltaTime;
-                EventManager.Trigger(updateEvent, payload);
+                foreach (var e in updateEvent)
+                {
+                    EventManager.Trigger(e, payload);
+                }
             }
             
             ChernikovEngine.Step((float)deltaTime);
@@ -1460,7 +1483,7 @@ public class Engine
 
             if (ImGui.MenuItem("Make Prefab"))
             {
-                PrefabManager.SavePrefab(gameObject, Path.Combine(ProjectSerialiser.GetAssetsFolder(), "GameObjects"));
+                PrefabManager.SavePrefab(gameObject);
             }
 
             if (gameObject.ParentObject != null)
@@ -1518,7 +1541,6 @@ public class Engine
             {
                 ReloadAllCircuitScripts();
                 CurrentState = EngineState.Play;
-                ChernikovEngine.ResetRigidbodyValues();
                 var sceneData = SceneSerialiser.SceneDataFromCurrentScene();
                 _sceneSnapshotBeforePlay = JsonConvert.SerializeObject(sceneData, Formatting.Indented);
 
@@ -1812,7 +1834,7 @@ public class Engine
     {
         if (!String.IsNullOrWhiteSpace(CircuitEditor.CircuitScriptName) && !String.IsNullOrWhiteSpace(CircuitEditor.CircuitScriptDirPath))
         {
-            CircuitSerialiser.SaveCircuit(CircuitEditor.CircuitScriptName, CircuitEditor.CircuitScriptDirPath);
+            CircuitSerialiser.SaveCircuit(CircuitEditor.CircuitScriptName);
         }
         else
         {
@@ -1835,7 +1857,7 @@ public class Engine
     {
         if (!String.IsNullOrWhiteSpace(CircuitEditor.CircuitScriptName))
         {
-            CircuitSerialiser.SaveCircuit(CircuitEditor.CircuitScriptName, CircuitEditor.CircuitScriptDirPath);
+            CircuitSerialiser.SaveCircuit(CircuitEditor.CircuitScriptName);
         }
         else
         {

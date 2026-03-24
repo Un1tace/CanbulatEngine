@@ -15,9 +15,9 @@ public class PrefabManager
     /// </summary>
     /// <param name="rootObject">The object to save</param>
     /// <param name="directory">Directory where to save prefab</param>
-    public static void SavePrefab(GameObject rootObject, string directory)
+    public static void SavePrefab(GameObject rootObject)
     {
-        string filePath = Path.Combine(directory, $"{rootObject.Name}.cfab");
+        string filePath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), Path.Combine("GameObjects", $"{rootObject.Name}.cfab"));
         SceneData.GameObjectData prefabData = SerialiseObjectRecursive(rootObject);
         
         string json = JsonConvert.SerializeObject(prefabData, Formatting.Indented);
@@ -51,19 +51,30 @@ public class PrefabManager
     /// <returns>GameObject</returns>
     public static GameObject LoadPrefab(string filePath)
     {
-        if (!File.Exists(filePath))
+
+        var newPath = filePath;
+        if (!filePath.StartsWith("GameObjects/"))
+        {
+            string name = Path.GetFileName(filePath);
+            
+            newPath = "GameObjects/" + name;
+        }
+        
+        newPath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), newPath);
+        
+        if (!File.Exists(newPath))
         {
             GameConsole.Log("[Prefab Manager] File not found");
             return null;
         }
 
-        if (!filePath.EndsWith(".cfab"))
+        if (!newPath.EndsWith(".cfab"))
         {
             GameConsole.Log("[Prefab Manager] File doesnt end with cfab");
             return null;
         }
         
-        string json = File.ReadAllText(filePath);
+        string json = File.ReadAllText(newPath);
         SceneData.GameObjectData data = JsonConvert.DeserializeObject<SceneData.GameObjectData>(json);
 
         return DeserialiseObjectRecursive(data);

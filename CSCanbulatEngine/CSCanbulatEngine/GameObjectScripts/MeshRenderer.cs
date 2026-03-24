@@ -48,7 +48,7 @@ public class MeshRenderer : Component
     {
         try
         {
-            string fullPath = path;
+            string fullPath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), path);
             Vector2D<int> sizeOutput = new Vector2D<int>();
             TextureID = TextureLoader.Load(Engine.gl, fullPath, out sizeOutput);
             ImageResolution = sizeOutput;
@@ -150,7 +150,15 @@ public class MeshRenderer : Component
                 }
                 if (ImGui.ImageButton(path, (IntPtr)LoadIcons.imageIcons[path], new Vector2(60, 60)))
                 {
-                    AssignTexture(path);
+                    var newPath = path;
+                    if (!path.StartsWith("Images/"))
+                    {
+                        string name = Path.GetFileName(path);
+            
+                        newPath = "Images/" + name;
+                    }
+
+                    AssignTexture(newPath);
                     searchButtonClicked = false;
                 }
                 float textWidth = ImGui.CalcTextSize(Path.GetFileNameWithoutExtension(name)).X;
@@ -187,7 +195,15 @@ public class MeshRenderer : Component
                 {
                     try
                     {
-                        AssignTexture(assetPath);
+                        var newPath = assetPath;
+                        if (!assetPath.StartsWith("Images/"))
+                        {
+                            string name = Path.GetFileName(assetPath);
+            
+                            newPath = "Images/" + name;
+                        }
+
+                        AssignTexture(newPath);
                     }
                     catch (Exception e)
                     {

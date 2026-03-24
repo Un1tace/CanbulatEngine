@@ -7,6 +7,8 @@ using ImGuiNET;
 
 namespace CSCanbulatEngine;
 
+
+
 /// <summary>
 /// Holds information and allows the change of settings over the entire project
 /// </summary>
@@ -15,7 +17,8 @@ public static class SceneSettings
     public static bool isOpen = false;
     public static Vector2 Gravity = new Vector2(0, -9.81f);
     private static Vector4 colourSet = Engine.BackgroundColour.colour;
-
+    
+#if EDITOR
     /// <summary>
     /// Show project settings window
     /// </summary>
@@ -56,6 +59,8 @@ public static class SceneSettings
          
          ImGui.End();
     }
+
+#endif
 
     /// <summary>
     /// Get Scene settings in Dictionary<string, string> format
@@ -140,7 +145,7 @@ public static class SceneSettings
             }
         }
     }
-
+    
     /// <summary>
     /// Reset project settings to default project settings.
     /// </summary>
@@ -157,3 +162,4 @@ public static class SceneSettings
         colourSet = Engine.BackgroundColour.colour;
     }
 }
+

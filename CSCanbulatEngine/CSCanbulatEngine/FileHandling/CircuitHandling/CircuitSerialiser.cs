@@ -15,12 +15,9 @@ public static class CircuitSerialiser
     /// </summary>
     /// <param name="circuitName">Name of circuit file</param>
     /// <param name="filePath">Path to file</param>
-    public static void SaveCircuit(string circuitName, string filePath = "")
+    public static void SaveCircuit(string circuitName)
     {
-        if (filePath == "")
-        {
-            filePath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Circuits");
-        }
+        string filePath = "Circuits";
         
         Directory.CreateDirectory(filePath);
         CircuitEditor.CircuitScriptName = circuitName;
@@ -112,7 +109,8 @@ public static class CircuitSerialiser
         }
 
         string json = JsonConvert.SerializeObject(circuitInfo, Formatting.Indented);
-        File.WriteAllText(Path.Combine(filePath, circuitName + ".ccs"), json);
+        EngineLog.Log("Writing to: " + Path.Combine(ProjectSerialiser.GetAssetsFolder(), Path.Combine(filePath, circuitName + ".ccs")) + $" (Small {Path.Combine(filePath, circuitName + ".ccs")})");
+        File.WriteAllText(Path.Combine(ProjectSerialiser.GetAssetsFolder(), Path.Combine(filePath, circuitName + ".ccs")), json);
         EngineLog.Log($"Saved circuit script: {circuitName}");
         // Engine.ReloadAllCircuitScripts();
     }
@@ -220,7 +218,22 @@ public static class CircuitSerialiser
     /// <param name="filePath">file path to file</param>
     public static void LoadCircuit(string filePath)
     {
-        string json = File.ReadAllText(filePath);
+        if (!filePath.StartsWith("Circuits/"))
+        {
+            string name = Path.GetFileNameWithoutExtension(filePath) + ".ccs";
+            
+            filePath = "Circuits/" + name;
+        }
+        
+        if (!File.Exists(filePath))
+        {
+            GameConsole.Log($"[Error] Circuit file missing at path: {filePath}");
+            return;
+        }
+
+
+        EngineLog.Log("Reading from: " + Path.Combine(ProjectSerialiser.GetAssetsFolder(), filePath));
+        string json = File.ReadAllText(Path.Combine(ProjectSerialiser.GetAssetsFolder(), filePath));
         var circuitInfo = JsonConvert.DeserializeObject<CircuitData.CircuitInfo>(json);
         
         CircuitEditor.chips.Clear();

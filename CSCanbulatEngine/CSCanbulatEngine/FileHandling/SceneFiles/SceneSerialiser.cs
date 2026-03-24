@@ -185,6 +185,7 @@ public class SceneSerialiser
 
     public static void LoadSceneFromString(string json)
     {
+        EngineLog.Log("[SceneSerialiser] JSON parsed, beginning deserialization...");
         var sceneData = JsonConvert.DeserializeObject<SceneData.SceneInfo>(json);
         
         //Reset managers
@@ -220,8 +221,10 @@ public class SceneSerialiser
             }
         }
         
+        EngineLog.Log("[SceneSerialiser] Creating GameObjects...");
         foreach (var objData in sceneData.GameObjects)
         {
+            EngineLog.Log($"[SceneSerialiser] Creating: {objData.Name}");
             CreateGameObjectFromData(objData, false);
         }
 
@@ -240,6 +243,7 @@ public class SceneSerialiser
     
     public void LoadScene(string filePath)
     {
+        EngineLog.Log("[SceneSerialiser] Reading JSON file...");
         string json = File.ReadAllText(filePath);
 
         EngineLog.Log($"[SceneSerialiser] Loading scene {filePath}");

@@ -847,8 +847,10 @@ public class Chip
             OutputExecPorts.Add(new ExecPort(NextAvaliablePortIDFunc(), "Chip Execution Output", this, false));
         }
 
+        #if EDITOR
         // Calculates size of chip
         Size = CalculateSize();
+#endif
         
         // Executes this for any logic on the chips creation
         OnInstantiation();

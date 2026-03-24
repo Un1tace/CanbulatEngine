@@ -34,56 +34,116 @@ public class CircuitScript : Component
     /// <param name="filePath">File path to circuit script</param>
     public void LoadCircuit(string filePath)
     {
-        string json = File.ReadAllText(filePath);
-        var circuitInfo = JsonConvert.DeserializeObject<CircuitData.CircuitInfo>(json);
-
-        foreach (Chip chip in chips)
+        try
         {
-            chip.OnDestroy();
-        }
-        chips.Clear();
-        CircuitScriptName = Path.GetFileNameWithoutExtension(filePath);
-        CircuitScriptDirPath = Path.GetDirectoryName(filePath);
-        
-        foreach (var chip in circuitInfo.Chips)
-        {
-            CreateChipFromData(chip);
-        }
+            EngineLog.Log("Reading from: " + filePath);
 
-        foreach (var portValueData in circuitInfo.UnconnectedPortValues)
-        {
-            var chip = FindChip(portValueData.ChipId);
-            var port = chip?.InputPorts.FirstOrDefault(p => p.Id == portValueData.PortId);
+            string resolvedPath = ResolveCircuitPath(filePath);
+            EngineLog.Log("Actual Directory: " + resolvedPath);
 
-            CircuitSerialiser.ParseAndSetPortData(portValueData, port);
-        }
-        
-        foreach (var connectionData in circuitInfo.Connections)
-        {
-            var outputChip = FindChip(connectionData.OutputChipId);
-            var inputChip = FindChip(connectionData.InputChipId);
-
-            if (outputChip != null && inputChip != null)
+            if (!File.Exists(resolvedPath))
             {
-                var outputPort = outputChip.OutputPorts.Concat(outputChip.OutputExecPorts).FirstOrDefault(p => p.Id == connectionData.OutputPortId);
-                var inputPort = inputChip.InputPorts.Concat(inputChip.InputExecPorts).FirstOrDefault(p => p.Id == connectionData.InputPortId);
+                EngineLog.Log("[LC] File not found at path " + resolvedPath);
+                return;
+            }
 
-                if (outputPort != null && inputPort != null)
+            string json = File.ReadAllText(resolvedPath);
+            var circuitInfo = JsonConvert.DeserializeObject<CircuitData.CircuitInfo>(json);
+
+            foreach (Chip chip in chips)
+            {
+                chip.OnDestroy();
+            }
+
+            chips.Clear();
+            CircuitScriptName = Path.GetFileNameWithoutExtension(filePath);
+            CircuitScriptDirPath = Path.Combine(Path.GetDirectoryName(filePath));
+
+            foreach (var chip in circuitInfo.Chips)
+            {
+                CreateChipFromData(chip);
+            }
+
+            Console.WriteLine("Shush");
+            
+            if (circuitInfo.UnconnectedPortValues != null)
+            {
+                foreach (var portValueData in circuitInfo.UnconnectedPortValues)
                 {
-                    inputPort.ConnectPort(outputPort);
+                    try
+                    {
+                        var chip = FindChip(portValueData.ChipId);
+                        if (chip == null) continue;
+                        
+                        var allPorts = new List<ChipPort>();
+                        if (chip.InputPorts != null) allPorts.AddRange(chip.InputPorts);
+                        if (chip.InputExecPorts != null) allPorts.AddRange(chip.InputExecPorts);
+
+                        var port = allPorts.FirstOrDefault(p => p.Id == portValueData.PortId);
+
+                        if (port != null)
+                        {
+                            EngineLog.Log($"[CircuitScript] Setting value for Chip {chip.Name}, Port {port.Id}...");
+                            CircuitSerialiser.ParseAndSetPortData(portValueData, port);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        EngineLog.Log($"[CircuitScript] Inner EXCEPTION setting port {portValueData.PortId} on chip {portValueData.ChipId}: {ex.Message}");
+                    }
                 }
             }
-            
-        }
-        EngineLog.Log($"Loaded circuit script: {filePath} in object {AttachedGameObject.Name}");
 
-        foreach (var chip in allSerialisedChips)
-        {
-            chip.valuesHeld = chip.defaultValues;
-            chip.originalValuesHeld = chip.valuesHeld;
+
+            foreach (var connectionData in circuitInfo.Connections)
+            {
+                var outputChip = FindChip(connectionData.OutputChipId);
+                var inputChip = FindChip(connectionData.InputChipId);
+
+                if (outputChip != null && inputChip != null)
+                {
+                    var outputPort = outputChip.OutputPorts.Concat(outputChip.OutputExecPorts)
+                        .FirstOrDefault(p => p.Id == connectionData.OutputPortId);
+                    var inputPort = inputChip.InputPorts.Concat(inputChip.InputExecPorts)
+                        .FirstOrDefault(p => p.Id == connectionData.InputPortId);
+
+                    if (outputPort != null && inputPort != null)
+                    {
+                        inputPort.ConnectPort(outputPort);
+                    }
+                }
+
+            }
+
+            EngineLog.Log($"Loaded circuit script: {filePath} in object {AttachedGameObject.Name}");
+
+            foreach (var chip in allSerialisedChips)
+            {
+                chip.valuesHeld = chip.defaultValues;
+                chip.originalValuesHeld = chip.valuesHeld;
+            }
+
+            EngineLog.Log($"Loaded serialised chip values into circuit script: {CircuitScriptName}");
         }
-        
-        EngineLog.Log($"Loaded serialised chip values into circuit script: {CircuitScriptName}");
+        catch (Exception e)
+        {
+            Console.WriteLine($"[LC] EXCEPTION: {e.GetType().Name}: {e.Message}");
+            Console.WriteLine(e.StackTrace);
+        }
+    }
+    
+    private static string ResolveCircuitPath(string filePath)
+    {
+        if (Path.IsPathRooted(filePath))
+            return filePath;
+
+        var p = filePath.Replace('\\', '/');
+
+        // If it starts with Assets/, strip that and prepend ProjectSerialiser assets folder
+        if (p.StartsWith("Assets/"))
+            p = p["Assets/".Length..];
+
+        return Path.Combine(ProjectSerialiser.GetAssetsFolder(), p);
     }
     
     /// <summary>
@@ -95,6 +155,8 @@ public class CircuitScript : Component
     public Chip? CreateChipFromData(CircuitData.ChipData data, bool setID = true)
     {
         Type chipType = Type.GetType(data.ChipType);
+        
+        EngineLog.Log($"Creating chip {data.ChipType}...");
 
         if (chipType != null)
         {
