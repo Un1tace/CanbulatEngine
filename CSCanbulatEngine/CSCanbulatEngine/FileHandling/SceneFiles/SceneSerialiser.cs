@@ -26,12 +26,25 @@ public class SceneSerialiser
     {
         string filePath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), "Scenes");
         var sceneData = SceneDataFromCurrentScene(sceneName);
+        
+        if (!Directory.Exists(filePath))
+        {
+            Directory.CreateDirectory(filePath);
+        }
 
         string json = JsonConvert.SerializeObject(sceneData, Formatting.Indented);
-        File.WriteAllText(Path.Combine(filePath, sceneName + ".cbs"), json);
-        Engine.currentScene.SceneFilePath = Path.Combine(filePath, sceneName + ".cbs");
-        EngineLog.Log($"Saved scene: {Path.Combine(filePath, sceneName + ".cbs")}");
-        Engine.currentScene.SceneSavedOnce = true;
+        try
+        {
+            File.WriteAllText(Path.Combine(filePath, sceneName + ".cbs"), json);
+            Engine.currentScene.SceneFilePath = Path.Combine(filePath, sceneName + ".cbs");
+            EngineLog.Log($"Saved scene: {Path.Combine(filePath, sceneName + ".cbs")}");
+            Engine.currentScene.SceneSavedOnce = true;
+        }
+        catch (Exception e)
+        {
+            EngineLog.Log($"[FATAL] Could not save scene. OS Error: {e.Message}. Are we blocked by OneDrive/Defender?");
+        }
+        
     }
     
     public static SceneData.SceneInfo SceneDataFromCurrentScene(string sceneName = "Example Scene")

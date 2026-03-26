@@ -124,6 +124,8 @@ public static class ProjectManager
             {
                 continue;
             }
+
+            if (name.StartsWith("._")) continue;
             
             FileAttributes attr = File.GetAttributes(name);
 

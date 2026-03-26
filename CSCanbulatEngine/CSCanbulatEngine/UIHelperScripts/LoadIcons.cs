@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using CSCanbulatEngine.FileHandling;
 using Silk.NET.Maths;
 
@@ -27,17 +28,24 @@ public class LoadIcons
             foreach (string file in filesFound)
             {
                 string baseFile = FileHandling.FileHandling.GetNameOfFile(file);
-                if (file.ToLower().EndsWith("png"))
+                try
                 {
-                    Vector2D<int> size = new Vector2D<int>(0, 0);
-                    uint textureID = TextureLoader.Load(Engine.gl, file, out size);
-                    icons.Add(baseFile, textureID);
-                    iconSizes.Add(baseFile, size);
-                    EngineLog.Log($"[IconLoader] {baseFile} has been loaded");
+                    if (file.ToLower().EndsWith("png") && !file.StartsWith("._"))
+                    {
+                        Vector2D<int> size = new Vector2D<int>(0, 0);
+                        uint textureID = TextureLoader.Load(Engine.gl, file, out size);
+                        icons.Add(baseFile, textureID);
+                        iconSizes.Add(baseFile, size);
+                        EngineLog.Log($"[IconLoader] {baseFile} has been loaded");
+                    }
+                    else
+                    {
+                        continue;
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    filesFound.Remove(file);
+                    EngineLog.Log($"[IconLoader] Invalid image skipped: {baseFile} - {e.Message}");
                 }
             }
             EngineLog.Log($"[IconLoader] Loaded {icons.Count} files");
@@ -61,12 +69,20 @@ public class LoadIcons
 
     private static void FindImagesInSubDirectory(string path)
     {
-        string[] subDirectories = Directory.GetDirectories(path);
-        foreach (string subDirectory in subDirectories)
+        try
         {
-            FindImagesInDirectory(subDirectory);
-            FindImagesInSubDirectory(subDirectory);
+            string[] subDirectories = Directory.GetDirectories(path);
+            foreach (string subDirectory in subDirectories)
+            {
+                FindImagesInDirectory(subDirectory);
+                FindImagesInSubDirectory(subDirectory);
+            }
         }
+        catch (Exception e)
+        {
+            EngineLog.Log($"[IconLoader] Failed to scan subdirectories in {path}: {e.Message}");
+        }
+        
     }
 
     private static void FindImagesInDirectory(string path)
@@ -77,15 +93,23 @@ public class LoadIcons
         {
             foreach (string file in files)
             {
-                if (file.ToLower().EndsWith(".png") || file.ToLower().EndsWith(".jpg") ||
-                    file.ToLower().EndsWith(".jpeg"))
+                if (file.StartsWith("._") || file.StartsWith(".")) continue;
+                if ((file.ToLower().EndsWith(".png") || file.ToLower().EndsWith(".jpg") ||
+                     file.ToLower().EndsWith(".jpeg")))
                 {
                     if (!imageIcons.ContainsKey(file))
                     {
-                        uint id = TextureLoader.Load(Engine.gl, file, out Vector2D<int> size);
-                        imageIcons.Add(file, id);
-                        imageIconSizes.Add(file, size);
-                        EngineLog.Log($"[IconLoader] {file} has been loaded");
+                        try
+                        {
+                            uint id = TextureLoader.Load(Engine.gl, file, out Vector2D<int> size);
+                            imageIcons.Add(file, id);
+                            imageIconSizes.Add(file, size);
+                            EngineLog.Log($"[IconLoader] {file} has been loaded");
+                        }
+                        catch (Exception e)
+                        {
+                            EngineLog.Log($"[IconLoader] Skipped invalid image file: {file} - {e.Message}");
+                        }
                     }
                 }
             }

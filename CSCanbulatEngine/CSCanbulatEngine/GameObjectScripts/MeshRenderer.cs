@@ -46,6 +46,10 @@ public class MeshRenderer : Component
 
     public void AssignTexture(string path)
     {
+        if (path.StartsWith("._"))
+        {
+            EngineLog.Log("Invalid texture. Use one without ._ ");
+        }
         try
         {
             string fullPath = Path.Combine(ProjectSerialiser.GetAssetsFolder(), path);
