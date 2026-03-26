@@ -162,6 +162,12 @@
       <None Update="Resources\Icons\Prefab.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Icon.icon\Assets\Canbulat Engine Logo Transparent.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Icon.icon\icon.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -177,6 +183,8 @@
 
         <MakeDir Directories="$(AppBundleDir)/Contents/MacOS" />
         <MakeDir Directories="$(AppBundleDir)/Contents/Resources" />
+
+        <Copy SourceFiles="AppIcon.icns" DestinationFiles="$(AppBundleDir)/Contents/Resources/AppIcon.icns" />
 
         <ItemGroup>
             <PublishFiles Include="$(PublishDir)/**/*.*" Exclude="$(AppBundleDir)/**/*.*" />
