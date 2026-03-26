@@ -5734,10 +5734,6 @@
             "version": "[9.0.12, 9.0.12]"
           },
           {
-            "name": "Microsoft.NETCore.App.Crossgen2.osx-arm64",
-            "version": "[9.0.12, 9.0.12]"
-          },
-          {
             "name": "Microsoft.NETCore.App.Host.osx-arm64",
             "version": "[9.0.12, 9.0.12]"
           },

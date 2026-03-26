@@ -218,20 +218,21 @@ public static class CircuitSerialiser
     /// <param name="filePath">file path to file</param>
     public static void LoadCircuit(string filePath)
     {
-        if (!filePath.StartsWith("Circuits/"))
+        if (!Path.IsPathRooted(filePath) && !filePath.StartsWith("Circuits/"))
         {
             string name = Path.GetFileNameWithoutExtension(filePath) + ".ccs";
-            
             filePath = "Circuits/" + name;
         }
         
-        if (!File.Exists(filePath))
+        string resolvedPath = ResolveCircuitPath(filePath);
+        EngineLog.Log("Reading from: " + resolvedPath);
+        
+        if (!File.Exists(resolvedPath))
         {
-            GameConsole.Log($"[Error] Circuit file missing at path: {filePath}");
+            GameConsole.Log($"[Error] Circuit file missing at path: {resolvedPath}");
             return;
         }
-
-
+        
         EngineLog.Log("Reading from: " + Path.Combine(ProjectSerialiser.GetAssetsFolder(), filePath));
         string json = File.ReadAllText(Path.Combine(ProjectSerialiser.GetAssetsFolder(), filePath));
         var circuitInfo = JsonConvert.DeserializeObject<CircuitData.CircuitInfo>(json);
@@ -301,5 +302,18 @@ public static class CircuitSerialiser
         CircuitEditor.lastSelectedChip = null;
 #endif
         EngineLog.Log($"Loaded circuit script: {filePath}");
+    }
+    
+    private static string ResolveCircuitPath(string filePath)
+    {
+        if (Path.IsPathRooted(filePath))
+            return filePath;
+
+        var p = filePath.Replace('\\', '/');
+        
+        if (p.StartsWith("Assets/"))
+            p = p["Assets/".Length..];
+
+        return Path.Combine(ProjectSerialiser.GetAssetsFolder(), p);
     }
 }

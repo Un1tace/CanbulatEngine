@@ -138,8 +138,7 @@ public class CircuitScript : Component
             return filePath;
 
         var p = filePath.Replace('\\', '/');
-
-        // If it starts with Assets/, strip that and prepend ProjectSerialiser assets folder
+        
         if (p.StartsWith("Assets/"))
             p = p["Assets/".Length..];
 
