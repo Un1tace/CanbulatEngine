@@ -1423,7 +1423,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get World Rotation Chip"))
                         {
                             CircuitEditor.chips.Add(new GetWorldRotationChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get World Position", _spawnPos));
+                                "Get World Rotation", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -1437,7 +1437,7 @@ private static readonly List<(string Path, string Description, Func<Vector2, Chi
                         if (ImGui.MenuItem("Create Get Local Rotation Chip"))
                         {
                             CircuitEditor.chips.Add(new GetLocalRotationChip(CircuitEditor.GetNextAvaliableChipID(),
-                                "Get Local Position", _spawnPos));
+                                "Get Local Rotation", _spawnPos));
                         }
                         if (ImGui.IsItemHovered())
                         {
